@@ -43,18 +43,18 @@ function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t bg-background/95 backdrop-blur-sm">
       <div className="flex justify-around h-16 items-center">
         {navItems.map((item) => (
-          <Link href={item.href} key={item.href} legacyBehavior>
-            <a
-              className={cn(
-                'flex flex-col items-center justify-center w-full gap-1 text-sm',
-                pathname === item.href
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-primary'
-              )}
-            >
-              <item.icon className="h-6 w-6" />
-              <span>{item.label}</span>
-            </a>
+          <Link
+            href={item.href}
+            key={item.href}
+            className={cn(
+              'flex flex-col items-center justify-center w-full gap-1 text-sm',
+              pathname === item.href
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-primary'
+            )}
+          >
+            <item.icon className="h-6 w-6" />
+            <span>{item.label}</span>
           </Link>
         ))}
       </div>
@@ -77,12 +77,12 @@ function MainSidebar({user, handleLogout}: {user: {username: string} | null, han
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref legacyBehavior>
-                <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+              <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+                <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
