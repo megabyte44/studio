@@ -82,12 +82,14 @@ function TodoList() {
 }
 
 function Alarm() {
-    const [time, setTime] = useState('');
+    const [time, setTime] = useState<string | null>(null);
 
     useEffect(() => {
         const timer = setInterval(() => {
             setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         }, 1000);
+        setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        
         return () => clearInterval(timer);
     }, []);
 
@@ -98,7 +100,7 @@ function Alarm() {
                 <CardDescription>08:00 AM - Morning Briefing</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center">
-                <div className="text-6xl font-bold font-headline text-primary tabular-nums">{time || '00:00'}</div>
+                <div className="text-6xl font-bold font-headline text-primary tabular-nums">{time ?? '00:00'}</div>
                 <p className="text-muted-foreground">The current time</p>
             </CardContent>
         </Card>
