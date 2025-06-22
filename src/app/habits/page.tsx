@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -19,6 +20,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 
 // --- Initial Data for Gym Tracker ---
 const initialWorkoutSplit: CyclicalWorkoutSplit = {
@@ -351,130 +354,58 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const glassesToday = typeof habit.completions[todayKey] === 'number' ? (habit.completions[todayKey] as number) : 0;
   const mlToday = glassesToday * ML_PER_GLASS;
-  const streak = calculateStreak(habit.completions, TARGET_GLASSES);
   
   return (
-    <Card className="xl:col-span-2">
-      <CardHeader>
-        <CardTitle className="font-headline flex items-center justify-between text-lg">
-            <div className='flex items-center gap-3'>
-                <Droplets className="h-6 w-6 text-primary" />
-                <span>Water Intake Tracker</span>
-            </div>
-            <div className="flex items-center gap-1 text-primary">
-                <Flame className="h-5 w-5" />
-                <span className="font-bold text-lg">{streak} Day Streak</span>
-            </div>
-        </CardTitle>
-        <CardDescription>
+    <div className="flex flex-col items-center justify-center gap-4 pt-2 text-center">
+        <p className="text-sm text-muted-foreground px-4">
             Log your daily water intake. Each glass is 250ml. Your goal is 2L ({TARGET_GLASSES} glasses).
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex items-center justify-center gap-4">
-          <Button onClick={() => handleIntakeChange(-1)} variant="outline" size="icon" disabled={glassesToday === 0}>
-              <Minus className="h-4 w-4" />
-          </Button>
-          <div className="text-center">
-              <p className="text-4xl font-bold font-headline">{mlToday}ml</p>
-              <p className="text-sm text-muted-foreground">{glassesToday} / {TARGET_GLASSES} glasses</p>
-          </div>
-          <Button onClick={() => handleIntakeChange(1)} variant="outline" size="icon">
-              <Plus className="h-4 w-4" />
-          </Button>
-      </CardContent>
-    </Card>
+        </p>
+        <div className="flex items-center justify-center gap-4">
+            <Button onClick={() => handleIntakeChange(-1)} variant="outline" size="icon" disabled={glassesToday === 0}>
+                <Minus className="h-4 w-4" />
+            </Button>
+            <div className="text-center">
+                <p className="text-4xl font-bold font-headline">{mlToday}ml</p>
+                <p className="text-sm text-muted-foreground">{glassesToday} / {TARGET_GLASSES} glasses</p>
+            </div>
+            <Button onClick={() => handleIntakeChange(1)} variant="outline" size="icon">
+                <Plus className="h-4 w-4" />
+            </Button>
+        </div>
+    </div>
   )
 }
 
 function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: string, date: string) => void }) {
   const today = new Date();
   const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
-  const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="flex items-center gap-3">
-          <Icon className="h-6 w-6 text-primary" />
-          <CardTitle className="font-headline text-lg">{habit.name}</CardTitle>
+    <TooltipProvider>
+        <div className="flex justify-end gap-1.5 flex-wrap p-4 pt-2">
+            {days.map((day) => {
+                const dateString = format(day, 'yyyy-MM-dd');
+                const isCompleted = !!habit.completions[dateString];
+                return (
+                    <Tooltip key={dateString} delayDuration={0}>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={() => onToggle(habit.id, dateString)}
+                                className={cn(
+                                    'h-7 w-7 rounded-sm transition-colors',
+                                    isCompleted ? 'bg-primary hover:bg-primary/90' : 'bg-secondary hover:bg-accent',
+                                    isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                                )}
+                            />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{format(day, 'MMM d, yyyy')}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                );
+            })}
         </div>
-        <div className="flex items-center gap-1 text-orange-500">
-            <Flame className="h-5 w-5" />
-            <span className="font-bold text-lg">{calculateStreak(habit.completions)}</span>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <TooltipProvider>
-            <div className="flex justify-end gap-1.5 flex-wrap">
-                {days.map((day) => {
-                    const dateString = format(day, 'yyyy-MM-dd');
-                    const isCompleted = !!habit.completions[dateString];
-                    return (
-                        <Tooltip key={dateString} delayDuration={0}>
-                            <TooltipTrigger asChild>
-                                <button
-                                    onClick={() => onToggle(habit.id, dateString)}
-                                    className={cn(
-                                        'h-7 w-7 rounded-sm transition-colors',
-                                        isCompleted ? 'bg-primary hover:bg-primary/90' : 'bg-secondary hover:bg-accent',
-                                        isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                                    )}
-                                />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{format(day, 'MMM d, yyyy')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    );
-                })}
-            </div>
-        </TooltipProvider>
-      </CardContent>
-    </Card>
-  );
-}
-
-function StreakBook({ habits }: { habits: Habit[] }) {
-  const WATER_TARGET_GLASSES = 8;
-  
-  if (habits.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="space-y-4">
-        <h2 className="text-xl font-bold font-headline flex items-center gap-2">
-            <BookOpenCheck className="h-6 w-6 text-primary" />
-            <span>Streak Book</span>
-        </h2>
-        <Card>
-            <CardContent className="pt-6">
-                <ul className="space-y-4">
-                    {habits.map((habit) => {
-                        const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
-                        const isWaterHabit = habit.name === 'Drink 2L Water';
-                        const streak = calculateStreak(
-                            habit.completions,
-                            isWaterHabit ? WATER_TARGET_GLASSES : 1
-                        );
-
-                        return (
-                            <li key={habit.id} className="flex items-center justify-between pb-2 border-b last:border-b-0">
-                                <div className="flex items-center gap-4">
-                                    <Icon className="h-6 w-6 text-muted-foreground" />
-                                    <span className="font-semibold">{habit.name}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-orange-500">
-                                    <Flame className="h-5 w-5" />
-                                    <span className="font-bold text-lg">{streak} Day{streak !== 1 ? 's' : ''}</span>
-                                </div>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </CardContent>
-        </Card>
-    </div>
+    </TooltipProvider>
   );
 }
 
@@ -520,8 +451,7 @@ export default function HabitsPage() {
     }));
   }
 
-  const waterHabit = habits.find(h => h.name === 'Drink 2L Water');
-  const otherHabits = habits.filter(h => h.name !== 'Drink 2L Water');
+  const WATER_TARGET_GLASSES = 8;
 
   return (
     <AppLayout>
@@ -542,17 +472,47 @@ export default function HabitsPage() {
         <Separator />
 
         <div className="space-y-4">
-             <h2 className="text-xl font-bold font-headline">Daily Habits</h2>
-             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                {waterHabit && <WaterIntakeManager habit={waterHabit} onUpdate={handleUpdateHabit} />}
-                {otherHabits.map((habit) => (
-                    <HabitGrid key={habit.id} habit={habit} onToggle={handleToggleCompletion} />
-                ))}
-             </div>
-        </div>
+            <h2 className="text-xl font-bold font-headline flex items-center gap-2">
+                <BookOpenCheck className="h-6 w-6 text-primary" />
+                <span>Daily Habits & Streaks</span>
+            </h2>
+            <Accordion type="single" collapsible className="w-full space-y-4">
+                {habits.map((habit) => {
+                    const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
+                    const isWaterHabit = habit.name === 'Drink 2L Water';
+                    const streak = calculateStreak(
+                        habit.completions,
+                        isWaterHabit ? WATER_TARGET_GLASSES : 1
+                    );
 
-        <Separator />
-        <StreakBook habits={habits} />
+                    return (
+                        <Card key={habit.id}>
+                            <AccordionItem value={habit.id} className="border-b-0">
+                                <AccordionTrigger className="p-4 hover:no-underline">
+                                    <div className="flex items-center justify-between w-full">
+                                        <div className="flex items-center gap-4">
+                                            <Icon className="h-6 w-6 text-muted-foreground" />
+                                            <span className="font-semibold text-base">{habit.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-orange-500">
+                                            <Flame className="h-5 w-5" />
+                                            <span className="font-bold text-lg">{streak} Day{streak !== 1 ? 's' : ''}</span>
+                                        </div>
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    {isWaterHabit ? (
+                                        <WaterIntakeManager habit={habit} onUpdate={handleUpdateHabit} />
+                                    ) : (
+                                        <HabitGrid habit={habit} onToggle={handleToggleCompletion} />
+                                    )}
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Card>
+                    );
+                })}
+            </Accordion>
+        </div>
       </div>
     </AppLayout>
   );
