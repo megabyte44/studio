@@ -94,7 +94,7 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[95%] sm:max-w-lg p-2">
+            <DialogContent className="w-[90%] sm:max-w-md p-2">
                 <DialogHeader className="p-2 pb-0 mb-1">
                     <DialogTitle>Edit Daily Templates</DialogTitle>
                 </DialogHeader>
@@ -258,15 +258,16 @@ export default function PlannerPage() {
         <AppLayout>
             <TooltipProvider>
                 <div className="max-w-4xl mx-auto space-y-4">
-                    <header>
-                        <h1 className="text-2xl font-bold font-headline">Daily Planner</h1>
+                    <header className="space-y-1">
+                        <h1 className="text-xl font-bold font-headline">Daily Planner</h1>
                     </header>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-row items-center justify-between p-4">
                             <CardTitle>Schedule for {selectedDay}</CardTitle>
-                            <Button variant="outline" onClick={() => setIsTemplateDialogOpen(true)}>
-                                <Edit className="mr-2 h-4 w-4" /> Edit Daily Templates
+                            <Button variant="outline" size="icon" onClick={() => setIsTemplateDialogOpen(true)}>
+                                <Edit className="h-4 w-4" />
+                                <span className="sr-only">Edit Daily Templates</span>
                             </Button>
                         </CardHeader>
                         <CardContent>
