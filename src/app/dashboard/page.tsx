@@ -80,7 +80,7 @@ function WaterIntakeWidget() {
   const mlToday = glassesToday * ML_PER_GLASS;
   
   return (
-    <div className="w-[370px] h-[140px] mx-auto border rounded-xl shadow-sm flex flex-row items-center justify-center p-6 gap-6">
+    <div className="w-full max-w-xl mx-auto border rounded-xl shadow-sm flex flex-row items-center justify-center p-4 gap-6">
       <Button 
         onClick={handleIntakeChange} 
         variant="outline" 
