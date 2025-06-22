@@ -145,10 +145,6 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => router.push('/password-manager')}>
-            <KeyRound className="mr-2 h-4 w-4" />
-            <span>Password Manager</span>
-          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push('/settings')}>
             <SettingsIcon className="mr-2 h-4 w-4" />
             <span>Settings</span>
