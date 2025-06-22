@@ -125,7 +125,10 @@ export default function PasswordManagerPage() {
   const handleToggleVisibility = (id: string, fieldName: string) => {
     setVisibilities(prev => ({
       ...prev,
-      [id]: { ...prev[id], [fieldName]: !prev[id]?.[fieldName] }
+      [id]: {
+        ...(prev[id] || {}),
+        [fieldName]: !(prev[id]?.[fieldName])
+      }
     }));
   };
 
