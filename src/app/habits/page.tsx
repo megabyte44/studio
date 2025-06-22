@@ -6,7 +6,7 @@ import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, Pr
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, ChevronLeft, ChevronRight, GlassWater } from 'lucide-react';
+import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, ChevronLeft, ChevronRight, Droplets, Plus, Minus } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
@@ -388,6 +388,65 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
     );
 }
 
+function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habit: Habit) => void }) {
+  if (!habit || habit.name !== 'Drink 2L Water') return null;
+
+  const WATER_TARGET_ML = 2000;
+  const ML_PER_GLASS = 250;
+  const TARGET_GLASSES = WATER_TARGET_ML / ML_PER_GLASS;
+
+  const handleIntakeChange = (increment: number) => {
+    const todayKey = format(new Date(), 'yyyy-MM-dd');
+    const newCompletions = { ...habit.completions };
+    const currentCount = typeof newCompletions[todayKey] === 'number' ? (newCompletions[todayKey] as number) : 0;
+    const newCount = Math.max(0, currentCount + increment);
+
+    if (newCount > 0) {
+      newCompletions[todayKey] = newCount;
+    } else {
+      delete newCompletions[todayKey];
+    }
+    
+    onUpdate({ ...habit, completions: newCompletions });
+  };
+  
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const glassesToday = typeof habit.completions[todayKey] === 'number' ? (habit.completions[todayKey] as number) : 0;
+  const mlToday = glassesToday * ML_PER_GLASS;
+  const streak = calculateStreak(habit.completions, TARGET_GLASSES);
+  
+  return (
+    <Card className="xl:col-span-2">
+      <CardHeader>
+        <CardTitle className="font-headline flex items-center justify-between">
+            <div className='flex items-center gap-3'>
+                <Droplets className="h-6 w-6 text-primary" />
+                <span>Water Intake Tracker</span>
+            </div>
+            <div className="flex items-center gap-1 text-primary">
+                <Flame className="h-5 w-5" />
+                <span className="font-bold text-lg">{streak} Day Streak</span>
+            </div>
+        </CardTitle>
+        <CardDescription>
+            Log your daily water intake. Each glass is 250ml. Your goal is 2L ({TARGET_GLASSES} glasses).
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex items-center justify-center gap-4">
+          <Button onClick={() => handleIntakeChange(-1)} variant="outline" size="icon" disabled={glassesToday === 0}>
+              <Minus className="h-4 w-4" />
+          </Button>
+          <div className="text-center">
+              <p className="text-4xl font-bold font-headline">{mlToday}ml</p>
+              <p className="text-sm text-muted-foreground">{glassesToday} / {TARGET_GLASSES} glasses</p>
+          </div>
+          <Button onClick={() => handleIntakeChange(1)} variant="outline" size="icon">
+              <Plus className="h-4 w-4" />
+          </Button>
+      </CardContent>
+    </Card>
+  )
+}
 
 function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: string, date: string) => void }) {
   const today = new Date();
@@ -411,7 +470,7 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
             <div className="flex justify-end gap-1.5 flex-wrap">
                 {days.map((day) => {
                     const dateString = format(day, 'yyyy-MM-dd');
-                    const isCompleted = habit.completions[dateString];
+                    const isCompleted = !!habit.completions[dateString];
                     return (
                         <Tooltip key={dateString} delayDuration={0}>
                             <TooltipTrigger asChild>
@@ -460,9 +519,13 @@ export default function HabitsPage() {
     }
   }, [habits]);
 
+  const handleUpdateHabit = (updatedHabit: Habit) => {
+    setHabits(habits.map(h => h.id === updatedHabit.id ? updatedHabit : h));
+  };
+
   const handleToggleCompletion = (habitId: string, date: string) => {
     setHabits(habits.map(h => {
-        if (h.id === habitId) {
+        if (h.id === habitId && h.name !== 'Drink 2L Water') {
             const newCompletions = {...h.completions};
             if(newCompletions[date]) {
                 delete newCompletions[date];
@@ -474,6 +537,9 @@ export default function HabitsPage() {
         return h;
     }));
   }
+
+  const waterHabit = habits.find(h => h.name === 'Drink 2L Water');
+  const otherHabits = habits.filter(h => h.name !== 'Drink 2L Water');
 
   return (
     <AppLayout>
@@ -493,10 +559,11 @@ export default function HabitsPage() {
         <GymTracker />
         <Separator />
 
-        <div className="space-y-2">
+        <div className="space-y-4">
              <h2 className="text-xl font-bold font-headline">Daily Habits</h2>
              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                {habits.map((habit) => (
+                {waterHabit && <WaterIntakeManager habit={waterHabit} onUpdate={handleUpdateHabit} />}
+                {otherHabits.map((habit) => (
                     <HabitGrid key={habit.id} habit={habit} onToggle={handleToggleCompletion} />
                 ))}
              </div>

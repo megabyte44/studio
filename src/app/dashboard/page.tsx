@@ -2,7 +2,7 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Droplets, GlassWater, Wallet, CalendarCheck, ListChecks, PenSquare } from 'lucide-react';
+import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus } from 'lucide-react';
 import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS, P_EXPENSES } from '@/lib/placeholder-data';
 import type { RoutineItem, TodoItem, Habit, Expense } from '@/types';
 import { useState, useEffect } from 'react';
@@ -44,19 +44,26 @@ function WaterIntakeWidget() {
   }, []);
 
   const waterHabit = habits.find(h => h.name === 'Drink 2L Water');
+  const WATER_TARGET_ML = 2000;
+  const ML_PER_GLASS = 250;
+  const TARGET_GLASSES = WATER_TARGET_ML / ML_PER_GLASS;
 
-  const handleToggleWaterIntake = () => {
+  const handleIntakeChange = (increment: number) => {
     if (!waterHabit) return;
 
     const todayKey = format(new Date(), 'yyyy-MM-dd');
     const updatedHabits = habits.map(h => {
       if (h.id === waterHabit.id) {
         const newCompletions = { ...h.completions };
-        if (newCompletions[todayKey]) {
-          delete newCompletions[todayKey];
+        const currentCount = typeof newCompletions[todayKey] === 'number' ? (newCompletions[todayKey] as number) : 0;
+        const newCount = Math.max(0, currentCount + increment);
+        
+        if (newCount > 0) {
+            newCompletions[todayKey] = newCount;
         } else {
-          newCompletions[todayKey] = true;
+            delete newCompletions[todayKey];
         }
+        
         return { ...h, completions: newCompletions };
       }
       return h;
@@ -69,8 +76,10 @@ function WaterIntakeWidget() {
   if (!waterHabit) return null;
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
-  const isCompletedToday = !!waterHabit.completions[todayKey];
-  const streak = calculateStreak(waterHabit.completions);
+  const glassesToday = typeof waterHabit.completions[todayKey] === 'number' ? (waterHabit.completions[todayKey] as number) : 0;
+  const mlToday = glassesToday * ML_PER_GLASS;
+  
+  const streak = calculateStreak(waterHabit.completions, TARGET_GLASSES);
 
   return (
     <Card>
@@ -84,11 +93,20 @@ function WaterIntakeWidget() {
             <span className="font-bold text-lg">{streak} Day Streak</span>
           </div>
         </CardTitle>
+        <CardDescription>
+            Today's Goal: {mlToday}ml / {WATER_TARGET_ML}ml
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Button onClick={handleToggleWaterIntake} className="w-full" variant={isCompletedToday ? "secondary" : "default"}>
-          <GlassWater className="mr-2 h-4 w-4" />
-          {isCompletedToday ? "Water Logged for Today!" : "Log Water Intake for Today"}
+      <CardContent className="flex items-center justify-center gap-4">
+        <Button onClick={() => handleIntakeChange(-1)} variant="outline" size="icon" disabled={glassesToday === 0}>
+            <Minus className="h-4 w-4" />
+        </Button>
+        <div className="text-center">
+            <p className="text-4xl font-bold font-headline">{glassesToday}</p>
+            <p className="text-sm text-muted-foreground">glasses (250ml)</p>
+        </div>
+        <Button onClick={() => handleIntakeChange(1)} variant="outline" size="icon">
+            <Plus className="h-4 w-4" />
         </Button>
       </CardContent>
     </Card>
@@ -273,15 +291,6 @@ function Alarm() {
     )
 }
 
-function FloatingActionButton() {
-    return (
-        <Link href="/notes" className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors">
-            <PenSquare className="h-6 w-6" />
-            <span className="sr-only">Quick Note</span>
-        </Link>
-    )
-}
-
 export default function DashboardPage() {
   const [user, setUser] = useState<{ username: string } | null>(null);
   const [greeting, setGreeting] = useState('');
@@ -335,7 +344,6 @@ export default function DashboardPage() {
             </div>
         </div>
       </div>
-      <FloatingActionButton />
     </AppLayout>
   );
 }

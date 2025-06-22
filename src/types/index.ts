@@ -24,7 +24,7 @@ export type Habit = {
   id: string;
   name: string;
   icon: string;
-  completions: Record<string, boolean>; // e.g. { '2024-07-21': true }
+  completions: Record<string, boolean | number>; // e.g. { '2024-07-21': true, '2024-07-22': 4 }
 };
 
 export type Note = {

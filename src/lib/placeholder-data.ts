@@ -38,11 +38,23 @@ const generateHabitCompletions = (days: number, successRate: number): Record<str
   return completions;
 };
 
+const generateWaterCompletions = (days: number, successRate: number, maxGlasses: number): Record<string, number> => {
+  const completions: Record<string, number> = {};
+  for (let i = 0; i < days; i++) {
+    const date = formatISO(subDays(new Date(), i), { representation: 'date' });
+    if (Math.random() < successRate) {
+      completions[date] = Math.floor(Math.random() * maxGlasses) + 1;
+    }
+  }
+  return completions;
+};
+
+
 export const P_HABITS: Habit[] = [
   { id: '1', name: 'Read 10 Pages', icon: 'BookOpen', completions: generateHabitCompletions(30, 0.8) },
   { id: '2', name: 'Meditate 10 mins', icon: 'BrainCircuit', completions: generateHabitCompletions(30, 0.6) },
   { id: '3', name: 'Workout', icon: 'Dumbbell', completions: generateHabitCompletions(30, 0.5) },
-  { id: '4', name: 'Drink 2L Water', icon: 'GlassWater', completions: generateHabitCompletions(30, 0.9) },
+  { id: '4', name: 'Drink 2L Water', icon: 'GlassWater', completions: generateWaterCompletions(30, 0.9, 10) },
 ];
 
 export const P_NOTES: Note[] = [
