@@ -264,7 +264,7 @@ export default function PasswordManagerPage() {
                                 {items.map(cred => {
                                     const isExpanded = expandedCardIds.has(cred.id);
                                     return (
-                                        <Card key={cred.id} className="w-[350px] flex-shrink-0 flex flex-col">
+                                        <Card key={cred.id} className="w-[320px] flex-shrink-0 flex flex-col">
                                             <CardHeader>
                                                 <CardTitle className="truncate">{cred.name}</CardTitle>
                                                 <CardDescription>
