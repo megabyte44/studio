@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarClock, Edit, PlusCircle, Trash, Loader2, Info } from 'lucide-react';
+import { PlusCircle, Trash, Loader2, Info } from 'lucide-react';
 import type { PlannerItem } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -42,136 +41,11 @@ const calculateEndTime = (startTime: string, durationMinutes: number) => {
     return `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
 };
 
-function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate }: {
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
-    weeklySchedule: Record<string, PlannerItem[]>;
-    onScheduleUpdate: (newSchedule: Record<string, PlannerItem[]>) => void;
-}) {
-    const { toast } = useToast();
-    const [selectedTemplateDay, setSelectedTemplateDay] = useState(getCurrentDayName());
-
-    const [title, setTitle] = useState('');
-    const [startTime, setStartTime] = useState('09:00');
-    const [duration, setDuration] = useState('60');
-    const [tag, setTag] = useState('');
-
-    const handleAddItemToTemplate = () => {
-        if (!title.trim()) {
-            toast({ title: "Missing Info", description: "Please provide a title.", variant: "destructive" });
-            return;
-        }
-
-        const newItem: PlannerItem = {
-            id: `${selectedTemplateDay.toLowerCase()}-${Date.now()}`,
-            startTime,
-            endTime: calculateEndTime(startTime, parseInt(duration)),
-            title: title.trim(),
-            tag: tag.trim() || undefined,
-        };
-
-        const newSchedule = { ...weeklySchedule };
-        newSchedule[selectedTemplateDay] = [...(newSchedule[selectedTemplateDay] || []), newItem]
-            .sort((a, b) => a.startTime.localeCompare(b.startTime));
-        
-        onScheduleUpdate(newSchedule);
-        toast({ title: "Template Item Added", description: `"${title}" added to ${selectedTemplateDay}'s template.` });
-
-        setTitle('');
-        setStartTime('09:00');
-        setDuration('60');
-        setTag('');
-    };
-
-    const handleDeleteItemFromTemplate = (itemId: string) => {
-        const newSchedule = { ...weeklySchedule };
-        newSchedule[selectedTemplateDay] = (newSchedule[selectedTemplateDay] || []).filter(item => item.id !== itemId);
-        onScheduleUpdate(newSchedule);
-        toast({ title: "Item Deleted", variant: "destructive", description: "Item removed from template." });
-    };
-    
-    const daySchedule = weeklySchedule[selectedTemplateDay] || [];
-
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[80%] sm:max-w-md p-0">
-                <DialogHeader className="p-2 pb-1 mb-0">
-                    <DialogTitle className="text-base">Edit Daily Templates</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-1 py-0.5 px-2">
-                    <div className="space-y-1">
-                        <Label htmlFor="template-day-select" className="text-xs">Select Day</Label>
-                        <Select value={selectedTemplateDay} onValueChange={setSelectedTemplateDay}>
-                            <SelectTrigger id="template-day-select" className="h-8 text-xs">
-                                <SelectValue placeholder="Select a day" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {daysOfWeek.map(day => <SelectItem key={day} value={day} className="text-xs">{day}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {daySchedule.length > 0 && (
-                      <>
-                        <h4 className="font-semibold text-sm mt-1">Template for {selectedTemplateDay}</h4>
-                        <ScrollArea className="h-24 pr-2 border rounded-md">
-                            <div className="space-y-1 p-1">
-                                {daySchedule.map(item => (
-                                    <div key={item.id} className="flex items-center justify-between p-1 rounded-md bg-muted/50 text-xs">
-                                        <div>
-                                            <span className="font-semibold">{item.startTime}-{item.endTime}</span>: {item.title}
-                                            {item.tag && <span className="ml-1.5 text-xs bg-primary/20 text-primary-foreground px-1 py-0.5 rounded-full">{item.tag}</span>}
-                                        </div>
-                                        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={() => handleDeleteItemFromTemplate(item.id)}>
-                                            <Trash className="h-3 w-3" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </ScrollArea>
-                      </>
-                    )}
-
-                    <div className="pt-1 mt-1 border-t space-y-1">
-                         <h4 className="font-semibold text-sm">Add Item to Template</h4>
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1">
-                            <div className="sm:col-span-2 space-y-1">
-                                <Label htmlFor="template-item-title" className="text-xs">Title</Label>
-                                <Input id="template-item-title" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Morning Commute" className="h-8 text-xs" />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="template-item-start-time" className="text-xs">Start Time</Label>
-                                <Input id="template-item-start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="h-8 text-xs" />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="template-item-duration" className="text-xs">Duration</Label>
-                                <Select value={duration} onValueChange={setDuration}>
-                                    <SelectTrigger id="template-item-duration" className="h-8 text-xs"><SelectValue/></SelectTrigger>
-                                    <SelectContent>{durationOptions.map(opt => <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>)}</SelectContent>
-                                </Select>
-                            </div>
-                             <div className="sm:col-span-2 space-y-1">
-                                <Label htmlFor="template-item-tag" className="text-xs">Tag</Label>
-                                <Input id="template-item-tag" value={tag} onChange={e => setTag(e.target.value)} placeholder="e.g., Routine, Errand" className="h-8 text-xs" />
-                            </div>
-                         </div>
-                    </div>
-                </div>
-                <DialogFooter className="p-2 pt-1 flex-row justify-end gap-x-2">
-                    <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
-                    <Button size="sm" onClick={handleAddItemToTemplate}>Add to Template</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
 export default function PlannerPage() {
     const { toast } = useToast();
     const [weeklySchedule, setWeeklySchedule] = useState<Record<string, PlannerItem[]>>({});
     const [selectedDay, setSelectedDay] = useState(getCurrentDayName());
     const [isLoading, setIsLoading] = useState(true);
-    const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
 
     // Form state for ad-hoc items
     const [newItemTitle, setNewItemTitle] = useState('');
@@ -257,20 +131,16 @@ export default function PlannerPage() {
     return (
         <AppLayout>
             <TooltipProvider>
-                <div className="max-w-4xl mx-auto space-y-4">
+                <div className="max-w-4xl mx-auto space-y-2">
                     <header className="space-y-1">
                         <h1 className="text-xl font-bold font-headline">Daily Planner</h1>
                     </header>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between p-3">
+                        <CardHeader className="p-3">
                             <CardTitle>Schedule for {selectedDay}</CardTitle>
-                            <Button variant="outline" size="icon" onClick={() => setIsTemplateDialogOpen(true)}>
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit Daily Templates</span>
-                            </Button>
                         </CardHeader>
-                        <CardContent className="p-3 pt-0 sm:p-4 sm:pt-0">
+                        <CardContent className="p-3 pt-0">
                             <div className="space-y-4">
                                 <div>
                                     <Label htmlFor="day-select">Select a day to view/add to:</Label>
@@ -353,13 +223,6 @@ export default function PlannerPage() {
                         </CardContent>
                     </Card>
                 </div>
-
-                <TemplateDialog 
-                    isOpen={isTemplateDialogOpen} 
-                    onOpenChange={setIsTemplateDialogOpen} 
-                    weeklySchedule={weeklySchedule}
-                    onScheduleUpdate={setWeeklySchedule}
-                />
             </TooltipProvider>
         </AppLayout>
     );
