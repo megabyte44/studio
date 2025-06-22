@@ -33,7 +33,7 @@ const initialWorkoutSplit: CyclicalWorkoutSplit = {
 const initialCustomFoodItems = ["Protein Powder", "Creatine", "Oatmeal", "Eggs", "Chicken Breast", "Greek Yogurt"];
 
 
-function GymTracker() {
+function GymTracker({ habits, setHabits }: { habits: Habit[]; setHabits: (habits: Habit[]) => void }) {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
     
@@ -44,7 +44,6 @@ function GymTracker() {
     const [customFoodItems, setCustomFoodItems] = useState<string[]>(initialCustomFoodItems);
     const [cyclicalWorkoutSplit, setCyclicalWorkoutSplit] = useState<CyclicalWorkoutSplit>(initialWorkoutSplit);
     const [cycleConfig, setCycleConfig] = useState<CycleConfig>({ startDate: format(new Date(), 'yyyy-MM-dd'), startDayKey: "Day 1" });
-    const [completedWorkouts, setCompletedWorkouts] = useState<CompletedWorkouts>({});
 
     // Dialog states
     const [isCycleConfigOpen, setIsCycleConfigOpen] = useState(false);
@@ -81,14 +80,14 @@ function GymTracker() {
     }, [cyclicalWorkoutSplit, cycleConfig]);
 
     const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfoForDate(new Date()), [getWorkoutDayInfoForDate]);
-    const isTodayCompleted = !!completedWorkouts[format(new Date(), 'yyyy-MM-dd')];
+    
+    const workoutHabit = habits.find(h => h.name === 'Workout');
+    const todayKey = format(new Date(), 'yyyy-MM-dd');
+    const isTodayCompleted = workoutHabit ? !!workoutHabit.completions[todayKey] : false;
 
     // Effect for loading from localStorage
     useEffect(() => {
         try {
-            const storedWorkouts = localStorage.getItem('gym_completed_workouts');
-            if(storedWorkouts) setCompletedWorkouts(JSON.parse(storedWorkouts));
-
             const storedCycleConfig = localStorage.getItem('gym_cycle_config');
             if(storedCycleConfig) setCycleConfig(JSON.parse(storedCycleConfig));
             
@@ -111,19 +110,37 @@ function GymTracker() {
     // Effect for saving to localStorage
     useEffect(() => {
         if (isLoading) return;
-        localStorage.setItem('gym_completed_workouts', JSON.stringify(completedWorkouts));
         localStorage.setItem('gym_cycle_config', JSON.stringify(cycleConfig));
         localStorage.setItem('gym_workout_split', JSON.stringify(cyclicalWorkoutSplit));
         localStorage.setItem('gym_protein_target', JSON.stringify(proteinTarget));
         localStorage.setItem('gym_custom_foods', JSON.stringify(customFoodItems));
-    }, [completedWorkouts, cycleConfig, cyclicalWorkoutSplit, proteinTarget, customFoodItems, isLoading]);
+    }, [cycleConfig, cyclicalWorkoutSplit, proteinTarget, customFoodItems, isLoading]);
     
     // --- Event Handlers ---
     const handleToggleWorkoutCompletion = () => {
-        const todayKey = format(new Date(), 'yyyy-MM-dd');
-        const newCompletedWorkouts = {...completedWorkouts, [todayKey]: !isTodayCompleted };
-        setCompletedWorkouts(newCompletedWorkouts);
-        toast({ title: !isTodayCompleted ? 'Workout Completed!' : 'Workout marked as not done.' });
+        const workoutHabit = habits.find(h => h.name === 'Workout');
+        if (!workoutHabit) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Workout habit not found.' });
+            return;
+        }
+
+        const isCompleted = !!workoutHabit.completions[todayKey];
+
+        const updatedHabits = habits.map(h => {
+            if (h.id === workoutHabit.id) {
+                const newCompletions = { ...h.completions };
+                if (isCompleted) {
+                    delete newCompletions[todayKey];
+                } else {
+                    newCompletions[todayKey] = true;
+                }
+                return { ...h, completions: newCompletions };
+            }
+            return h;
+        });
+
+        setHabits(updatedHabits);
+        toast({ title: !isCompleted ? 'Workout Completed!' : 'Workout marked as not done.' });
     };
 
     if (isLoading) {
@@ -330,7 +347,7 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
 }
 
 function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habit: Habit) => void }) {
-  if (!habit || habit.name !== 'Drink 2L Water') return null;
+  if (!habit || habit.name !== 'Water Drinking') return null;
 
   const WATER_TARGET_ML = 2000;
   const ML_PER_GLASS = 250;
@@ -379,7 +396,7 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
 function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: string, date: string) => void }) {
   const today = new Date();
   const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
-  const isWaterHabit = habit.name === 'Drink 2L Water';
+  const isWaterHabit = habit.name === 'Water Drinking';
   const WATER_TARGET_GLASSES = 8;
 
   const getIsCompleted = (dateString: string) => {
@@ -426,7 +443,6 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
 
 export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [loggedFoodItems, setLoggedFoodItems] = useState<LoggedFoodItem[]>([]);
 
   useEffect(() => {
     try {
@@ -454,7 +470,7 @@ export default function HabitsPage() {
 
   const handleToggleCompletion = (habitId: string, date: string) => {
     setHabits(habits.map(h => {
-        if (h.id === habitId && h.name !== 'Drink 2L Water') {
+        if (h.id === habitId && h.name !== 'Water Drinking') {
             const newCompletions = {...h.completions};
             if(newCompletions[date]) {
                 delete newCompletions[date];
@@ -484,7 +500,7 @@ export default function HabitsPage() {
         </header>
         
         <Separator />
-        <GymTracker />
+        <GymTracker habits={habits} setHabits={setHabits} />
         <Separator />
 
         <div className="space-y-4">
@@ -495,7 +511,7 @@ export default function HabitsPage() {
             <Accordion type="single" collapsible className="w-full space-y-4">
                 {habits.map((habit) => {
                     const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
-                    const isWaterHabit = habit.name === 'Drink 2L Water';
+                    const isWaterHabit = habit.name === 'Water Drinking';
                     const streak = calculateStreak(
                         habit.completions,
                         isWaterHabit ? WATER_TARGET_GLASSES : 1
