@@ -2,7 +2,7 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus } from 'lucide-react';
+import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus, GlassWater } from 'lucide-react';
 import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS, P_EXPENSES } from '@/lib/placeholder-data';
 import type { RoutineItem, TodoItem, Habit, Expense } from '@/types';
 import { useState, useEffect } from 'react';
@@ -48,7 +48,7 @@ function WaterIntakeWidget() {
   const ML_PER_GLASS = 250;
   const TARGET_GLASSES = WATER_TARGET_ML / ML_PER_GLASS;
 
-  const handleIntakeChange = (increment: number) => {
+  const handleIntakeChange = () => {
     if (!waterHabit) return;
 
     const todayKey = format(new Date(), 'yyyy-MM-dd');
@@ -56,14 +56,8 @@ function WaterIntakeWidget() {
       if (h.id === waterHabit.id) {
         const newCompletions = { ...h.completions };
         const currentCount = typeof newCompletions[todayKey] === 'number' ? (newCompletions[todayKey] as number) : 0;
-        const newCount = Math.max(0, currentCount + increment);
-        
-        if (newCount > 0) {
-            newCompletions[todayKey] = newCount;
-        } else {
-            delete newCompletions[todayKey];
-        }
-        
+        const newCount = currentCount + 1;
+        newCompletions[todayKey] = newCount;
         return { ...h, completions: newCompletions };
       }
       return h;
@@ -94,19 +88,16 @@ function WaterIntakeWidget() {
           </div>
         </CardTitle>
         <CardDescription>
-            Today's Goal: {mlToday}ml / {WATER_TARGET_ML}ml
+            Today's Goal: {mlToday}ml / {WATER_TARGET_ML}ml ({glassesToday} / {TARGET_GLASSES} glasses)
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex items-center justify-center gap-4">
-        <Button onClick={() => handleIntakeChange(-1)} variant="outline" size="icon" disabled={glassesToday === 0}>
-            <Minus className="h-4 w-4" />
-        </Button>
-        <div className="text-center">
-            <p className="text-4xl font-bold font-headline">{glassesToday}</p>
-            <p className="text-sm text-muted-foreground">glasses (250ml)</p>
-        </div>
-        <Button onClick={() => handleIntakeChange(1)} variant="outline" size="icon">
-            <Plus className="h-4 w-4" />
+      <CardContent className="flex items-center justify-center pt-6">
+        <Button 
+            onClick={handleIntakeChange} 
+            variant="outline" 
+            className="w-[100px] h-[150px] flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
+        >
+            <GlassWater className="h-24 w-24 text-primary/30 group-hover:text-primary/70 transition-colors" />
         </Button>
       </CardContent>
     </Card>
