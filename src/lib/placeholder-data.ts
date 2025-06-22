@@ -1,5 +1,5 @@
 
-import type { RoutineItem, TodoItem, Transaction, Habit, Note } from '@/types';
+import type { RoutineItem, TodoItem, Transaction, Habit, Note, Credential } from '@/types';
 import { subDays, formatISO } from 'date-fns';
 
 export const P_ROUTINE_ITEMS: RoutineItem[] = [
@@ -20,15 +20,13 @@ export const P_TODO_ITEMS: TodoItem[] = [
 ];
 
 export const P_TRANSACTIONS: Transaction[] = [
-  { id: '1', description: 'Salary', amount: 5000000, category: 'Income', date: formatISO(subDays(new Date(), 15)), type: 'income' },
-  { id: '2', description: 'Monthly Gym Subscription', amount: 150000, category: 'Health', date: formatISO(subDays(new Date(), 2)), type: 'expense' },
-  { id: '3', description: 'Flight to Goa', amount: 200000, category: 'Travel', date: formatISO(subDays(new Date(), 2)), type: 'expense' },
-  { id: '4', description: 'Groceries from BigBasket', amount: 450000, category: 'Groceries', date: formatISO(subDays(new Date(), 3)), type: 'expense' },
-  { id: '5', description: 'New T-Shirt', amount: 50000, category: 'Clothing', date: formatISO(subDays(new Date(), 5)), type: 'expense' },
-  { id: '6', description: 'Dinner with friends', amount: 250000, category: 'Food', date: formatISO(subDays(new Date(), 6)), type: 'expense' },
-  { id: '7', description: 'Morning Coffee', amount: 15000, category: 'Food', date: formatISO(new Date()), type: 'expense' },
-  { id: '8', description: 'Movie Tickets', amount: 36000, category: 'Entertainment', date: formatISO(new Date()), type: 'expense' },
-  { id: '9', description: 'Uber ride', amount: 2000, category: 'Travel', date: formatISO(new Date()), type: 'expense' },
+  { id: '1', description: 'Salary', amount: 350000, category: 'Income', date: formatISO(subDays(new Date(), 15)), type: 'income' },
+  { id: '2', description: 'Monthly Gym Subscription', amount: 5000, category: 'Health', date: formatISO(new Date()), type: 'expense' },
+  { id: '3', description: 'Gasoline for car', amount: 6520, category: 'Transport', date: formatISO(new Date()), type: 'expense' },
+  { id: '4', description: 'Groceries from Whole Foods', amount: 12480, category: 'Groceries', date: formatISO(subDays(new Date(), 1)), type: 'expense' },
+  { id: '5', description: 'New book: "The Atomic Habit"', amount: 2200, category: 'Shopping', date: formatISO(subDays(new Date(), 3)), type: 'expense' },
+  { id: '6', description: 'Dinner with friends', amount: 7850, category: 'Social', date: formatISO(subDays(new Date(), 4)), type: 'expense' },
+  { id: '7', description: 'Morning Coffee', amount: 450, category: 'Food', date: formatISO(new Date()), type: 'expense' },
 ];
 
 const generateHabitCompletions = (days: number, successRate: number): Record<string, boolean> => {
@@ -89,4 +87,12 @@ export const P_NOTES: Note[] = [
         type: 'text',
         createdAt: formatISO(subDays(new Date(), 5)),
     },
+];
+
+export const P_PASSWORDS: Credential[] = [
+  { id: "acc1", name: "Personal Savings", password: "genericbankpassword", lastUpdated: "2023-10-15", category: "Banking", accountNumber: "123456789012", ifscCode: "BANK0001234", upiPin: "123456", netbankingId: "persavingsNB", mpin:"1122", netbankingPassword: "nbSecurePassword1", transactionPassword: "txnPassSecure1" },
+  { id: "acc2", name: "Gmail Account", username: "user@example.com", password: "securegmailpassword", lastUpdated: "2023-09-20", category: "Website", website: "https://mail.google.com" },
+  { id: "acc3", name: "Twitter Profile", username: "@socialuserX", password: "socialXpassword", lastUpdated: "2023-11-01", category: "Social Media" },
+  { id: "acc4", name: "Salary Account", password: "anothergenericbankpassword", lastUpdated: "2023-11-05", category: "Banking", accountNumber: "987654321098", ifscCode: "SBIN0005678", upiPin: "654321", netbankingId: "salaryNB", mpin: "3344", netbankingPassword: "nbSecurePassword2", transactionPassword: "txnPassSecure2" },
+  { id: "acc5", name: "Netflix", username: "subscriber@email.com", password: "streamingservicepass", lastUpdated: "2023-10-25", category: "Website", website: "https://netflix.com" },
 ];

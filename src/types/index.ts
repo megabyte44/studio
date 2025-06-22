@@ -7,7 +7,7 @@ export type RoutineItem = {
 };
 
 export type TodoItem = {
-  id: string;
+  id:string;
   text: string;
   completed: boolean;
   priority?: 'high' | 'medium' | 'low';
@@ -36,6 +36,26 @@ export type Note = {
   type: 'text' | 'checklist';
   createdAt: string;
 };
+
+export type Credential = {
+  id: string;
+  name: string;
+  category: 'Website' | 'Banking' | 'Social Media' | 'Other';
+  lastUpdated: string;
+  // Generic fields
+  username?: string;
+  password?: string;
+  website?: string;
+  // Banking fields
+  accountNumber?: string;
+  ifscCode?: string;
+  upiPin?: string;
+  netbankingId?: string;
+  mpin?: string;
+  netbankingPassword?: string;
+  transactionPassword?: string;
+};
+
 
 // New types for Gym Tracker
 export type Exercise = {
