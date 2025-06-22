@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import {
   KeySquare, Loader2, ShieldCheck, Landmark, Globe, Users,
   PlusSquare, Eye, EyeOff, Copy, Trash2, Edit
@@ -46,24 +47,144 @@ function SensitiveInput({ id, fieldName, value, onToggle, onCopy, isVisible }: {
   );
 }
 
+function CredentialDialog({ 
+    isOpen, 
+    onOpenChange, 
+    onSave, 
+    credential 
+}: { 
+    isOpen: boolean; 
+    onOpenChange: (open: boolean) => void; 
+    onSave: (data: Omit<Credential, 'id' | 'lastUpdated'>) => void; 
+    credential: Credential | null;
+}) {
+    const { toast } = useToast();
+    const [name, setName] = useState('');
+    const [category, setCategory] = useState<'Website' | 'Banking' | 'Social Media' | 'Other'>('Website');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [website, setWebsite] = useState('');
+    const [accountNumber, setAccountNumber] = useState('');
+    const [ifscCode, setIfscCode] = useState('');
+    const [upiPin, setUpiPin] = useState('');
+    const [netbankingId, setNetbankingId] = useState('');
+    const [mpin, setMpin] = useState('');
+    const [netbankingPassword, setNetbankingPassword] = useState('');
+    const [transactionPassword, setTransactionPassword] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            if (credential) {
+                setName(credential.name);
+                setCategory(credential.category);
+                setUsername(credential.username || '');
+                setPassword(credential.password || '');
+                setWebsite(credential.website || '');
+                setAccountNumber(credential.accountNumber || '');
+                setIfscCode(credential.ifscCode || '');
+                setUpiPin(credential.upiPin || '');
+                setNetbankingId(credential.netbankingId || '');
+                setMpin(credential.mpin || '');
+                setNetbankingPassword(credential.netbankingPassword || '');
+                setTransactionPassword(credential.transactionPassword || '');
+            } else {
+                setName('');
+                setCategory('Website');
+                setUsername('');
+                setPassword('');
+                setWebsite('');
+                setAccountNumber('');
+                setIfscCode('');
+                setUpiPin('');
+                setNetbankingId('');
+                setMpin('');
+                setNetbankingPassword('');
+                setTransactionPassword('');
+            }
+        }
+    }, [credential, isOpen]);
+    
+    const handleSaveClick = () => {
+        if (!name) {
+            toast({ title: "Missing Field", description: "Account Name is required.", variant: "destructive" });
+            return;
+        }
+
+        const credData: Omit<Credential, 'id' | 'lastUpdated'> = {
+            name,
+            category,
+            ...(category === 'Banking' ? {
+                accountNumber, ifscCode, upiPin, netbankingId, mpin, netbankingPassword, transactionPassword
+            } : {
+                username, password, website
+            })
+        };
+        onSave(credData);
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[625px]">
+                <DialogHeader>
+                    <DialogTitle>{credential ? 'Edit Credential' : 'Add New Credential'}</DialogTitle>
+                    <DialogDescription>
+                        {credential ? `Updating details for ${credential.name}.` : 'Fill in the details for the new credential.'}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid md:grid-cols-2 gap-4 py-4">
+                    <div>
+                        <Label htmlFor="newAccountName">Account Name</Label>
+                        <Input id="newAccountName" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Netflix, Personal Savings" />
+                    </div>
+                    <div>
+                        <Label htmlFor="newAccountCategory">Category</Label>
+                        <Select value={category} onValueChange={(v) => setCategory(v as any)}>
+                            <SelectTrigger id="newAccountCategory"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Website">Website</SelectItem>
+                                <SelectItem value="Banking">Banking</SelectItem>
+                                <SelectItem value="Social Media">Social Media</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {category === 'Banking' ? (
+                        <div className="md:col-span-2 border-t pt-4 mt-2 space-y-4">
+                            <h3 className="text-lg font-semibold flex items-center gap-2"><Landmark className="h-5 w-5 text-primary" /> Banking Details</h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div><Label htmlFor="accNum">Account Number</Label><Input id="accNum" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} /></div>
+                                <div><Label htmlFor="ifsc">IFSC Code</Label><Input id="ifsc" value={ifscCode} onChange={e => setIfscCode(e.target.value)} /></div>
+                                <div><Label htmlFor="upi">UPI PIN</Label><Input type="password" id="upi" value={upiPin} onChange={e => setUpiPin(e.target.value)} /></div>
+                                <div><Label htmlFor="nbid">Netbanking ID</Label><Input id="nbid" value={netbankingId} onChange={e => setNetbankingId(e.target.value)} /></div>
+                                <div><Label htmlFor="mpin">MPIN</Label><Input type="password" id="mpin" value={mpin} onChange={e => setMpin(e.target.value)} /></div>
+                                <div><Label htmlFor="nbpass">Netbanking Password</Label><Input type="password" id="nbpass" value={netbankingPassword} onChange={e => setNetbankingPassword(e.target.value)} /></div>
+                                <div className="md:col-span-2"><Label htmlFor="txpass">Transaction Password</Label><Input type="password" id="txpass" value={transactionPassword} onChange={e => setTransactionPassword(e.target.value)} /></div>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div><Label htmlFor="username">Username / Email</Label><Input id="username" value={username} onChange={e => setUsername(e.target.value)} /></div>
+                            <div><Label htmlFor="password">Password</Label><Input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} /></div>
+                            {category === 'Website' && <div className="md:col-span-2"><Label htmlFor="website">Website URL</Label><Input id="website" value={website} onChange={e => setWebsite(e.target.value)} /></div>}
+                        </>
+                    )}
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={handleSaveClick}><Save className="mr-2 h-4 w-4" /> Save</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 export default function PasswordManagerPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [credentials, setCredentials] = useState<Credential[]>([]);
-  
-  // Form State
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<'Website' | 'Banking' | 'Social Media' | 'Other'>('Website');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [website, setWebsite] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [ifscCode, setIfscCode] = useState('');
-  const [upiPin, setUpiPin] = useState('');
-  const [netbankingId, setNetbankingId] = useState('');
-  const [mpin, setMpin] = useState('');
-  const [netbankingPassword, setNetbankingPassword] = useState('');
-  const [transactionPassword, setTransactionPassword] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCredential, setEditingCredential] = useState<Credential | null>(null);
 
   // UI State
   const [visibilities, setVisibilities] = useState<Record<string, Record<string, boolean>>>({});
@@ -102,35 +223,26 @@ export default function PasswordManagerPage() {
     }
   }, [credentials, isLoading]);
 
-  const resetForm = () => {
-    setName(''); setCategory('Website'); setUsername(''); setPassword('');
-    setWebsite(''); setAccountNumber(''); setIfscCode(''); setUpiPin('');
-    setNetbankingId(''); setMpin(''); setNetbankingPassword(''); setTransactionPassword('');
-  };
-
-  const handleAddCredential = () => {
-    if (!name) {
-      toast({ title: "Missing Field", description: "Account Name is required.", variant: "destructive" });
-      return;
+  const handleSaveCredential = (data: Omit<Credential, 'id' | 'lastUpdated'>) => {
+    if (editingCredential) {
+      // Update existing credential
+      const updatedCredential = { ...editingCredential, ...data, lastUpdated: new Date().toISOString().split('T')[0] };
+      setCredentials(credentials.map(c => c.id === editingCredential.id ? updatedCredential : c));
+      toast({ title: "Credential Updated", description: `${updatedCredential.name} has been updated.` });
+    } else {
+      // Add new credential
+      const newCredential: Credential = {
+        id: `cred-${Date.now()}`,
+        ...data,
+        lastUpdated: new Date().toISOString().split('T')[0],
+      };
+      setCredentials(prev => [newCredential, ...prev]);
+      toast({ title: "Credential Added", description: `${newCredential.name} has been securely added to your vault.` });
     }
-
-    const newCredential: Credential = {
-      id: `cred-${Date.now()}`,
-      name,
-      category,
-      lastUpdated: new Date().toISOString().split('T')[0],
-      ...(category === 'Banking' ? {
-        accountNumber, ifscCode, upiPin, netbankingId, mpin, netbankingPassword, transactionPassword
-      } : {
-        username, password, website
-      })
-    };
-
-    setCredentials(prev => [newCredential, ...prev]);
-    toast({ title: "Credential Added", description: `${name} has been securely added to your vault.` });
-    resetForm();
+    setIsFormOpen(false);
+    setEditingCredential(null);
   };
-
+  
   const handleDeleteCredential = (id: string) => {
     setCredentials(prev => prev.filter(c => c.id !== id));
     toast({ title: "Credential Removed", description: "The credential has been deleted." });
@@ -197,61 +309,16 @@ export default function PasswordManagerPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <header>
-            <h1 className="text-2xl font-bold font-headline">Password Vault</h1>
-            <p className="text-muted-foreground">Securely store and manage your passwords and sensitive information.</p>
+        <header className="flex items-center justify-between">
+            <div>
+                <h1 className="text-2xl font-bold font-headline">Password Vault</h1>
+                <p className="text-muted-foreground">Securely store and manage your passwords and sensitive information.</p>
+            </div>
+            <Button onClick={() => { setEditingCredential(null); setIsFormOpen(true); }}>
+              <PlusSquare className="mr-2 h-4 w-4" /> Add Credential
+            </Button>
         </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><ShieldCheck />Add New Credential</CardTitle>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-4">
-              <div>
-                  <Label htmlFor="newAccountName">Account Name</Label>
-                  <Input id="newAccountName" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Netflix, Personal Savings" />
-              </div>
-              <div>
-                  <Label htmlFor="newAccountCategory">Category</Label>
-                  <Select value={category} onValueChange={(v) => setCategory(v as any)}>
-                      <SelectTrigger id="newAccountCategory"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                          <SelectItem value="Website">Website</SelectItem>
-                          <SelectItem value="Banking">Banking</SelectItem>
-                          <SelectItem value="Social Media">Social Media</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                  </Select>
-              </div>
-
-              {category === 'Banking' ? (
-                <>
-                  <div className="md:col-span-2 border-t pt-4 mt-2 space-y-4">
-                     <h3 className="text-lg font-semibold flex items-center gap-2"><Landmark className="h-5 w-5 text-primary" /> Banking Details</h3>
-                     <div className="grid md:grid-cols-2 gap-4">
-                        <div><Label htmlFor="accNum">Account Number</Label><Input id="accNum" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} /></div>
-                        <div><Label htmlFor="ifsc">IFSC Code</Label><Input id="ifsc" value={ifscCode} onChange={e => setIfscCode(e.target.value)} /></div>
-                        <div><Label htmlFor="upi">UPI PIN</Label><Input type="password" id="upi" value={upiPin} onChange={e => setUpiPin(e.target.value)} /></div>
-                        <div><Label htmlFor="nbid">Netbanking ID</Label><Input id="nbid" value={netbankingId} onChange={e => setNetbankingId(e.target.value)} /></div>
-                        <div><Label htmlFor="mpin">MPIN</Label><Input type="password" id="mpin" value={mpin} onChange={e => setMpin(e.target.value)} /></div>
-                        <div><Label htmlFor="nbpass">Netbanking Password</Label><Input type="password" id="nbpass" value={netbankingPassword} onChange={e => setNetbankingPassword(e.target.value)} /></div>
-                        <div className="md:col-span-2"><Label htmlFor="txpass">Transaction Password</Label><Input type="password" id="txpass" value={transactionPassword} onChange={e => setTransactionPassword(e.target.value)} /></div>
-                     </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div><Label htmlFor="username">Username / Email</Label><Input id="username" value={username} onChange={e => setUsername(e.target.value)} /></div>
-                  <div><Label htmlFor="password">Password</Label><Input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} /></div>
-                  {category === 'Website' && <div className="md:col-span-2"><Label htmlFor="website">Website URL</Label><Input id="website" value={website} onChange={e => setWebsite(e.target.value)} /></div>}
-                </>
-              )}
-          </CardContent>
-          <CardFooter>
-              <Button onClick={handleAddCredential} className="w-full md:w-auto"><PlusSquare className="mr-2 h-4 w-4" /> Add Credential</Button>
-          </CardFooter>
-        </Card>
-        
         <div className="space-y-8">
             {Object.entries(groupedCredentials).map(([cat, items]) => {
                 if (items.length === 0) return null;
@@ -302,7 +369,7 @@ export default function PasswordManagerPage() {
                                             <CardFooter className="justify-end gap-2 pt-4 mt-auto">
                                                 {isExpanded && (
                                                     <>
-                                                        <Button variant="outline" size="sm" disabled><Edit className="mr-1 h-4 w-4" /> Edit</Button>
+                                                        <Button variant="outline" size="sm" onClick={() => { setEditingCredential(cred); setIsFormOpen(true); }}><Edit className="mr-1 h-4 w-4" /> Edit</Button>
                                                         <Button variant="destructive" size="sm" onClick={() => handleDeleteCredential(cred.id)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
                                                     </>
                                                 )}
@@ -321,7 +388,15 @@ export default function PasswordManagerPage() {
                 )
             })}
         </div>
+        <CredentialDialog 
+            isOpen={isFormOpen} 
+            onOpenChange={setIsFormOpen} 
+            onSave={handleSaveCredential} 
+            credential={editingCredential} 
+        />
       </div>
     </AppLayout>
   );
 }
+
+    
