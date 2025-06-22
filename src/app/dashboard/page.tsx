@@ -85,7 +85,7 @@ function WaterIntakeWidget() {
       <div className="text-left">
         <h3 className="font-headline text-base font-semibold flex items-center gap-2">
             <Droplets className="h-5 w-5 text-primary" />
-            Water Intake
+            <span className="text-sm">Water Intake</span>
         </h3>
         <p className="text-muted-foreground">
             {mlToday}ml / {WATER_TARGET_ML}ml
@@ -105,7 +105,7 @@ function TodaysPlan() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-3">
+        <CardTitle className="font-headline flex items-center gap-3 text-lg">
           <CalendarCheck className="h-6 w-6 text-primary" />
           <span>Today's Plan</span>
         </CardTitle>
