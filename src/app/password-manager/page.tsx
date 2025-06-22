@@ -30,17 +30,17 @@ function SensitiveInput({ id, fieldName, value, onToggle, onCopy, isVisible }: {
   isVisible: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <Input
         type={isVisible ? 'text' : 'password'}
         value={isVisible ? String(value) : '••••••••••'}
         readOnly
-        className="text-sm bg-muted/50"
+        className="text-sm bg-muted/50 h-8 px-2 py-1"
       />
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onToggle(id, fieldName)}>
+      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => onToggle(id, fieldName)}>
         {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </Button>
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onCopy(value, fieldName)}>
+      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => onCopy(value, fieldName)}>
         <Copy className="h-4 w-4" />
       </Button>
     </div>
@@ -55,7 +55,7 @@ function CredentialDialog({
 }: { 
     isOpen: boolean; 
     onOpenChange: (open: boolean) => void; 
-    onSave: (data: Omit<Credential, 'id' | 'lastUpdated'>) => void; 
+    onSave: (data: Omit<Credential, 'id' | 'lastUpdated'>, id?: string) => void; 
     credential: Credential | null;
 }) {
     const { toast } = useToast();
@@ -80,11 +80,11 @@ function CredentialDialog({
                 setUsername(credential.username || '');
                 setPassword(credential.password || '');
                 setWebsite(credential.website || '');
-                setAccountNumber(credential.accountNumber || '');
+                setAccountNumber(String(credential.accountNumber || ''));
                 setIfscCode(credential.ifscCode || '');
-                setUpiPin(credential.upiPin || '');
+                setUpiPin(String(credential.upiPin || ''));
                 setNetbankingId(credential.netbankingId || '');
-                setMpin(credential.mpin || '');
+                setMpin(String(credential.mpin || ''));
                 setNetbankingPassword(credential.netbankingPassword || '');
                 setTransactionPassword(credential.transactionPassword || '');
             } else {
@@ -119,19 +119,19 @@ function CredentialDialog({
                 username, password, website
             })
         };
-        onSave(credData);
+        onSave(credData, credential?.id);
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[625px]">
+            <DialogContent className="sm:max-w-[625px] p-3">
                 <DialogHeader>
                     <DialogTitle>{credential ? 'Edit Credential' : 'Add New Credential'}</DialogTitle>
                     <DialogDescription>
                         {credential ? `Updating details for ${credential.name}.` : 'Fill in the details for the new credential.'}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid md:grid-cols-2 gap-4 py-4">
+                <div className="grid md:grid-cols-2 gap-2 py-2">
                     <div>
                         <Label htmlFor="newAccountName">Account Name</Label>
                         <Input id="newAccountName" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Netflix, Personal Savings" />
@@ -150,9 +150,9 @@ function CredentialDialog({
                     </div>
 
                     {category === 'Banking' ? (
-                        <div className="md:col-span-2 border-t pt-4 mt-2 space-y-4">
-                            <h3 className="text-lg font-semibold flex items-center gap-2"><Landmark className="h-5 w-5 text-primary" /> Banking Details</h3>
-                            <div className="grid md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2 border-t pt-2 mt-1 space-y-2">
+                            <h3 className="text-md font-semibold flex items-center gap-2"><Landmark className="h-5 w-5 text-primary" /> Banking Details</h3>
+                            <div className="grid md:grid-cols-2 gap-2">
                                 <div><Label htmlFor="accNum">Account Number</Label><Input id="accNum" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} /></div>
                                 <div><Label htmlFor="ifsc">IFSC Code</Label><Input id="ifsc" value={ifscCode} onChange={e => setIfscCode(e.target.value)} /></div>
                                 <div><Label htmlFor="upi">UPI PIN</Label><Input type="password" id="upi" value={upiPin} onChange={e => setUpiPin(e.target.value)} /></div>
@@ -223,11 +223,11 @@ export default function PasswordManagerPage() {
     }
   }, [credentials, isLoading]);
 
-  const handleSaveCredential = (data: Omit<Credential, 'id' | 'lastUpdated'>) => {
-    if (editingCredential) {
+  const handleSaveCredential = (data: Omit<Credential, 'id' | 'lastUpdated'>, id?: string) => {
+    if (id) {
       // Update existing credential
-      const updatedCredential = { ...editingCredential, ...data, lastUpdated: new Date().toISOString().split('T')[0] };
-      setCredentials(credentials.map(c => c.id === editingCredential.id ? updatedCredential : c));
+      const updatedCredential = { ...data, id, lastUpdated: new Date().toISOString().split('T')[0] };
+      setCredentials(credentials.map(c => c.id === id ? updatedCredential : c));
       toast({ title: "Credential Updated", description: `${updatedCredential.name} has been updated.` });
     } else {
       // Add new credential
@@ -274,7 +274,7 @@ export default function PasswordManagerPage() {
   };
 
   const handleCopy = (text: string | number, fieldName: string) => {
-    if (text === undefined || text === null || text === '') {
+    if (text === undefined || text === null || String(text).trim() === '') {
       toast({ title: "Nothing to Copy", description: `The ${fieldName} field is empty.`, variant: "destructive" });
       return;
     }
@@ -308,7 +308,7 @@ export default function PasswordManagerPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-3">
         <header className="flex items-center justify-between">
             <div>
                 <h1 className="text-2xl font-bold font-headline">Password Vault</h1>
@@ -319,22 +319,22 @@ export default function PasswordManagerPage() {
             </Button>
         </header>
 
-        <div className="space-y-8">
+        <div className="space-y-4">
             {Object.entries(groupedCredentials).map(([cat, items]) => {
                 if (items.length === 0) return null;
                 const Icon = categoryIcons[cat] || KeySquare;
                 return (
                     <section key={cat}>
-                        <h2 className="text-xl font-bold font-headline flex items-center gap-3 mb-4 pb-2 border-b"><Icon className="h-6 w-6 text-primary" /> {cat}</h2>
+                        <h2 className="text-xl font-bold font-headline flex items-center gap-3 mb-2 pb-1 border-b"><Icon className="h-6 w-6 text-primary" /> {cat}</h2>
                         <ScrollArea className="w-full">
-                            <div className="flex space-x-4 pb-4">
+                            <div className="flex space-x-2 pb-2">
                                 {items.map(cred => {
                                     const isExpanded = expandedCardIds.has(cred.id);
                                     return (
-                                        <Card key={cred.id} className="w-[300px] flex-shrink-0 flex flex-col">
-                                            <CardHeader>
-                                                <CardTitle className="truncate">{cred.name}</CardTitle>
-                                                <CardDescription>
+                                        <Card key={cred.id} className="w-[280px] flex-shrink-0 flex flex-col">
+                                            <CardHeader className="p-2 sm:p-3">
+                                                <CardTitle className="truncate text-base">{cred.name}</CardTitle>
+                                                <CardDescription className="text-xs">
                                                     {isExpanded
                                                         ? `Last updated: ${cred.lastUpdated}`
                                                         : cred.category === 'Banking'
@@ -345,36 +345,36 @@ export default function PasswordManagerPage() {
                                             </CardHeader>
                                             
                                             {isExpanded && (
-                                                <CardContent className="space-y-3 flex-grow">
+                                                <CardContent className="space-y-1.5 flex-grow p-2 pt-0 sm:p-3 sm:pt-0">
                                                   {cred.category === 'Banking' ? (
                                                       <>
-                                                         {cred.accountNumber && <p><strong>Acc No:</strong> {cred.accountNumber}</p>}
-                                                         {cred.ifscCode && <p><strong>IFSC:</strong> {cred.ifscCode}</p>}
-                                                         {cred.netbankingId && <p><strong>Netbanking ID:</strong> {cred.netbankingId}</p>}
-                                                         {cred.upiPin && <div><strong>UPI PIN:</strong><SensitiveInput id={cred.id} fieldName="upiPin" value={cred.upiPin} isVisible={!!visibilities[cred.id]?.upiPin} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
-                                                         {cred.mpin && <div><strong>MPIN:</strong><SensitiveInput id={cred.id} fieldName="mpin" value={cred.mpin} isVisible={!!visibilities[cred.id]?.mpin} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
-                                                         {cred.netbankingPassword && <div><strong>NB Pass:</strong><SensitiveInput id={cred.id} fieldName="netbankingPassword" value={cred.netbankingPassword} isVisible={!!visibilities[cred.id]?.netbankingPassword} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
-                                                         {cred.transactionPassword && <div><strong>Txn Pass:</strong><SensitiveInput id={cred.id} fieldName="transactionPassword" value={cred.transactionPassword} isVisible={!!visibilities[cred.id]?.transactionPassword} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                         {cred.accountNumber && <p className="text-xs"><strong>Acc No:</strong> {cred.accountNumber}</p>}
+                                                         {cred.ifscCode && <p className="text-xs"><strong>IFSC:</strong> {cred.ifscCode}</p>}
+                                                         {cred.netbankingId && <p className="text-xs"><strong>Netbanking ID:</strong> {cred.netbankingId}</p>}
+                                                         {cred.upiPin && <div><strong className="text-xs">UPI PIN:</strong><SensitiveInput id={cred.id} fieldName="upiPin" value={cred.upiPin} isVisible={!!visibilities[cred.id]?.upiPin} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                         {cred.mpin && <div><strong className="text-xs">MPIN:</strong><SensitiveInput id={cred.id} fieldName="mpin" value={cred.mpin} isVisible={!!visibilities[cred.id]?.mpin} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                         {cred.netbankingPassword && <div><strong className="text-xs">NB Pass:</strong><SensitiveInput id={cred.id} fieldName="netbankingPassword" value={cred.netbankingPassword} isVisible={!!visibilities[cred.id]?.netbankingPassword} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                         {cred.transactionPassword && <div><strong className="text-xs">Txn Pass:</strong><SensitiveInput id={cred.id} fieldName="transactionPassword" value={cred.transactionPassword} isVisible={!!visibilities[cred.id]?.transactionPassword} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
                                                       </>
                                                   ) : (
                                                       <>
-                                                          {cred.username && <p><strong>Username:</strong> {cred.username}</p>}
-                                                          {cred.website && <p><strong>Website:</strong> <a href={cred.website} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate block">{cred.website}</a></p>}
-                                                          {cred.password && <div><strong>Password:</strong><SensitiveInput id={cred.id} fieldName="password" value={cred.password} isVisible={!!visibilities[cred.id]?.password} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                          {cred.username && <p className="text-xs"><strong>Username:</strong> {cred.username}</p>}
+                                                          {cred.website && <p className="text-xs"><strong>Website:</strong> <a href={cred.website} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate block">{cred.website}</a></p>}
+                                                          {cred.password && <div><strong className="text-xs">Password:</strong><SensitiveInput id={cred.id} fieldName="password" value={cred.password} isVisible={!!visibilities[cred.id]?.password} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
                                                       </>
                                                   )}
                                                 </CardContent>
                                             )}
 
-                                            <CardFooter className="justify-end gap-2 pt-4 mt-auto">
+                                            <CardFooter className="justify-end gap-1 p-2 pt-0 sm:p-3 sm:pt-0 mt-auto">
                                                 {isExpanded && (
                                                     <>
-                                                        <Button variant="outline" size="sm" onClick={() => { setEditingCredential(cred); setIsFormOpen(true); }}><Edit className="mr-1 h-4 w-4" /> Edit</Button>
-                                                        <Button variant="destructive" size="sm" onClick={() => handleDeleteCredential(cred.id)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
+                                                        <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => { setEditingCredential(cred); setIsFormOpen(true); }}><Edit className="mr-1 h-3 w-3" /> Edit</Button>
+                                                        <Button variant="destructive" size="sm" className="h-7 px-2" onClick={() => handleDeleteCredential(cred.id)}><Trash2 className="mr-1 h-3 w-3" /> Delete</Button>
                                                     </>
                                                 )}
-                                                <Button variant="secondary" size="sm" onClick={() => toggleCardExpansion(cred.id)}>
-                                                    {isExpanded ? <EyeOff className="mr-1 h-4 w-4" /> : <Eye className="mr-1 h-4 w-4" />}
+                                                <Button variant="secondary" size="sm" className="h-7 px-2" onClick={() => toggleCardExpansion(cred.id)}>
+                                                    {isExpanded ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
                                                     {isExpanded ? 'Hide' : 'View'}
                                                 </Button>
                                             </CardFooter>
