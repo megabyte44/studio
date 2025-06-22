@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  KeySquare, Loader2, ShieldCheck, Landmark, Globe, Users, CreditCard,
+  KeySquare, Loader2, ShieldCheck, Landmark, Globe, Users,
   PlusSquare, Eye, EyeOff, Copy, Trash2, Edit
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -23,16 +23,16 @@ const LOCAL_STORAGE_KEY = 'lifeos_passwords';
 function SensitiveInput({ id, fieldName, value, onToggle, onCopy, isVisible }: {
   id: string;
   fieldName: string;
-  value: string;
+  value: string | number;
   onToggle: (id: string, fieldName: string) => void;
-  onCopy: (value: string, fieldName: string) => void;
+  onCopy: (value: string | number, fieldName: string) => void;
   isVisible: boolean;
 }) {
   return (
     <div className="flex items-center gap-2">
       <Input
         type={isVisible ? 'text' : 'password'}
-        value={isVisible ? value : '••••••••••'}
+        value={isVisible ? String(value) : '••••••••••'}
         readOnly
         className="text-sm bg-muted/50"
       />
@@ -148,12 +148,12 @@ export default function PasswordManagerPage() {
     });
   };
 
-  const handleCopy = (text: string, fieldName: string) => {
-    if (!text) {
+  const handleCopy = (text: string | number, fieldName: string) => {
+    if (text === undefined || text === null || text === '') {
       toast({ title: "Nothing to Copy", description: `The ${fieldName} field is empty.`, variant: "destructive" });
       return;
     }
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(String(text));
     toast({ title: "Copied!", description: `${fieldName} has been copied to your clipboard.` });
   };
 
@@ -256,7 +256,7 @@ export default function PasswordManagerPage() {
                                                     {isExpanded
                                                         ? `Last updated: ${cred.lastUpdated}`
                                                         : cred.category === 'Banking'
-                                                            ? `Account No: ${cred.accountNumber ? `••••${cred.accountNumber.slice(-4)}` : 'Not Set'}`
+                                                            ? `Account No: ${cred.accountNumber ? `••••${String(cred.accountNumber).slice(-4)}` : 'Not Set'}`
                                                             : `Username: ${cred.username || 'Not Set'}`
                                                     }
                                                 </CardDescription>
