@@ -113,8 +113,8 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                     </div>
 
                     <h4 className="font-semibold pt-1 text-sm">Template for {selectedTemplateDay}</h4>
-                    <ScrollArea className="h-32 pr-2 border rounded-md">
-                         {daySchedule.length > 0 ? (
+                    {daySchedule.length > 0 && (
+                        <ScrollArea className="h-32 pr-2 border rounded-md">
                             <div className="space-y-1 p-1">
                                 {daySchedule.map(item => (
                                     <div key={item.id} className="flex items-center justify-between p-1 rounded-md bg-muted/50 text-xs">
@@ -128,8 +128,8 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                                     </div>
                                 ))}
                             </div>
-                        ) : null}
-                    </ScrollArea>
+                        </ScrollArea>
+                    )}
 
                     <div className="pt-2 mt-1 border-t space-y-1">
                          <h4 className="font-semibold text-sm">Add Item to Template</h4>
