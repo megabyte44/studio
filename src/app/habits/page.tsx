@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription }
 import { Button } from '@/components/ui/button';
 import { 
     PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, 
-    AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill, BrainCircuit, Bed, Run, 
+    AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill, BrainCircuit, Bed, Footprints, 
     Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater 
 } from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
@@ -28,7 +28,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const iconMap: Record<string, React.ElementType> = {
     PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, 
-    AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill, BrainCircuit, Bed, Run, 
+    AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill, BrainCircuit, Bed, Footprints, 
     Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater
 };
 
@@ -134,7 +134,7 @@ function GymTracker({
                     {/* Protein Intake Card */}
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
-                      setIntakes={setProteinIntakes}
+                      setIntakes={setIntakes}
                       target={proteinTarget}
                       setTarget={setProteinTarget}
                     />
@@ -841,7 +841,7 @@ const availableIcons = [
   { name: 'CheckCircle2', label: 'Check Circle' },
   { name: 'BookOpen', label: 'Book Open' },
   { name: 'Bed', label: 'Bed' },
-  { name: 'Run', label: 'Running' },
+  { name: 'Footprints', label: 'Activity' },
   { name: 'BrainCircuit', label: 'Meditate' },
   { name: 'Sunrise', label: 'Sunrise' },
   { name: 'Guitar', label: 'Guitar' },
@@ -929,4 +929,3 @@ function AddHabitDialog({
         </Dialog>
     );
 }
-
