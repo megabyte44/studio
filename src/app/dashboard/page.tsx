@@ -1,3 +1,4 @@
+
 'use client';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -15,6 +16,8 @@ import { format, isSameDay, parseISO, startOfMonth, parse } from 'date-fns';
 import { calculateStreak } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 function WaterIntakeWidget() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -260,12 +263,49 @@ function FinancialSnapshot() {
 }
 
 function TodoList() {
-    const [todos, setTodos] = useState<TodoItem[]>(P_TODO_ITEMS);
+    const [todos, setTodos] = useState<TodoItem[]>(() => {
+        if (typeof window === 'undefined') {
+            return P_TODO_ITEMS;
+        }
+        try {
+            const storedTodos = localStorage.getItem('lifeos_todos');
+            return storedTodos ? JSON.parse(storedTodos) : P_TODO_ITEMS;
+        } catch (e) {
+            console.error("Failed to load todos, using placeholder data.", e);
+            return P_TODO_ITEMS;
+        }
+    });
+
+    const [isAddTodoDialogOpen, setIsAddTodoDialogOpen] = useState(false);
+    const [newTodoText, setNewTodoText] = useState('');
+
+    useEffect(() => {
+        localStorage.setItem('lifeos_todos', JSON.stringify(todos));
+    }, [todos]);
 
     const toggleTodo = (id: string) => {
-        setTodos(todos.map(todo => todo.id === id ? {...todo, completed: !todo.completed} : todo));
-    }
-    
+        setTodos(prevTodos => prevTodos.map(todo => 
+            todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        ));
+    };
+
+    const deleteTodo = (id: string) => {
+        setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
+    };
+
+    const addTodo = () => {
+        if (newTodoText.trim() === '') return;
+        const newTodo: TodoItem = {
+            id: `todo-${Date.now()}`,
+            text: newTodoText.trim(),
+            completed: false,
+            priority: 'low'
+        };
+        setTodos(prevTodos => [newTodo, ...prevTodos]);
+        setNewTodoText('');
+        setIsAddTodoDialogOpen(false);
+    };
+
     const getPriorityBadgeVariant = (priority?: 'high' | 'medium' | 'low') => {
         switch (priority) {
             case 'high': return 'destructive';
@@ -282,9 +322,37 @@ function TodoList() {
                 <ListChecks className="h-6 w-6 text-primary" />
                 <span>Today's To-Do List</span>
             </div>
-            <Button variant="ghost" size="icon">
-                <PlusCircle className="h-5 w-5" />
-            </Button>
+             <Dialog open={isAddTodoDialogOpen} onOpenChange={setIsAddTodoDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <PlusCircle className="h-5 w-5" />
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add a new task</DialogTitle>
+                        <DialogDescription>
+                            What do you need to get done?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Input
+                            id="new-todo-input"
+                            value={newTodoText}
+                            onChange={(e) => setNewTodoText(e.target.value)}
+                            placeholder="e.g., Finish Q3 report"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    addTodo();
+                                }
+                            }}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={addTodo}>Add Task</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0 sm:pt-0">
@@ -296,10 +364,17 @@ function TodoList() {
                     {todo.priority && (
                         <Badge variant={getPriorityBadgeVariant(todo.priority)} className="capitalize">{todo.priority}</Badge>
                     )}
-                    <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive" onClick={() => deleteTodo(todo.id)}>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
                  </li>
             ))}
         </ul>
+        {todos.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+                <p>No tasks yet. Add one to get started!</p>
+            </div>
+        )}
       </CardContent>
     </Card>
   )
