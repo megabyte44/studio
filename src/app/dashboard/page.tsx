@@ -80,21 +80,22 @@ function WaterIntakeWidget() {
   const mlToday = glassesToday * ML_PER_GLASS;
   
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center p-4 gap-6">
+    <div className="w-[370px] h-[140px] mx-auto border rounded-xl shadow-sm flex flex-row items-center justify-center p-6 gap-6">
       <Button 
         onClick={handleIntakeChange} 
         variant="outline" 
-        className="w-[150px] h-[64px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
+        className="w-[120px] h-[80px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
       >
-        <GlassWater className="h-10 w-10 text-primary/30 group-hover:text-primary/70 transition-colors" />
+        <GlassWater className="h-12 w-12 text-primary/30 group-hover:text-primary/70 transition-colors" />
       </Button>
-      <div className="text-center sm:text-left">
-        <h3 className="font-headline text-base font-semibold flex items-center gap-2 justify-center sm:justify-start">
+      <div className="text-left">
+        <h3 className="font-headline text-base font-semibold flex items-center gap-2">
             <Droplets className="h-5 w-5 text-primary" />
             <span className="text-sm">Water Intake</span>
         </h3>
-        <p className="text-muted-foreground text-lg">
-            <span className="font-bold text-foreground">{mlToday}ml</span> / {WATER_TARGET_ML}ml
+        <p className="text-muted-foreground text-2xl">
+            <span className="font-bold text-foreground">{mlToday}ml</span>
+            <span className="text-lg"> / {WATER_TARGET_ML}ml</span>
         </p>
          <p className="text-sm text-muted-foreground">
             ({glassesToday} of {TARGET_GLASSES} glasses)
