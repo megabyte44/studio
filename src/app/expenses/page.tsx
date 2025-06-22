@@ -56,7 +56,7 @@ function ExpenseForm({ onAddExpense }: { onAddExpense: (expense: Expense) => voi
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl font-bold font-headline">Add New Expense</CardTitle>
+        <CardTitle className="text-lg font-bold font-headline">Add New Expense</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -136,7 +136,7 @@ function ExpenseChart({ expenses }: { expenses: Expense[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl font-bold font-headline">Spending Breakdown</CardTitle>
+        <CardTitle className="text-lg font-bold font-headline">Spending Breakdown</CardTitle>
       </CardHeader>
       <CardContent>
         <div style={{ width: '100%', height: 300 }}>
@@ -198,7 +198,7 @@ export default function ExpensesPage() {
           <div className="md:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl font-bold font-headline">Recent Transactions</CardTitle>
+                <CardTitle className="text-lg font-bold font-headline">Recent Transactions</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>

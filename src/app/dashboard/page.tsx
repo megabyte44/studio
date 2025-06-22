@@ -166,7 +166,7 @@ function FinancialSnapshot() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-3">
+        <CardTitle className="font-headline flex items-center gap-3 text-lg">
           <Wallet className="h-6 w-6 text-primary" />
           <span>Financial Snapshot</span>
         </CardTitle>
@@ -215,7 +215,7 @@ function TodoList() {
   return (
      <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center justify-between">
+        <CardTitle className="font-headline flex items-center justify-between text-lg">
             <div className="flex items-center gap-3">
                 <ListChecks className="h-6 w-6 text-primary" />
                 <span>Today's To-Do List</span>

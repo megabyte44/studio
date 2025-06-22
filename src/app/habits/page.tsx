@@ -152,7 +152,7 @@ function GymTracker() {
                 <Card className={cn("lg:col-span-3", isTodayCompleted && "bg-muted/50")}>
                     <CardHeader className="flex flex-row items-start justify-between">
                         <div>
-                            <CardTitle className="font-headline flex items-center gap-3">
+                            <CardTitle className="font-headline flex items-center gap-3 text-lg">
                                 <List className="h-6 w-6 text-primary" />
                                 <span>{todaysWorkoutInfo.key}: {todaysWorkoutInfo.title}</span>
                             </CardTitle>
@@ -202,7 +202,7 @@ function GymTracker() {
                 {/* Workout Calendar Card */}
                 <Card className="lg:col-span-3">
                     <CardHeader>
-                        <CardTitle className="font-headline">Workout Log Calendar</CardTitle>
+                        <CardTitle className="font-headline text-lg">Workout Log Calendar</CardTitle>
                         <CardDescription>Green means completed, Red means missed.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex justify-center">
@@ -311,7 +311,7 @@ function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: any) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-3"><Beef className="h-6 w-6 text-primary" /> <span>Protein Intake</span></CardTitle>
+                <CardTitle className="font-headline flex items-center gap-3 text-lg"><Beef className="h-6 w-6 text-primary" /> <span>Protein Intake</span></CardTitle>
                 <CardDescription>Target: {totalProtein}g / {target}g</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -358,7 +358,7 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
         <Card>
             <CardHeader className="flex flex-row justify-between items-start">
                 <div>
-                    <CardTitle className="font-headline flex items-center gap-3"><Apple className="h-6 w-6 text-primary" /> <span>Food & Supplement Log</span></CardTitle>
+                    <CardTitle className="font-headline flex items-center gap-3 text-lg"><Apple className="h-6 w-6 text-primary" /> <span>Food & Supplement Log</span></CardTitle>
                     <CardDescription>Quick log common items for today.</CardDescription>
                 </div>
                 <Button variant="ghost" size="icon" onClick={onManageItems}><Settings className="h-5 w-5" /></Button>
@@ -418,7 +418,7 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
   return (
     <Card className="xl:col-span-2">
       <CardHeader>
-        <CardTitle className="font-headline flex items-center justify-between">
+        <CardTitle className="font-headline flex items-center justify-between text-lg">
             <div className='flex items-center gap-3'>
                 <Droplets className="h-6 w-6 text-primary" />
                 <span>Water Intake Tracker</span>
