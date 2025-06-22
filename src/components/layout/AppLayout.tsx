@@ -17,6 +17,7 @@ import {
   UserCog,
   Power,
   PlusCircle,
+  CalendarIcon,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +33,8 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -167,6 +170,29 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
   )
 }
 
+function HeaderCalendar() {
+  const [date, setDate] = useState<Date>();
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <CalendarIcon className="h-4 w-4" />
+          <span className="sr-only">Open calendar</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="end">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<{ username: string } | null>(null);
@@ -210,6 +236,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
         <h1 className="font-headline text-lg font-bold text-primary">LifeOS</h1>
         <div className="flex-1" />
+        <HeaderCalendar />
         <UserNav user={user} onLogout={handleLogout} />
       </header>
       <main className="flex-1 p-4 md:p-6 pb-24">
