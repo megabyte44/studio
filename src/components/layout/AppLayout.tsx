@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -10,6 +11,13 @@ import {
   StickyNote,
   LogOut,
   User,
+  Moon,
+  Sun,
+  KeyRound,
+  Settings as SettingsIcon,
+  UserCog,
+  Power,
+  PlusCircle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -24,6 +32,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -57,7 +68,76 @@ function BottomNav() {
   );
 }
 
-function UserNav({ user, onLogout }: { user: { username: string } | null, onLogout: () => void }) {
+function ThemeToggle() {
+  const [theme, setTheme] = useState('light');
+
+  useEffect(() => {
+      const storedTheme = typeof window !== 'undefined' ? localStorage.getItem('theme') || 'light' : 'light';
+      setTheme(storedTheme);
+      document.documentElement.classList.toggle('dark', storedTheme === 'dark');
+  }, []);
+
+  const toggleTheme = () => {
+      const newTheme = theme === 'light' ? 'dark' : 'light';
+      setTheme(newTheme);
+      localStorage.setItem('theme', newTheme);
+      document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
+
+  return (
+      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <div className="flex items-center justify-between w-full">
+              <div className="flex items-center">
+                  {theme === 'light' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                  <span>Dark Mode</span>
+              </div>
+              <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} aria-label="Toggle dark mode" />
+          </div>
+      </DropdownMenuItem>
+  );
+}
+
+function SyncToggle() {
+  return (
+      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+         <div className="flex items-center justify-between w-full">
+              <div className="flex items-center">
+                  <Power className="mr-2 h-4 w-4" />
+                  <span>Sync</span>
+              </div>
+              <Switch aria-label="Toggle sync" />
+         </div>
+      </DropdownMenuItem>
+  );
+}
+
+function UserNav({ user, onLogout, onUsernameChange }: { user: { username: string } | null, onLogout: () => void, onUsernameChange: (newUsername: string) => void }) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [tempUsername, setTempUsername] = useState(user?.username || '');
+
+  useEffect(() => {
+    if (user?.username) {
+      setTempUsername(user.username);
+    }
+  }, [user?.username]);
+
+  const handleUsernameSave = () => {
+    if (tempUsername.trim()) {
+      onUsernameChange(tempUsername.trim());
+      setIsEditingUsername(false);
+      toast({ title: 'Username updated successfully!' });
+    } else {
+      toast({ title: 'Username cannot be empty.', variant: 'destructive' });
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleUsernameSave();
+    if (e.key === 'Escape') setIsEditingUsername(false);
+  };
+  
   if (!user) return <Skeleton className="h-8 w-8 rounded-full" />;
 
   return (
@@ -70,10 +150,17 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-64" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.username}</p>
+          <div className="flex flex-col space-y-2">
+            {isEditingUsername ? (
+              <div className="flex items-center gap-2">
+                <Input value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} onKeyDown={handleKeyDown} className="h-8" autoFocus />
+                <Button size="sm" onClick={handleUsernameSave}>Save</Button>
+              </div>
+            ) : (
+              <p className="text-sm font-medium leading-none">{user.username}</p>
+            )}
             <p className="text-xs leading-none text-muted-foreground">
               Welcome back!
             </p>
@@ -81,11 +168,33 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem disabled>
-            <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+           <DropdownMenuItem onSelect={() => setIsEditingUsername(true)}>
+             <User className="mr-2 h-4 w-4" />
+             <span>Edit Username</span>
+           </DropdownMenuItem>
+           <DropdownMenuItem onSelect={() => router.push('/profile')}>
+            <UserCog className="mr-2 h-4 w-4" />
+            <span>Edit Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => router.push('/')}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            <span>Add Account</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onSelect={() => router.push('/password-manager')}>
+            <KeyRound className="mr-2 h-4 w-4" />
+            <span>Password Manager</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => router.push('/settings')}>
+            <SettingsIcon className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <ThemeToggle />
+        <SyncToggle />
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout}>
           <LogOut className="mr-2 h-4 w-4" />
@@ -119,6 +228,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('user');
     router.push('/');
   };
+  
+  const handleUsernameChange = (newUsername: string) => {
+    const updatedUser = { username: newUsername };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
 
   if (!isVerified) {
     return (
@@ -139,7 +254,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
         <h1 className="font-headline text-lg font-bold text-primary">LifeOS</h1>
         <div className="flex-1" />
-        <UserNav user={user} onLogout={handleLogout} />
+        <UserNav user={user} onLogout={handleLogout} onUsernameChange={handleUsernameChange} />
       </header>
       <main className="flex-1 p-4 md:p-6 pb-24">
         {children}
