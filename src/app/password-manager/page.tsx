@@ -30,18 +30,18 @@ function SensitiveInput({ id, fieldName, value, onToggle, onCopy, isVisible }: {
   isVisible: boolean;
 }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5">
       <Input
         type={isVisible ? 'text' : 'password'}
         value={isVisible ? String(value) : '••••••••••'}
         readOnly
-        className="text-sm bg-muted/50 h-8 px-2 py-1"
+        className="text-xs bg-muted/50 h-7 px-1 py-0.5"
       />
-      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => onToggle(id, fieldName)}>
-        {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => onToggle(id, fieldName)}>
+        {isVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
       </Button>
-      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => onCopy(value, fieldName)}>
-        <Copy className="h-4 w-4" />
+      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => onCopy(value, fieldName)}>
+        <Copy className="h-3.5 w-3.5" />
       </Button>
     </div>
   );
@@ -124,22 +124,22 @@ function CredentialDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[625px] p-3">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[425px] p-3">
+                <DialogHeader className="p-2 pb-0">
                     <DialogTitle>{credential ? 'Edit Credential' : 'Add New Credential'}</DialogTitle>
                     <DialogDescription>
                         {credential ? `Updating details for ${credential.name}.` : 'Fill in the details for the new credential.'}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid md:grid-cols-2 gap-2 py-2">
+                <div className="grid md:grid-cols-2 gap-1 py-1 px-2">
                     <div>
-                        <Label htmlFor="newAccountName">Account Name</Label>
-                        <Input id="newAccountName" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Netflix, Personal Savings" />
+                        <Label htmlFor="newAccountName" className="text-xs">Account Name</Label>
+                        <Input id="newAccountName" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Netflix" className="h-8" />
                     </div>
                     <div>
-                        <Label htmlFor="newAccountCategory">Category</Label>
+                        <Label htmlFor="newAccountCategory" className="text-xs">Category</Label>
                         <Select value={category} onValueChange={(v) => setCategory(v as any)}>
-                            <SelectTrigger id="newAccountCategory"><SelectValue /></SelectTrigger>
+                            <SelectTrigger id="newAccountCategory" className="h-8"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Website">Website</SelectItem>
                                 <SelectItem value="Banking">Banking</SelectItem>
@@ -150,29 +150,29 @@ function CredentialDialog({
                     </div>
 
                     {category === 'Banking' ? (
-                        <div className="md:col-span-2 border-t pt-2 mt-1 space-y-2">
-                            <h3 className="text-md font-semibold flex items-center gap-2"><Landmark className="h-5 w-5 text-primary" /> Banking Details</h3>
-                            <div className="grid md:grid-cols-2 gap-2">
-                                <div><Label htmlFor="accNum">Account Number</Label><Input id="accNum" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} /></div>
-                                <div><Label htmlFor="ifsc">IFSC Code</Label><Input id="ifsc" value={ifscCode} onChange={e => setIfscCode(e.target.value)} /></div>
-                                <div><Label htmlFor="upi">UPI PIN</Label><Input type="password" id="upi" value={upiPin} onChange={e => setUpiPin(e.target.value)} /></div>
-                                <div><Label htmlFor="nbid">Netbanking ID</Label><Input id="nbid" value={netbankingId} onChange={e => setNetbankingId(e.target.value)} /></div>
-                                <div><Label htmlFor="mpin">MPIN</Label><Input type="password" id="mpin" value={mpin} onChange={e => setMpin(e.target.value)} /></div>
-                                <div><Label htmlFor="nbpass">Netbanking Password</Label><Input type="password" id="nbpass" value={netbankingPassword} onChange={e => setNetbankingPassword(e.target.value)} /></div>
-                                <div className="md:col-span-2"><Label htmlFor="txpass">Transaction Password</Label><Input type="password" id="txpass" value={transactionPassword} onChange={e => setTransactionPassword(e.target.value)} /></div>
+                        <div className="md:col-span-2 border-t pt-2 mt-2 space-y-1">
+                            <h3 className="text-sm font-semibold flex items-center gap-2"><Landmark className="h-4 w-4 text-primary" /> Banking Details</h3>
+                            <div className="grid md:grid-cols-2 gap-1">
+                                <div><Label htmlFor="accNum" className="text-xs">Account Number</Label><Input id="accNum" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} className="h-8" /></div>
+                                <div><Label htmlFor="ifsc" className="text-xs">IFSC Code</Label><Input id="ifsc" value={ifscCode} onChange={e => setIfscCode(e.target.value)} className="h-8" /></div>
+                                <div><Label htmlFor="upi" className="text-xs">UPI PIN</Label><Input type="password" id="upi" value={upiPin} onChange={e => setUpiPin(e.target.value)} className="h-8" /></div>
+                                <div><Label htmlFor="nbid" className="text-xs">Netbanking ID</Label><Input id="nbid" value={netbankingId} onChange={e => setNetbankingId(e.target.value)} className="h-8" /></div>
+                                <div><Label htmlFor="mpin" className="text-xs">MPIN</Label><Input type="password" id="mpin" value={mpin} onChange={e => setMpin(e.target.value)} className="h-8" /></div>
+                                <div><Label htmlFor="nbpass" className="text-xs">Netbanking Password</Label><Input type="password" id="nbpass" value={netbankingPassword} onChange={e => setNetbankingPassword(e.target.value)} className="h-8" /></div>
+                                <div className="md:col-span-2"><Label htmlFor="txpass" className="text-xs">Transaction Password</Label><Input type="password" id="txpass" value={transactionPassword} onChange={e => setTransactionPassword(e.target.value)} className="h-8" /></div>
                             </div>
                         </div>
                     ) : (
                         <>
-                            <div><Label htmlFor="username">Username / Email</Label><Input id="username" value={username} onChange={e => setUsername(e.target.value)} /></div>
-                            <div><Label htmlFor="password">Password</Label><Input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} /></div>
-                            {category === 'Website' && <div className="md:col-span-2"><Label htmlFor="website">Website URL</Label><Input id="website" value={website} onChange={e => setWebsite(e.target.value)} /></div>}
+                            <div><Label htmlFor="username" className="text-xs">Username / Email</Label><Input id="username" value={username} onChange={e => setUsername(e.target.value)} className="h-8" /></div>
+                            <div><Label htmlFor="password" className="text-xs">Password</Label><Input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} className="h-8" /></div>
+                            {category === 'Website' && <div className="md:col-span-2"><Label htmlFor="website" className="text-xs">Website URL</Label><Input id="website" value={website} onChange={e => setWebsite(e.target.value)} className="h-8" /></div>}
                         </>
                     )}
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button onClick={handleSaveClick}><Save className="mr-2 h-4 w-4" /> Save</Button>
+                <DialogFooter className="p-2 pt-0">
+                    <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button size="sm" onClick={handleSaveClick}><Save className="mr-1 h-3.5 w-3.5" /> Save</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -227,7 +227,7 @@ export default function PasswordManagerPage() {
     if (id) {
       // Update existing credential
       const updatedCredential = { ...data, id, lastUpdated: new Date().toISOString().split('T')[0] };
-      setCredentials(credentials.map(c => c.id === id ? updatedCredential : c));
+      setCredentials(credentials.map(c => c.id === id ? { ...c, ...updatedCredential } : c));
       toast({ title: "Credential Updated", description: `${updatedCredential.name} has been updated.` });
     } else {
       // Add new credential
@@ -308,44 +308,43 @@ export default function PasswordManagerPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-3">
+      <div className="space-y-1.5">
         <header className="flex items-center justify-between">
             <div>
-                <h1 className="text-2xl font-bold font-headline">Password Vault</h1>
-                <p className="text-muted-foreground">Securely store and manage your passwords and sensitive information.</p>
+                <h1 className="text-xl font-bold font-headline">Password Vault</h1>
             </div>
-            <Button onClick={() => { setEditingCredential(null); setIsFormOpen(true); }}>
-              <PlusSquare className="mr-2 h-4 w-4" /> Add Credential
+            <Button size="sm" onClick={() => { setEditingCredential(null); setIsFormOpen(true); }}>
+              <PlusSquare className="mr-1 h-3.5 w-3.5" /> Add Credential
             </Button>
         </header>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
             {Object.entries(groupedCredentials).map(([cat, items]) => {
                 if (items.length === 0) return null;
                 const Icon = categoryIcons[cat] || KeySquare;
                 return (
                     <section key={cat}>
-                        <h2 className="text-xl font-bold font-headline flex items-center gap-3 mb-2 pb-1 border-b"><Icon className="h-6 w-6 text-primary" /> {cat}</h2>
+                        <h2 className="text-lg font-bold font-headline flex items-center gap-2 mb-1 pb-0.5 border-b"><Icon className="h-5 w-5 text-primary" /> {cat}</h2>
                         <ScrollArea className="w-full">
-                            <div className="flex space-x-2 pb-2">
+                            <div className="flex space-x-1 pb-1">
                                 {items.map(cred => {
                                     const isExpanded = expandedCardIds.has(cred.id);
                                     return (
-                                        <Card key={cred.id} className="w-[280px] flex-shrink-0 flex flex-col">
-                                            <CardHeader className="p-2 sm:p-3">
-                                                <CardTitle className="truncate text-base">{cred.name}</CardTitle>
+                                        <Card key={cred.id} className="w-[260px] flex-shrink-0 flex flex-col">
+                                            <CardHeader className="p-1.5 sm:p-2">
+                                                <CardTitle className="truncate text-sm">{cred.name}</CardTitle>
                                                 <CardDescription className="text-xs">
                                                     {isExpanded
                                                         ? `Last updated: ${cred.lastUpdated}`
                                                         : cred.category === 'Banking'
-                                                            ? `Account No: ${cred.accountNumber ? `••••${String(cred.accountNumber).slice(-4)}` : 'Not Set'}`
-                                                            : `Username: ${cred.username || 'Not Set'}`
+                                                            ? `Account No: ${cred.accountNumber ? `••••${String(cred.accountNumber).slice(-4)}` : 'N/A'}`
+                                                            : `Username: ${cred.username || 'N/A'}`
                                                     }
                                                 </CardDescription>
                                             </CardHeader>
                                             
                                             {isExpanded && (
-                                                <CardContent className="space-y-1.5 flex-grow p-2 pt-0 sm:p-3 sm:pt-0">
+                                                <CardContent className="space-y-1 flex-grow p-1.5 pt-0 sm:p-2 sm:pt-0">
                                                   {cred.category === 'Banking' ? (
                                                       <>
                                                          {cred.accountNumber && <p className="text-xs"><strong>Acc No:</strong> {cred.accountNumber}</p>}
@@ -366,14 +365,14 @@ export default function PasswordManagerPage() {
                                                 </CardContent>
                                             )}
 
-                                            <CardFooter className="justify-end gap-1 p-2 pt-0 sm:p-3 sm:pt-0 mt-auto">
+                                            <CardFooter className="justify-end gap-0.5 p-1.5 pt-0 sm:p-2 sm:pt-0 mt-auto">
                                                 {isExpanded && (
                                                     <>
-                                                        <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => { setEditingCredential(cred); setIsFormOpen(true); }}><Edit className="mr-1 h-3 w-3" /> Edit</Button>
-                                                        <Button variant="destructive" size="sm" className="h-7 px-2" onClick={() => handleDeleteCredential(cred.id)}><Trash2 className="mr-1 h-3 w-3" /> Delete</Button>
+                                                        <Button variant="outline" size="sm" className="h-6 px-1.5" onClick={() => { setEditingCredential(cred); setIsFormOpen(true); }}><Edit className="mr-1 h-3 w-3" /> Edit</Button>
+                                                        <Button variant="destructive" size="sm" className="h-6 px-1.5" onClick={() => handleDeleteCredential(cred.id)}><Trash2 className="mr-1 h-3 w-3" /> Delete</Button>
                                                     </>
                                                 )}
-                                                <Button variant="secondary" size="sm" className="h-7 px-2" onClick={() => toggleCardExpansion(cred.id)}>
+                                                <Button variant="secondary" size="sm" className="h-6 px-1.5" onClick={() => toggleCardExpansion(cred.id)}>
                                                     {isExpanded ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
                                                     {isExpanded ? 'Hide' : 'View'}
                                                 </Button>
