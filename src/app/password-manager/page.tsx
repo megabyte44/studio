@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   KeySquare, Loader2, ShieldCheck, Landmark, Globe, Users, CreditCard,
   PlusSquare, Eye, EyeOff, Copy, Trash2, Edit
@@ -65,6 +66,7 @@ export default function PasswordManagerPage() {
 
   // UI State
   const [visibilities, setVisibilities] = useState<Record<string, Record<string, boolean>>>({});
+  const [expandedCardIds, setExpandedCardIds] = useState<Set<string>>(new Set());
 
   // Load data from localStorage
   useEffect(() => {
@@ -127,6 +129,18 @@ export default function PasswordManagerPage() {
     }));
   };
 
+  const toggleCardExpansion = (id: string) => {
+    setExpandedCardIds(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        return newSet;
+    });
+  };
+
   const handleCopy = (text: string, fieldName: string) => {
     if (!text) {
       toast({ title: "Nothing to Copy", description: `The ${fieldName} field is empty.`, variant: "destructive" });
@@ -161,7 +175,7 @@ export default function PasswordManagerPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <header className="text-center">
+        <header>
             <h1 className="text-2xl font-bold font-headline">Password Vault</h1>
             <p className="text-muted-foreground">Securely store and manage your passwords and sensitive information.</p>
         </header>
@@ -218,43 +232,69 @@ export default function PasswordManagerPage() {
         
         <div className="space-y-8">
             {Object.entries(groupedCredentials).map(([cat, items]) => {
+                if (items.length === 0) return null;
                 const Icon = categoryIcons[cat] || KeySquare;
                 return (
                     <section key={cat}>
                         <h2 className="text-xl font-bold font-headline flex items-center gap-3 mb-4 pb-2 border-b"><Icon className="h-6 w-6 text-primary" /> {cat}</h2>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {items.map(cred => (
-                                <Card key={cred.id}>
-                                    <CardHeader>
-                                        <CardTitle className="truncate">{cred.name}</CardTitle>
-                                        <CardDescription>Last updated: {cred.lastUpdated}</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        {cred.category === 'Banking' ? (
-                                            <>
-                                               {cred.accountNumber && <p><strong>Acc No:</strong> {cred.accountNumber}</p>}
-                                               {cred.ifscCode && <p><strong>IFSC:</strong> {cred.ifscCode}</p>}
-                                               {cred.netbankingId && <p><strong>Netbanking ID:</strong> {cred.netbankingId}</p>}
-                                               {cred.upiPin && <div><strong>UPI PIN:</strong><SensitiveInput id={cred.id} fieldName="upiPin" value={cred.upiPin} isVisible={!!visibilities[cred.id]?.upiPin} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
-                                               {cred.mpin && <div><strong>MPIN:</strong><SensitiveInput id={cred.id} fieldName="mpin" value={cred.mpin} isVisible={!!visibilities[cred.id]?.mpin} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
-                                               {cred.netbankingPassword && <div><strong>NB Pass:</strong><SensitiveInput id={cred.id} fieldName="netbankingPassword" value={cred.netbankingPassword} isVisible={!!visibilities[cred.id]?.netbankingPassword} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
-                                               {cred.transactionPassword && <div><strong>Txn Pass:</strong><SensitiveInput id={cred.id} fieldName="transactionPassword" value={cred.transactionPassword} isVisible={!!visibilities[cred.id]?.transactionPassword} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {cred.username && <p><strong>Username:</strong> {cred.username}</p>}
-                                                {cred.website && <p><strong>Website:</strong> <a href={cred.website} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate block">{cred.website}</a></p>}
-                                                {cred.password && <div><strong>Password:</strong><SensitiveInput id={cred.id} fieldName="password" value={cred.password} isVisible={!!visibilities[cred.id]?.password} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
-                                            </>
-                                        )}
-                                    </CardContent>
-                                    <CardFooter className="justify-end gap-2">
-                                        <Button variant="outline" size="sm" disabled><Edit className="mr-2 h-4 w-4" /> Edit</Button>
-                                        <Button variant="destructive" size="sm" onClick={() => handleDeleteCredential(cred.id)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
-                                    </CardFooter>
-                                </Card>
-                            ))}
-                        </div>
+                        <ScrollArea className="w-full">
+                            <div className="flex space-x-4 pb-4">
+                                {items.map(cred => {
+                                    const isExpanded = expandedCardIds.has(cred.id);
+                                    return (
+                                        <Card key={cred.id} className="w-[350px] flex-shrink-0 flex flex-col">
+                                            <CardHeader>
+                                                <CardTitle className="truncate">{cred.name}</CardTitle>
+                                                <CardDescription>
+                                                    {isExpanded
+                                                        ? `Last updated: ${cred.lastUpdated}`
+                                                        : cred.category === 'Banking' && cred.accountNumber
+                                                            ? `Account No: ••••${cred.accountNumber.slice(-4)}`
+                                                            : `Username: ${cred.username}`
+                                                    }
+                                                </CardDescription>
+                                            </CardHeader>
+                                            
+                                            {isExpanded && (
+                                                <CardContent className="space-y-3 flex-grow">
+                                                  {cred.category === 'Banking' ? (
+                                                      <>
+                                                         {cred.accountNumber && <p><strong>Acc No:</strong> {cred.accountNumber}</p>}
+                                                         {cred.ifscCode && <p><strong>IFSC:</strong> {cred.ifscCode}</p>}
+                                                         {cred.netbankingId && <p><strong>Netbanking ID:</strong> {cred.netbankingId}</p>}
+                                                         {cred.upiPin && <div><strong>UPI PIN:</strong><SensitiveInput id={cred.id} fieldName="upiPin" value={cred.upiPin} isVisible={!!visibilities[cred.id]?.upiPin} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                         {cred.mpin && <div><strong>MPIN:</strong><SensitiveInput id={cred.id} fieldName="mpin" value={cred.mpin} isVisible={!!visibilities[cred.id]?.mpin} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                         {cred.netbankingPassword && <div><strong>NB Pass:</strong><SensitiveInput id={cred.id} fieldName="netbankingPassword" value={cred.netbankingPassword} isVisible={!!visibilities[cred.id]?.netbankingPassword} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                         {cred.transactionPassword && <div><strong>Txn Pass:</strong><SensitiveInput id={cred.id} fieldName="transactionPassword" value={cred.transactionPassword} isVisible={!!visibilities[cred.id]?.transactionPassword} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                      </>
+                                                  ) : (
+                                                      <>
+                                                          {cred.username && <p><strong>Username:</strong> {cred.username}</p>}
+                                                          {cred.website && <p><strong>Website:</strong> <a href={cred.website} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate block">{cred.website}</a></p>}
+                                                          {cred.password && <div><strong>Password:</strong><SensitiveInput id={cred.id} fieldName="password" value={cred.password} isVisible={!!visibilities[cred.id]?.password} onToggle={handleToggleVisibility} onCopy={handleCopy} /></div>}
+                                                      </>
+                                                  )}
+                                                </CardContent>
+                                            )}
+
+                                            <CardFooter className="justify-end gap-2 pt-4 mt-auto">
+                                                {isExpanded && (
+                                                    <>
+                                                        <Button variant="outline" size="sm" disabled><Edit className="mr-1 h-4 w-4" /> Edit</Button>
+                                                        <Button variant="destructive" size="sm" onClick={() => handleDeleteCredential(cred.id)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
+                                                    </>
+                                                )}
+                                                <Button variant="secondary" size="sm" onClick={() => toggleCardExpansion(cred.id)}>
+                                                    {isExpanded ? <EyeOff className="mr-1 h-4 w-4" /> : <Eye className="mr-1 h-4 w-4" />}
+                                                    {isExpanded ? 'Hide' : 'View'}
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    )
+                                })}
+                            </div>
+                            <ScrollBar orientation="horizontal" />
+                        </ScrollArea>
                     </section>
                 )
             })}
