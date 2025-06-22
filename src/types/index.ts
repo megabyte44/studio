@@ -33,3 +33,36 @@ export type Note = {
   type: 'text' | 'checklist';
   createdAt: string;
 };
+
+// New types for Gym Tracker
+export type Exercise = {
+  name: string;
+  sets: string;
+  reps: string;
+};
+
+export type WorkoutDay = {
+  title: string;
+  exercises: Exercise[];
+};
+
+export type CyclicalWorkoutSplit = Record<string, WorkoutDay>;
+
+export type CycleConfig = {
+  startDate: string; // ISO Date string
+  startDayKey: string;
+};
+
+export type ProteinIntake = {
+  id: string;
+  amount: number;
+  timestamp: string; // ISO string
+};
+
+export type LoggedFoodItem = {
+    id:string;
+    name: string;
+    timestamp: string; // ISO string
+};
+
+export type CompletedWorkouts = Record<string, boolean>; // date key: 'yyyy-MM-dd'
