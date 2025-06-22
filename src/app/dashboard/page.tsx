@@ -18,6 +18,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 function WaterIntakeWidget() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -278,6 +280,7 @@ function TodoList() {
 
     const [isAddTodoDialogOpen, setIsAddTodoDialogOpen] = useState(false);
     const [newTodoText, setNewTodoText] = useState('');
+    const [newTodoPriority, setNewTodoPriority] = useState<'high' | 'medium' | 'low'>('low');
 
     useEffect(() => {
         localStorage.setItem('lifeos_todos', JSON.stringify(todos));
@@ -299,10 +302,11 @@ function TodoList() {
             id: `todo-${Date.now()}`,
             text: newTodoText.trim(),
             completed: false,
-            priority: 'low'
+            priority: newTodoPriority
         };
         setTodos(prevTodos => [newTodo, ...prevTodos]);
         setNewTodoText('');
+        setNewTodoPriority('low');
         setIsAddTodoDialogOpen(false);
     };
 
@@ -335,18 +339,34 @@ function TodoList() {
                             What do you need to get done?
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="py-4">
-                        <Input
-                            id="new-todo-input"
-                            value={newTodoText}
-                            onChange={(e) => setNewTodoText(e.target.value)}
-                            placeholder="e.g., Finish Q3 report"
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    addTodo();
-                                }
-                            }}
-                        />
+                    <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-todo-input">Task</Label>
+                            <Input
+                                id="new-todo-input"
+                                value={newTodoText}
+                                onChange={(e) => setNewTodoText(e.target.value)}
+                                placeholder="e.g., Finish Q3 report"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        addTodo();
+                                    }
+                                }}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-todo-priority">Priority</Label>
+                            <Select value={newTodoPriority} onValueChange={(value) => setNewTodoPriority(value as 'high' | 'medium' | 'low')}>
+                                <SelectTrigger id="new-todo-priority">
+                                    <SelectValue placeholder="Select priority" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="high">High</SelectItem>
+                                    <SelectItem value="medium">Medium</SelectItem>
+                                    <SelectItem value="low">Low</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button onClick={addTodo}>Add Task</Button>
