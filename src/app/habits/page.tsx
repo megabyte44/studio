@@ -6,9 +6,9 @@ import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, Pr
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, ChevronLeft, ChevronRight, Droplets, Plus, Minus } from 'lucide-react';
+import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
-import { subDays, format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, differenceInCalendarDays } from 'date-fns';
+import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -42,7 +42,6 @@ function GymTracker() {
     const [cyclicalWorkoutSplit, setCyclicalWorkoutSplit] = useState<CyclicalWorkoutSplit>(initialWorkoutSplit);
     const [cycleConfig, setCycleConfig] = useState<CycleConfig>({ startDate: format(new Date(), 'yyyy-MM-dd'), startDayKey: "Day 1" });
     const [completedWorkouts, setCompletedWorkouts] = useState<CompletedWorkouts>({});
-    const [currentDisplayMonth, setCurrentDisplayMonth] = useState(new Date());
 
     // Dialog states
     const [isCycleConfigOpen, setIsCycleConfigOpen] = useState(false);
@@ -199,22 +198,6 @@ function GymTracker() {
                     )}
                 </Card>
                  
-                {/* Workout Calendar Card */}
-                <Card className="lg:col-span-3">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg">Workout Log Calendar</CardTitle>
-                        <CardDescription>Green means completed, Red means missed.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex justify-center">
-                        <WorkoutCalendar 
-                            currentMonth={currentDisplayMonth}
-                            setCurrentMonth={setCurrentDisplayMonth}
-                            completedWorkouts={completedWorkouts}
-                            getWorkoutDayInfoForDate={getWorkoutDayInfoForDate}
-                        />
-                    </CardContent>
-                </Card>
-
                 {/* Nutrition Section */}
                 <div className="lg:col-span-3 grid md:grid-cols-2 gap-6">
                     {/* Protein Intake Card */}
@@ -228,58 +211,13 @@ function GymTracker() {
                     {/* Food & Supplement Log Card */}
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
-                      setLoggedItems={setLoggedFoodItems}
+                      setLoggedItems={setLoggedItems}
                       customItems={customFoodItems}
                       onManageItems={() => setIsFoodManagerOpen(true)}
                     />
                 </div>
             </div>
             {/* Dialogs need to be implemented */}
-        </div>
-    )
-}
-
-function WorkoutCalendar({ currentMonth, setCurrentMonth, completedWorkouts, getWorkoutDayInfoForDate }: any) {
-    const today = new Date();
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(currentMonth);
-    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-    const startingDayOfWeek = getDay(monthStart);
-
-    const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
-    return (
-        <div className="w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-                <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <h3 className="text-lg font-semibold font-headline">{format(currentMonth, 'MMMM yyyy')}</h3>
-                <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
-            </div>
-            <div className="grid grid-cols-7 gap-2 text-center">
-                {dayHeaders.map(day => <div key={day} className="font-bold text-muted-foreground text-sm">{day}</div>)}
-                {Array.from({ length: startingDayOfWeek }).map((_, i) => <div key={`empty-${i}`} />)}
-                {days.map(day => {
-                    const dateKey = format(day, 'yyyy-MM-dd');
-                    const workoutInfo = getWorkoutDayInfoForDate(day);
-                    const isCompleted = completedWorkouts[dateKey];
-                    const isMissed = !isCompleted && day < today && !workoutInfo.isRestDay;
-
-                    return (
-                        <div key={dateKey} className={cn(
-                            "h-10 w-10 flex items-center justify-center rounded-full text-sm",
-                            isSameDay(day, today) && "bg-primary text-primary-foreground",
-                            isCompleted && "bg-green-200 text-green-800",
-                            isMissed && "bg-red-200 text-red-800"
-                        )}>
-                            {format(day, 'd')}
-                        </div>
-                    );
-                })}
-            </div>
         </div>
     )
 }
