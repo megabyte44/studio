@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, formatISO } from 'date-fns';
 import { PiggyBank, Loader2, TrendingUp, TrendingDown, Save, PlusCircle, Pencil, Trash2 } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_BUDGET = 'lifeos_budget';
@@ -27,7 +27,6 @@ export default function ExpensesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [monthlyBudget, setMonthlyBudget] = useState(200000); // Default: $2000.00 in cents
   const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [budgetInput, setBudgetInput] = useState('');
 
   const { toast } = useToast();
@@ -94,14 +93,6 @@ export default function ExpensesPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <header className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mx-auto mb-4">
-                <PiggyBank className="w-8 h-8" />
-            </div>
-            <h1 className="text-3xl font-bold font-headline">Expense Tracker</h1>
-            <p className="text-muted-foreground max-w-xl mx-auto">Track your income, expenses, and manage your budget with ease.</p>
-        </header>
-
         <div className="grid grid-cols-2 gap-6">
             <StatCard title="Total Income" amount={totalIncome} icon={TrendingUp} variant="income" />
             <StatCard title="Total Spent" amount={totalExpenses} icon={TrendingDown} variant="expense" />
@@ -110,15 +101,15 @@ export default function ExpensesPage() {
         </div>
 
         <Card>
-            <CardHeader>
+            <CardHeader className="py-4 sm:py-4">
                 <CardTitle className="text-lg">Budget Progress</CardTitle>
                 <CardDescription>You've spent {formatCurrency(totalExpenses)} of your {formatCurrency(monthlyBudget)} budget.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0 sm:pt-0">
                 <Progress value={budgetProgress} />
                 <p className="text-right text-sm text-muted-foreground mt-2">{budgetProgress.toFixed(0)}%</p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="pt-0 sm:pt-0">
                  <div className="w-full space-y-2">
                     <label htmlFor="monthly-budget-input" className="text-sm font-medium">Set Your Monthly Budget:</label>
                     <div className="flex gap-2">
@@ -130,7 +121,7 @@ export default function ExpensesPage() {
         </Card>
 
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between py-4 sm:py-4">
                 <div className="space-y-1.5">
                     <CardTitle className="text-lg">Recent Transactions</CardTitle>
                     <CardDescription>A log of your recent income and expenses.</CardDescription>
@@ -139,7 +130,7 @@ export default function ExpensesPage() {
                     <Button><PlusCircle className="mr-2 h-4 w-4" />Add Transaction</Button>
                 </TransactionDialog>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0 sm:pt-0">
                  <Table>
                   <TableHeader>
                     <TableRow>
@@ -184,11 +175,11 @@ function StatCard({ title, amount, icon: Icon, variant }: { title: string, amoun
     const amountColor = variant === 'income' ? 'text-green-600' : variant === 'expense' ? 'text-red-600' : '';
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-4 sm:py-4">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0 sm:pt-0">
                 <div className={`text-2xl font-bold ${amountColor}`}>{formatCurrency(Math.abs(amount))}</div>
             </CardContent>
         </Card>
