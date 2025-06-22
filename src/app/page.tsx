@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -75,9 +76,9 @@ export default function LoginPage() {
                     selected={dob}
                     onSelect={setDob}
                     initialFocus
-                    captionLayout="dropdown-buttons"
-                    fromYear={1900}
-                    toYear={new Date().getFullYear()}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date('1900-01-01')
+                    }
                   />
                 </PopoverContent>
               </Popover>
