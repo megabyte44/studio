@@ -7,7 +7,7 @@ import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, Pr
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus, BookOpenCheck } from 'lucide-react';
+import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
@@ -606,18 +606,25 @@ export default function HabitsPage() {
                                         <div className="flex items-center gap-3">
                                             <Icon className="h-6 w-6 text-muted-foreground" />
                                             <span className="font-semibold text-base">{habit.name}</span>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            <div
+                                                role="button"
+                                                aria-label="Edit habit"
+                                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md hover:bg-accent cursor-pointer"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setEditingHabit(habit);
                                                     setIsEditHabitDialogOpen(true);
                                                 }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.stopPropagation();
+                                                        setEditingHabit(habit);
+                                                        setIsEditHabitDialogOpen(true);
+                                                    }
+                                                }}
                                             >
                                                 <Edit className="h-3 w-3" />
-                                            </Button>
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-2 text-orange-500">
                                             <Flame className="h-5 w-5" />
