@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { format, parseISO, formatISO } from 'date-fns';
+import { format, parseISO, formatISO, startOfMonth } from 'date-fns';
 import { 
     PiggyBank, Loader2, TrendingUp, TrendingDown, Save, PlusCircle, Trash2, 
     Plane, Shirt, UtensilsCrossed, ShoppingBag, Bolt, HeartPulse, Ticket, MoreHorizontal, Salad, Users 
@@ -71,12 +71,25 @@ export default function ExpensesPage() {
     }
   }, [transactions, monthlyBudget, isLoading]);
 
-  const { totalIncome, totalExpenses, remainingBudget, budgetProgress } = useMemo(() => {
+  const { totalIncome, totalExpenses, remainingBudget, budgetProgress, monthlyExpenses } = useMemo(() => {
     const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-    const remaining = monthlyBudget - expenses;
-    const progress = monthlyBudget > 0 ? Math.max(0, Math.min(100, (expenses / monthlyBudget) * 100)) : 0;
-    return { totalIncome: income, totalExpenses: expenses, remainingBudget: remaining, budgetProgress: progress };
+    
+    const startOfCurrentMonth = startOfMonth(new Date());
+    const currentMonthExpenses = transactions
+        .filter(t => t.type === 'expense' && parseISO(t.date) >= startOfCurrentMonth)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const remaining = monthlyBudget - currentMonthExpenses;
+    const progress = monthlyBudget > 0 ? Math.max(0, Math.min(100, (currentMonthExpenses / monthlyBudget) * 100)) : 0;
+
+    return { 
+        totalIncome: income, 
+        totalExpenses: expenses, 
+        remainingBudget: remaining, 
+        budgetProgress: progress,
+        monthlyExpenses: currentMonthExpenses
+    };
   }, [transactions, monthlyBudget]);
   
    const groupedTransactions = useMemo(() => {
@@ -131,7 +144,7 @@ export default function ExpensesPage() {
         <Card>
             <CardHeader className="py-4 sm:py-4">
                 <CardTitle className="text-lg">Budget Progress</CardTitle>
-                <CardDescription>You've spent {formatCurrency(totalExpenses)} of your {formatCurrency(monthlyBudget)} budget.</CardDescription>
+                <CardDescription>You've spent {formatCurrency(monthlyExpenses)} of your {formatCurrency(monthlyBudget)} budget.</CardDescription>
             </CardHeader>
             <CardContent className="pt-0 sm:pt-0 pb-2">
                 <Progress value={budgetProgress} />
@@ -180,7 +193,7 @@ export default function ExpensesPage() {
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <span className={`font-bold text-lg ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                                            {formatCurrency(txn.amount)}
+                                                            {formatCurrency(Math.abs(txn.amount))}
                                                         </span>
                                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteTransaction(txn.id)}>
                                                             <Trash2 className="h-4 w-4" />
