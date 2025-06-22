@@ -27,8 +27,26 @@ function WaterIntakeWidget() {
   useEffect(() => {
     const loadHabits = () => {
       try {
+        let currentHabits: Habit[] = [];
         const storedHabits = localStorage.getItem('lifeos_habits');
-        setHabits(storedHabits ? JSON.parse(storedHabits) : P_HABITS);
+        
+        if (storedHabits) {
+            currentHabits = JSON.parse(storedHabits);
+        } else {
+            currentHabits = P_HABITS;
+        }
+        
+        const hasWaterHabit = currentHabits.some(h => h.name === 'Water Drinking');
+
+        if (!hasWaterHabit) {
+            const waterHabitTemplate = P_HABITS.find(h => h.name === 'Water Drinking');
+            if (waterHabitTemplate) {
+                currentHabits.push(waterHabitTemplate);
+                localStorage.setItem('lifeos_habits', JSON.stringify(currentHabits));
+            }
+        }
+        
+        setHabits(currentHabits);
       } catch (e) {
         console.error("Failed to load habits, using placeholder data.", e);
         setHabits(P_HABITS);
@@ -80,24 +98,27 @@ function WaterIntakeWidget() {
   const mlToday = glassesToday * ML_PER_GLASS;
   
   return (
-    <div className="flex justify-center">
+    <div className="w-full max-w-xl mx-auto border rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-center p-2 sm:p-4 gap-4 sm:gap-6">
       <Button 
         onClick={handleIntakeChange} 
         variant="outline" 
-        className="w-[370px] h-[140px] flex-col justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group p-4"
+        className="w-[120px] h-[80px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
       >
-        <div className="flex items-center gap-3">
-          <Droplets className="h-6 w-6 text-primary" />
-          <h3 className="font-headline text-xl font-semibold">Water Intake</h3>
-        </div>
-        <p className="text-muted-foreground text-4xl mt-2">
-          <span className="font-bold text-foreground">{mlToday}ml</span>
-          <span className="text-2xl"> / {WATER_TARGET_ML}ml</span>
-        </p>
-        <p className="text-sm text-muted-foreground">
-          ({glassesToday} of {TARGET_GLASSES} glasses)
-        </p>
+        <GlassWater className="h-12 w-12 text-primary/30 group-hover:text-primary/70 transition-colors" />
       </Button>
+      <div className="text-center sm:text-left">
+        <h3 className="font-headline text-base font-semibold flex items-center justify-center sm:justify-start gap-2">
+            <Droplets className="h-5 w-5 text-primary" />
+            <span className="text-sm">Water Intake</span>
+        </h3>
+        <p className="text-muted-foreground text-2xl">
+            <span className="font-bold text-foreground">{mlToday}ml</span>
+            <span className="text-lg"> / {WATER_TARGET_ML}ml</span>
+        </p>
+         <p className="text-sm text-muted-foreground">
+            ({glassesToday} of {TARGET_GLASSES} glasses)
+        </p>
+      </div>
     </div>
   );
 }
