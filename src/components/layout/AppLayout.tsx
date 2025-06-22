@@ -17,7 +17,7 @@ import {
   UserCog,
   Power,
   PlusCircle,
-  CalendarIcon,
+  CalendarDays,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -141,6 +141,10 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
             <UserCog className="mr-2 h-4 w-4" />
             <span>Edit Profile</span>
           </DropdownMenuItem>
+           <DropdownMenuItem onSelect={() => router.push('/planner')}>
+            <CalendarDays className="mr-2 h-4 w-4" />
+            <span>Daily Planner</span>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push('/password-manager')}>
             <KeyRound className="mr-2 h-4 w-4" />
             <span>Password Manager</span>
@@ -177,7 +181,7 @@ function HeaderCalendar() {
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8">
-          <CalendarIcon className="h-4 w-4" />
+          <CalendarDays className="h-4 w-4" />
           <span className="sr-only">Open calendar</span>
         </Button>
       </PopoverTrigger>

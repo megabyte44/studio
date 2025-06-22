@@ -1,9 +1,11 @@
 
-export type RoutineItem = {
-  id: string;
-  time: string;
+
+export type PlannerItem = {
+  id:string;
+  startTime: string; // "HH:mm"
+  endTime: string; // "HH:mm"
   title: string;
-  description: string;
+  tag?: string;
 };
 
 export type TodoItem = {

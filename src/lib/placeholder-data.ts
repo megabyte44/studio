@@ -1,16 +1,6 @@
 
-import type { RoutineItem, TodoItem, Transaction, Habit, Note, Credential } from '@/types';
+import type { TodoItem, Transaction, Habit, Note, Credential } from '@/types';
 import { subDays, formatISO } from 'date-fns';
-
-export const P_ROUTINE_ITEMS: RoutineItem[] = [
-  { id: '1', time: '06:00 AM', title: 'Wake up & Hydrate', description: 'Drink a full glass of water.' },
-  { id: '2', time: '06:15 AM', title: 'Morning Mobility', description: '15 minutes of light stretching.' },
-  { id: '3', time: '07:00 AM', title: 'Deep Work Session 1', description: 'Focus on the most important task.' },
-  { id: '4', time: '09:00 AM', title: 'Breakfast & Break', description: 'Healthy meal and short walk.' },
-  { id: '5', time: '12:00 PM', title: 'Lunch', description: 'Nutritious lunch away from the desk.' },
-  { id: '6', time: '03:00 PM', title: 'Deep Work Session 2', description: 'Tackle the second priority task.' },
-  { id: '7', time: '06:00 PM', title: 'Workout', description: 'Gym session or home workout.' },
-];
 
 export const P_TODO_ITEMS: TodoItem[] = [
   { id: '1', text: 'Finalize Q3 report presentation', completed: false, priority: 'high' },
@@ -53,11 +43,10 @@ const generateWaterCompletions = (days: number, successRate: number, maxGlasses:
 
 
 export const P_HABITS: Habit[] = [
-  { id: '1', name: 'Protein Streak', icon: 'Beef', completions: generateHabitCompletions(30, 0.8) },
   { id: '2', name: 'Meditate 10 mins', icon: 'BrainCircuit', completions: generateHabitCompletions(30, 0.6) },
   { id: '3', name: 'Workout', icon: 'Dumbbell', completions: generateHabitCompletions(30, 0.5) },
   { id: '4', name: 'Water Drinking', icon: 'GlassWater', target: 8, completions: generateWaterCompletions(30, 0.9, 10) },
-  { id: '5', name: 'Supplement Streak', icon: 'Pill', completions: generateHabitCompletions(30, 0.95) },
+  { id: '5', name: 'Supplements', icon: 'Pill', completions: generateHabitCompletions(30, 0.95) },
 ];
 
 export const P_NOTES: Note[] = [

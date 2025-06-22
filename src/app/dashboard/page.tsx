@@ -4,8 +4,8 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus, GlassWater } from 'lucide-react';
-import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS, P_TRANSACTIONS } from '@/lib/placeholder-data';
-import type { RoutineItem, TodoItem, Habit, Transaction } from '@/types';
+import { P_TODO_ITEMS, P_HABITS, P_TRANSACTIONS } from '@/lib/placeholder-data';
+import type { PlannerItem, TodoItem, Habit, Transaction } from '@/types';
 import { useState, useEffect, useRef } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -39,24 +39,14 @@ function WaterIntakeWidget() {
         if (Array.isArray(habitsToSet)) {
             const specialHabitIcons = ['Beef', 'Pill', 'Dumbbell', 'GlassWater'];
             const uniqueHabitsMap = new Map<string, Habit>();
-            const specialHabitsFound = new Set<string>();
-
+            
             for (const habit of habitsToSet) {
                 if (habit && habit.name && habit.icon) {
                     const isSpecial = specialHabitIcons.includes(habit.icon);
-                    if (isSpecial) {
-                        // For special, icon-driven habits, we only want one of each.
-                        // The key is the icon.
-                        if (!specialHabitsFound.has(habit.icon)) {
-                            uniqueHabitsMap.set(habit.icon, habit);
-                            specialHabitsFound.add(habit.icon);
-                        }
-                    } else {
-                        // For normal habits, de-duplicate by name.
-                        const normalizedName = habit.name.toLowerCase();
-                        if (!uniqueHabitsMap.has(normalizedName)) {
-                            uniqueHabitsMap.set(normalizedName, habit);
-                        }
+                    // De-duplicate by icon for special habits, by lower-case name for others.
+                    const key = isSpecial ? habit.icon : habit.name.toLowerCase();
+                    if (!uniqueHabitsMap.has(key)) {
+                        uniqueHabitsMap.set(key, habit);
                     }
                 }
             }
@@ -150,18 +140,40 @@ function WaterIntakeWidget() {
 }
 
 function TodaysPlan() {
-  const [routineItems] = useState<RoutineItem[]>(P_ROUTINE_ITEMS);
-  const [displayedItems, setDisplayedItems] = useState<RoutineItem[]>([]);
+  const [routineItems, setRoutineItems] = useState<PlannerItem[]>([]);
+  const [displayedItems, setDisplayedItems] = useState<PlannerItem[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(1);
+  
+  useEffect(() => {
+    const loadSchedule = () => {
+      const storedSchedule = localStorage.getItem('lifeos_weeklySchedule');
+      const schedule = storedSchedule ? JSON.parse(storedSchedule) : {};
+      const dayName = format(new Date(), 'EEEE');
+      setRoutineItems(schedule[dayName] || []);
+    };
+    
+    loadSchedule();
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'lifeos_weeklySchedule') {
+            loadSchedule();
+        }
+    });
+  }, []);
 
   useEffect(() => {
     const calculateDisplayedItems = () => {
+      if (routineItems.length === 0) {
+        setDisplayedItems([]);
+        return;
+      }
       if (routineItems.length <= 3) {
         setDisplayedItems(routineItems);
         const now = new Date();
-        const currentIndex = routineItems.findLastIndex(item => 
-            parse(item.time, 'hh:mm a', new Date()) <= now
-        );
+        const currentIndex = routineItems.findLastIndex(item => {
+            try {
+                return parse(item.startTime, 'HH:mm', new Date()) <= now;
+            } catch { return false; }
+        });
         setHighlightedIndex(currentIndex);
         return;
       }
@@ -169,7 +181,7 @@ function TodaysPlan() {
       const now = new Date();
       let currentIndex = routineItems.findIndex(item => {
         try {
-          return parse(item.time, 'hh:mm a', new Date()) > now;
+          return parse(item.startTime, 'HH:mm', new Date()) > now;
         } catch {
           return false;
         }
@@ -179,7 +191,7 @@ function TodaysPlan() {
         currentIndex = routineItems.length - 1;
       }
 
-      let itemsToShow: RoutineItem[];
+      let itemsToShow: PlannerItem[];
       
       if (currentIndex === 0) {
         itemsToShow = routineItems.slice(0, 3);
@@ -222,21 +234,24 @@ function TodaysPlan() {
                 )}
               >
                 <p>
-                  <span className={cn('font-bold', index === highlightedIndex ? "text-primary" : "")}>{item.time}:</span>
+                  <span className={cn('font-bold', index === highlightedIndex ? "text-primary" : "")}>{item.startTime}:</span>
                   <span className="font-semibold ml-2 text-card-foreground">{item.title}</span>
                 </p>
-                <p className="text-sm text-muted-foreground ml-2">{item.description}</p>
+                {item.tag && <p className="text-sm text-muted-foreground ml-2">{item.tag}</p>}
               </li>
             ))}
           </ul>
         ) : (
             <div className="text-center py-8 text-muted-foreground">
                 <p>No routine items for today.</p>
+                <p className="text-xs">Add items in the Daily Planner.</p>
             </div>
         )}
       </CardContent>
        <CardFooter className="pt-0 sm:pt-0">
-         <Button variant="outline" className="w-full">View Full Planner</Button>
+         <Link href="/planner" className="w-full">
+            <Button variant="outline" className="w-full">View Full Planner</Button>
+         </Link>
        </CardFooter>
     </Card>
   );
