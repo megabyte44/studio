@@ -7,7 +7,6 @@ import type { Expense } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -15,56 +14,49 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { tagExpense } from '@/ai/flows/tag-expense';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const expenseSchema = z.object({
   description: z.string().min(3, 'Description must be at least 3 characters'),
   amount: z.coerce.number().positive('Amount must be a positive number'),
+  category: z.string({ required_error: 'Please select a category.' }).min(1, 'Please select a category.'),
 });
 
 type ExpenseFormData = z.infer<typeof expenseSchema>;
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#00C49F', '#FFBB28'];
+const CATEGORIES = ['Food', 'Transport', 'Health', 'Groceries', 'Shopping', 'Social', 'Entertainment', 'Utilities', 'Other'];
+
 
 function ExpenseForm({ onAddExpense }: { onAddExpense: (expense: Expense) => void }) {
-  const [isSubmittingAi, setIsSubmittingAi] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
-    defaultValues: { description: '', amount: undefined },
+    defaultValues: { description: '', amount: undefined, category: undefined },
   });
 
-  const onSubmit: SubmitHandler<ExpenseFormData> = async (data) => {
-    setIsSubmittingAi(true);
-    try {
-      const { category } = await tagExpense(data);
-      const newExpense: Expense = {
-        id: new Date().toISOString(),
-        ...data,
-        category: category || 'Uncategorized',
-        date: new Date().toISOString(),
-      };
-      onAddExpense(newExpense);
-      form.reset();
-      toast({ title: 'Expense Added', description: `Categorized as ${category}.` });
-    } catch (error) {
-      console.error('AI tagging failed', error);
-      toast({
-        variant: 'destructive',
-        title: 'AI Tagging Error',
-        description: 'Could not automatically tag expense. Please add manually.',
-      });
-    } finally {
-      setIsSubmittingAi(false);
-    }
+  const onSubmit: SubmitHandler<ExpenseFormData> = (data) => {
+    setIsSubmitting(true);
+    
+    const newExpense: Expense = {
+      id: new Date().toISOString(),
+      ...data,
+      date: new Date().toISOString(),
+    };
+    onAddExpense(newExpense);
+    form.reset();
+    toast({ title: 'Expense Added', description: 'Your new expense has been recorded.' });
+    
+    setIsSubmitting(false);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Add New Expense</CardTitle>
+        <CardTitle className="text-2xl font-bold font-headline">Add New Expense</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -95,8 +87,28 @@ function ExpenseForm({ onAddExpense }: { onAddExpense: (expense: Expense) => voi
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isSubmittingAi}>
-              {isSubmittingAi ? (
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -124,7 +136,7 @@ function ExpenseChart({ expenses }: { expenses: Expense[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Spending Breakdown</CardTitle>
+        <CardTitle className="text-2xl font-bold font-headline">Spending Breakdown</CardTitle>
       </CardHeader>
       <CardContent>
         <div style={{ width: '100%', height: 300 }}>
@@ -167,7 +179,7 @@ export default function ExpensesPage() {
           <div className="md:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="font-headline">Recent Transactions</CardTitle>
+                <CardTitle className="text-2xl font-bold font-headline">Recent Transactions</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
