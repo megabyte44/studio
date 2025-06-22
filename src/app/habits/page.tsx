@@ -6,7 +6,7 @@ import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, Pr
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus } from 'lucide-react';
+import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus, BookOpenCheck } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
@@ -434,6 +434,50 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
   );
 }
 
+function StreakBook({ habits }: { habits: Habit[] }) {
+  const WATER_TARGET_GLASSES = 8;
+  
+  if (habits.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-4">
+        <h2 className="text-xl font-bold font-headline flex items-center gap-2">
+            <BookOpenCheck className="h-6 w-6 text-primary" />
+            <span>Streak Book</span>
+        </h2>
+        <Card>
+            <CardContent className="pt-6">
+                <ul className="space-y-4">
+                    {habits.map((habit) => {
+                        const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
+                        const isWaterHabit = habit.name === 'Drink 2L Water';
+                        const streak = calculateStreak(
+                            habit.completions,
+                            isWaterHabit ? WATER_TARGET_GLASSES : 1
+                        );
+
+                        return (
+                            <li key={habit.id} className="flex items-center justify-between pb-2 border-b last:border-b-0">
+                                <div className="flex items-center gap-4">
+                                    <Icon className="h-6 w-6 text-muted-foreground" />
+                                    <span className="font-semibold">{habit.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-orange-500">
+                                    <Flame className="h-5 w-5" />
+                                    <span className="font-bold text-lg">{streak} Day{streak !== 1 ? 's' : ''}</span>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </CardContent>
+        </Card>
+    </div>
+  );
+}
+
 export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
 
@@ -506,6 +550,9 @@ export default function HabitsPage() {
                 ))}
              </div>
         </div>
+
+        <Separator />
+        <StreakBook habits={habits} />
       </div>
     </AppLayout>
   );
