@@ -441,8 +441,81 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
   );
 }
 
+function EditHabitDialog({
+  habit,
+  isOpen,
+  onOpenChange,
+  onSave,
+}: {
+  habit: Habit | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (habitId: string, newName: string) => void;
+}) {
+  const { toast } = useToast();
+  const [newName, setNewName] = useState('');
+
+  useEffect(() => {
+    if (habit) {
+      setNewName(habit.name);
+    }
+  }, [habit]);
+
+  const handleSave = () => {
+    if (!newName.trim()) {
+      toast({
+        title: 'Name cannot be empty',
+        description: 'Please provide a name for the habit.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (habit) {
+      onSave(habit.id, newName.trim());
+      onOpenChange(false);
+      toast({ title: 'Habit Renamed', description: `Your habit has been renamed to "${newName.trim()}".` });
+    }
+  };
+
+  if (!habit) {
+    return null;
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Habit</DialogTitle>
+          <DialogDescription>
+            Change the name of your habit. This won't affect your streak.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="habit-name" className="text-right">
+              Name
+            </Label>
+            <Input
+              id="habit-name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="col-span-3"
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleSave}>Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [isEditHabitDialogOpen, setIsEditHabitDialogOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -483,6 +556,14 @@ export default function HabitsPage() {
     }));
   }
 
+  const handleSaveHabitName = (habitId: string, newName: string) => {
+    setHabits((prevHabits) =>
+      prevHabits.map((h) =>
+        h.id === habitId ? { ...h, name: newName } : h
+      )
+    );
+  };
+
   const WATER_TARGET_GLASSES = 8;
 
   return (
@@ -518,13 +599,25 @@ export default function HabitsPage() {
                     );
 
                     return (
-                        <Card key={habit.id}>
+                        <Card key={habit.id} className="group">
                             <AccordionItem value={habit.id} className="border-b-0">
                                 <AccordionTrigger className="p-4 hover:no-underline">
                                     <div className="flex items-center justify-between w-full">
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-3">
                                             <Icon className="h-6 w-6 text-muted-foreground" />
                                             <span className="font-semibold text-base">{habit.name}</span>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEditingHabit(habit);
+                                                    setIsEditHabitDialogOpen(true);
+                                                }}
+                                            >
+                                                <Edit className="h-3 w-3" />
+                                            </Button>
                                         </div>
                                         <div className="flex items-center gap-2 text-orange-500">
                                             <Flame className="h-5 w-5" />
@@ -549,6 +642,14 @@ export default function HabitsPage() {
             </Accordion>
         </div>
       </div>
+      <EditHabitDialog
+        habit={editingHabit}
+        isOpen={isEditHabitDialogOpen}
+        onOpenChange={setIsEditHabitDialogOpen}
+        onSave={handleSaveHabitName}
+      />
     </AppLayout>
   );
 }
+
+    
