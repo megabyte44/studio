@@ -246,36 +246,6 @@ function TodoList() {
   )
 }
 
-function Alarm() {
-    const [time, setTime] = useState<string | null>(null);
-
-    useEffect(() => {
-        const updateCurrentTime = () => {
-            setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        };
-        
-        updateCurrentTime();
-        const timer = setInterval(updateCurrentTime, 1000);
-        
-        return () => clearInterval(timer);
-    }, []);
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">Next Alarm</CardTitle>
-                <CardDescription>08:00 AM - Morning Briefing</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center">
-                <div className="text-6xl font-bold font-headline text-primary tabular-nums">
-                    {time ?? <span className="opacity-50">00:00</span>}
-                </div>
-                <p className="text-muted-foreground">The current time</p>
-            </CardContent>
-        </Card>
-    )
-}
-
 export default function DashboardPage() {
   const [user, setUser] = useState<{ username: string } | null>(null);
   const [greeting, setGreeting] = useState('');
@@ -320,9 +290,8 @@ export default function DashboardPage() {
             <div className="lg:col-span-2">
                 <TodaysPlan />
             </div>
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1">
                 <FinancialSnapshot />
-                <Alarm />
             </div>
             <div className="lg:col-span-3">
                 <TodoList />

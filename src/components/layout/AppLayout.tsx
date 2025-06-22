@@ -13,6 +13,15 @@ import {
   PanelLeft,
 } from 'lucide-react';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
@@ -62,7 +71,7 @@ function BottomNav() {
   );
 }
 
-function MainSidebar({user, handleLogout}: {user: {username: string} | null, handleLogout: () => void}) {
+function MainSidebar() {
   const pathname = usePathname();
   return (
     <Sidebar>
@@ -87,27 +96,47 @@ function MainSidebar({user, handleLogout}: {user: {username: string} | null, han
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-         <SidebarMenu>
-          <SidebarMenuItem>
-             <SidebarMenuButton tooltip="Profile">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${user?.username}`} />
-                  <AvatarFallback><User /></AvatarFallback>
-                </Avatar>
-                <span>{user?.username}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-             <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
-                <LogOut />
-                <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-         </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
+}
+
+function UserNav({ user, onLogout }: { user: { username: string } | null, onLogout: () => void }) {
+  if (!user) return <Skeleton className="h-8 w-8 rounded-full" />;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${user.username}`} alt={user.username} />
+            <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{user.username}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              Welcome back!
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem disabled>
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -152,11 +181,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
         <div className="flex min-h-screen">
-          <MainSidebar user={user} handleLogout={handleLogout} />
+          <MainSidebar />
           <SidebarInset>
-            <div className={cn("p-4 md:p-6", isMobile && "pb-20")}>
+             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm md:static md:h-auto md:border-0 md:bg-transparent md:px-6 md:pt-4">
+                <SidebarTrigger className="md:hidden"/>
+                <div className="flex-1" />
+                <UserNav user={user} onLogout={handleLogout} />
+            </header>
+            <main className={cn("p-4 md:p-6", isMobile && "pb-20")}>
               {children}
-            </div>
+            </main>
           </SidebarInset>
         </div>
         {isMobile && <BottomNav />}
