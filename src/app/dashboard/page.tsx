@@ -1,4 +1,3 @@
-
 'use client';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -196,7 +195,7 @@ function TodaysPlan() {
 
 function FinancialSnapshot() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [monthlyBudget, setMonthlyBudget] = useState(200000); // in cents
+  const [monthlyBudget, setMonthlyBudget] = useState(5000000); // in cents
 
   useEffect(() => {
     const loadData = () => {
@@ -204,7 +203,7 @@ function FinancialSnapshot() {
         const storedTransactions = localStorage.getItem('lifeos_transactions');
         setTransactions(storedTransactions ? JSON.parse(storedTransactions) : P_TRANSACTIONS);
         const storedBudget = localStorage.getItem('lifeos_budget');
-        setMonthlyBudget(storedBudget ? parseInt(storedBudget, 10) : 200000);
+        setMonthlyBudget(storedBudget ? parseInt(storedBudget, 10) : 5000000);
       } catch (e) {
         console.error("Failed to load financial data, using placeholder data.", e);
         setTransactions(P_TRANSACTIONS);
@@ -242,16 +241,16 @@ function FinancialSnapshot() {
       <CardContent className="space-y-4 pt-0 sm:pt-0">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Today's Expenses</span>
-          <span className="font-semibold text-lg">${(todaysExpenses / 100).toFixed(2)}</span>
+          <span className="font-semibold text-lg">₹{(todaysExpenses / 100).toFixed(2)}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Net Balance</span>
-          <span className="font-bold text-2xl">${(netBalance / 100).toFixed(2)}</span>
+          <span className="font-bold text-2xl">₹{(netBalance / 100).toFixed(2)}</span>
         </div>
         <div>
           <div className="flex justify-between text-sm text-muted-foreground mb-1">
             <span>Monthly Budget</span>
-            <span>${(monthlyExpenses / 100).toFixed(2)} / ${(monthlyBudget / 100).toFixed(2)}</span>
+            <span>₹{(monthlyExpenses / 100).toFixed(2)} / ₹{(monthlyBudget / 100).toFixed(2)}</span>
           </div>
           <Progress value={budgetUsagePercent} />
         </div>

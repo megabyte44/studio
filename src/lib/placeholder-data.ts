@@ -20,13 +20,13 @@ export const P_TODO_ITEMS: TodoItem[] = [
 ];
 
 export const P_TRANSACTIONS: Transaction[] = [
-  { id: '1', description: 'Salary', amount: 350000, category: 'Income', date: formatISO(subDays(new Date(), 15)), type: 'income' },
-  { id: '2', description: 'Monthly Gym Subscription', amount: 5000, category: 'Health', date: formatISO(subDays(new Date(), 2)), type: 'expense' },
-  { id: '3', description: 'Gasoline for car', amount: 6520, category: 'Transport', date: formatISO(subDays(new Date(), 2)), type: 'expense' },
-  { id: '4', description: 'Groceries from Whole Foods', amount: 12480, category: 'Groceries', date: formatISO(subDays(new Date(), 3)), type: 'expense' },
-  { id: '5', description: 'New book: "The Atomic Habit"', amount: 2200, category: 'Shopping', date: formatISO(subDays(new Date(), 5)), type: 'expense' },
-  { id: '6', description: 'Dinner with friends', amount: 7850, category: 'Social', date: formatISO(subDays(new Date(), 6)), type: 'expense' },
-  { id: '7', description: 'Morning Coffee', amount: 450, category: 'Food', date: formatISO(new Date()), type: 'expense' },
+  { id: '1', description: 'Salary', amount: 5000000, category: 'Income', date: formatISO(subDays(new Date(), 15)), type: 'income' },
+  { id: '2', description: 'Monthly Gym Subscription', amount: 150000, category: 'Health', date: formatISO(subDays(new Date(), 2)), type: 'expense' },
+  { id: '3', description: 'Gasoline for car', amount: 200000, category: 'Transport', date: formatISO(subDays(new Date(), 2)), type: 'expense' },
+  { id: '4', description: 'Groceries from BigBasket', amount: 450000, category: 'Groceries', date: formatISO(subDays(new Date(), 3)), type: 'expense' },
+  { id: '5', description: 'New book: "The Atomic Habit"', amount: 50000, category: 'Shopping', date: formatISO(subDays(new Date(), 5)), type: 'expense' },
+  { id: '6', description: 'Dinner with friends', amount: 250000, category: 'Social', date: formatISO(subDays(new Date(), 6)), type: 'expense' },
+  { id: '7', description: 'Morning Coffee', amount: 15000, category: 'Food', date: formatISO(new Date()), type: 'expense' },
 ];
 
 const generateHabitCompletions = (days: number, successRate: number): Record<string, boolean> => {

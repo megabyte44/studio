@@ -21,11 +21,11 @@ const LOCAL_STORAGE_KEY_BUDGET = 'lifeos_budget';
 const LOCAL_STORAGE_KEY_TRANSACTIONS = 'lifeos_transactions';
 const TRANSACTION_CATEGORIES = ["Food", "Transport", "Shopping", "Utilities", "Health", "Entertainment", "Income", "Other"];
 
-const formatCurrency = (amountInCents: number) => `$${(amountInCents / 100).toFixed(2)}`;
+const formatCurrency = (amountInCents: number) => `₹${(amountInCents / 100).toFixed(2)}`;
 
 export default function ExpensesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [monthlyBudget, setMonthlyBudget] = useState(200000); // Default: $2000.00 in cents
+  const [monthlyBudget, setMonthlyBudget] = useState(5000000); // Default: ₹50,000.00 in cents
   const [isLoading, setIsLoading] = useState(true);
   const [budgetInput, setBudgetInput] = useState('');
 
@@ -37,7 +37,7 @@ export default function ExpensesPage() {
       setTransactions(storedTransactions ? JSON.parse(storedTransactions) : P_TRANSACTIONS);
 
       const storedBudget = localStorage.getItem(LOCAL_STORAGE_KEY_BUDGET);
-      const budget = storedBudget ? parseInt(storedBudget, 10) : 200000;
+      const budget = storedBudget ? parseInt(storedBudget, 10) : 5000000;
       setMonthlyBudget(budget);
       setBudgetInput((budget / 100).toFixed(2));
 
@@ -113,7 +113,7 @@ export default function ExpensesPage() {
                  <div className="w-full space-y-2">
                     <label htmlFor="monthly-budget-input" className="text-sm font-medium">Set Your Monthly Budget:</label>
                     <div className="flex gap-2">
-                        <Input id="monthly-budget-input" type="number" placeholder="e.g., 2000.00" value={budgetInput} onChange={(e) => setBudgetInput(e.target.value)} />
+                        <Input id="monthly-budget-input" type="number" placeholder="e.g., 50000.00" value={budgetInput} onChange={(e) => setBudgetInput(e.target.value)} />
                         <Button onClick={handleSetBudget}><Save className="mr-2 h-4 w-4" />Set Budget</Button>
                     </div>
                 </div>
@@ -246,7 +246,7 @@ function TransactionDialog({ children, onSave }: { children: React.ReactNode, on
                     </div>
                      <div className="grid grid-cols-4 items-center gap-4">
                         <label htmlFor="amount" className="text-right">Amount</label>
-                        <Input id="amount" type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="e.g., 4.50" className="col-span-3" />
+                        <Input id="amount" type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="e.g., 150.00" className="col-span-3" />
                     </div>
                      <div className="grid grid-cols-4 items-center gap-4">
                         <label htmlFor="category" className="text-right">Category</label>
