@@ -74,23 +74,26 @@ function WaterIntakeWidget() {
   const mlToday = glassesToday * ML_PER_GLASS;
   
   return (
-    <div className="flex flex-col items-center justify-center p-6 gap-4">
-      <div className="text-center">
-        <h3 className="font-headline text-lg font-semibold flex items-center gap-2 justify-center">
+    <div className="flex flex-row items-center justify-center p-4 gap-6">
+      <Button 
+        onClick={handleIntakeChange} 
+        variant="outline" 
+        className="w-[100px] h-[150px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
+      >
+        <GlassWater className="h-24 w-24 text-primary/30 group-hover:text-primary/70 transition-colors" />
+      </Button>
+      <div className="text-left">
+        <h3 className="font-headline text-lg font-semibold flex items-center gap-2">
             <Droplets className="h-5 w-5 text-primary" />
             Water Intake
         </h3>
         <p className="text-muted-foreground">
-            {mlToday}ml / {WATER_TARGET_ML}ml ({glassesToday} of {TARGET_GLASSES} glasses)
+            {mlToday}ml / {WATER_TARGET_ML}ml
+        </p>
+         <p className="text-muted-foreground">
+            ({glassesToday} of {TARGET_GLASSES} glasses)
         </p>
       </div>
-      <Button 
-        onClick={handleIntakeChange} 
-        variant="outline" 
-        className="w-[100px] h-[150px] flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
-      >
-        <GlassWater className="h-24 w-24 text-primary/30 group-hover:text-primary/70 transition-colors" />
-      </Button>
     </div>
   );
 }
