@@ -73,34 +73,25 @@ function WaterIntakeWidget() {
   const glassesToday = typeof waterHabit.completions[todayKey] === 'number' ? (waterHabit.completions[todayKey] as number) : 0;
   const mlToday = glassesToday * ML_PER_GLASS;
   
-  const streak = calculateStreak(waterHabit.completions, TARGET_GLASSES);
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline flex items-center justify-between">
-          <div className='flex items-center gap-3'>
-            <Droplets className="h-6 w-6 text-primary" />
-            <span>Water Intake</span>
-          </div>
-          <div className="flex items-center gap-1 text-primary">
-            <span className="font-bold text-lg">{streak} Day Streak</span>
-          </div>
-        </CardTitle>
-        <CardDescription>
-            Today's Goal: {mlToday}ml / {WATER_TARGET_ML}ml ({glassesToday} / {TARGET_GLASSES} glasses)
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex items-center justify-center pt-6">
-        <Button 
-            onClick={handleIntakeChange} 
-            variant="outline" 
-            className="w-[100px] h-[150px] flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
-        >
-            <GlassWater className="h-24 w-24 text-primary/30 group-hover:text-primary/70 transition-colors" />
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center justify-center p-6 gap-4">
+      <div className="text-center">
+        <h3 className="font-headline text-lg font-semibold flex items-center gap-2 justify-center">
+            <Droplets className="h-5 w-5 text-primary" />
+            Water Intake
+        </h3>
+        <p className="text-muted-foreground">
+            {mlToday}ml / {WATER_TARGET_ML}ml ({glassesToday} of {TARGET_GLASSES} glasses)
+        </p>
+      </div>
+      <Button 
+        onClick={handleIntakeChange} 
+        variant="outline" 
+        className="w-[100px] h-[150px] flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
+      >
+        <GlassWater className="h-24 w-24 text-primary/30 group-hover:text-primary/70 transition-colors" />
+      </Button>
+    </div>
   );
 }
 
