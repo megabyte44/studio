@@ -7,7 +7,7 @@ import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, Pr
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck } from 'lucide-react';
+import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
@@ -142,11 +142,21 @@ function GymTracker({
     )
 }
 
-function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: any) {
+function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: {
+    intakes: ProteinIntake[],
+    setIntakes: (intakes: ProteinIntake[]) => void,
+    target: number,
+    setTarget: (target: number) => void
+}) {
     const { toast } = useToast();
     const [amount, setAmount] = useState('');
+    const todayKey = format(new Date(), 'yyyy-MM-dd');
 
-    const totalProtein = useMemo(() => intakes.reduce((sum: number, intake: ProteinIntake) => sum + intake.amount, 0), [intakes]);
+    const todaysIntakes = useMemo(() => {
+        return intakes.filter((intake: ProteinIntake) => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === todayKey);
+    }, [intakes, todayKey]);
+
+    const totalProtein = useMemo(() => todaysIntakes.reduce((sum: number, intake: ProteinIntake) => sum + intake.amount, 0), [todaysIntakes]);
     const progress = useMemo(() => (target > 0 ? Math.min(100, (totalProtein / target) * 100) : 0), [totalProtein, target]);
 
     const handleLogProtein = () => {
@@ -170,7 +180,7 @@ function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: any) {
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-3 text-lg"><Beef className="h-6 w-6 text-primary" /> <span>Protein Intake</span></CardTitle>
-                <CardDescription>Target: {totalProtein}g / {target}g</CardDescription>
+                <CardDescription>Today's Total: {totalProtein}g / {target}g</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                  <div>
@@ -179,23 +189,28 @@ function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: any) {
                 </div>
                 <Progress value={progress} />
                  <div className="flex gap-2">
-                    <Input type="number" placeholder="Protein (g)" value={amount} onChange={e => setAmount(e.target.value)} />
+                    <Input type="number" placeholder="Log Protein (g)" value={amount} onChange={e => setAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogProtein()} />
                     <Button onClick={handleLogProtein}><PlusCircle className="h-4 w-4" /></Button>
                 </div>
                 <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
-                    {intakes.length > 0 ? intakes.map((intake: ProteinIntake) => (
+                    {todaysIntakes.length > 0 ? [...todaysIntakes].reverse().map((intake: ProteinIntake) => (
                         <div key={intake.id} className="flex justify-between items-center text-sm bg-muted p-2 rounded-md">
                            <span>{intake.amount}g at {format(parseISO(intake.timestamp), 'h:mm a')}</span>
                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(intake.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                         </div>
-                    )).reverse() : <p className="text-sm text-muted-foreground text-center pt-4">No protein logged yet.</p>}
+                    )) : <p className="text-sm text-muted-foreground text-center pt-4">No protein logged today.</p>}
                 </div>
             </CardContent>
         </Card>
     );
 }
 
-function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }: any) {
+function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }: {
+    loggedItems: LoggedFoodItem[],
+    setLoggedItems: (items: LoggedFoodItem[]) => void,
+    customItems: string[],
+    onManageItems: () => void
+}) {
     const { toast } = useToast();
     const todayKey = format(new Date(), 'yyyy-MM-dd');
 
@@ -234,12 +249,12 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
                 </div>
                 <Separator/>
                 <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
-                     {todaysLoggedItems.length > 0 ? todaysLoggedItems.map((item: LoggedFoodItem) => (
+                     {todaysLoggedItems.length > 0 ? [...todaysLoggedItems].reverse().map((item: LoggedFoodItem) => (
                         <div key={item.id} className="flex justify-between items-center text-sm bg-muted p-2 rounded-md">
                            <span>{item.name} at {format(parseISO(item.timestamp), 'h:mm a')}</span>
                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                         </div>
-                    )).reverse() : <p className="text-sm text-muted-foreground text-center pt-4">No items logged yet today.</p>}
+                    )) : <p className="text-sm text-muted-foreground text-center pt-4">No items logged yet today.</p>}
                 </div>
             </CardContent>
         </Card>
@@ -264,7 +279,7 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
                 <Minus className="h-4 w-4" />
             </Button>
             <div className="text-center">
-                <p className="text-lg font-bold font-headline">{currentTargetInGlasses} glasses</p>
+                <p className="text-lg font-bold font-headline" style={{ fontSize: '18px' }}>{currentTargetInGlasses} glasses</p>
                 <p className="text-sm text-muted-foreground">({currentTargetInGlasses * ML_PER_GLASS}ml)</p>
             </div>
             <Button onClick={() => handleTargetChange(1)} variant="outline" size="icon">
@@ -491,6 +506,12 @@ export default function HabitsPage() {
       const storedSplit = localStorage.getItem('gym_workout_split');
       if(storedSplit) setCyclicalWorkoutSplit(JSON.parse(storedSplit));
 
+      const storedProteinIntakes = localStorage.getItem('gym_protein_intakes');
+      if(storedProteinIntakes) setProteinIntakes(JSON.parse(storedProteinIntakes));
+      
+      const storedLoggedFoods = localStorage.getItem('gym_logged_foods');
+      if(storedLoggedFoods) setLoggedFoodItems(JSON.parse(storedLoggedFoods));
+
       const storedProteinTarget = localStorage.getItem('gym_protein_target');
       if(storedProteinTarget) setProteinTarget(JSON.parse(storedProteinTarget));
 
@@ -512,55 +533,69 @@ export default function HabitsPage() {
     localStorage.setItem('lifeos_habits', JSON.stringify(habits));
     localStorage.setItem('gym_cycle_config', JSON.stringify(cycleConfig));
     localStorage.setItem('gym_workout_split', JSON.stringify(cyclicalWorkoutSplit));
+    localStorage.setItem('gym_protein_intakes', JSON.stringify(proteinIntakes));
+    localStorage.setItem('gym_logged_foods', JSON.stringify(loggedFoodItems));
     localStorage.setItem('gym_protein_target', JSON.stringify(proteinTarget));
     localStorage.setItem('gym_custom_foods', JSON.stringify(customFoodItems));
-  }, [habits, cycleConfig, cyclicalWorkoutSplit, proteinTarget, customFoodItems, isLoading]);
+  }, [habits, cycleConfig, cyclicalWorkoutSplit, proteinIntakes, loggedFoodItems, proteinTarget, customFoodItems, isLoading]);
 
   // --- Habit Syncing Logic ---
   useEffect(() => {
-    if (isLoading || !habits.length) return;
+    if (isLoading) return;
 
     const todayKey = format(new Date(), 'yyyy-MM-dd');
-    let habitsChanged = false;
     
-    const newHabits = habits.map(habit => {
-      let newCompletions = { ...habit.completions };
-      let changed = false;
-
-      // Sync Protein Streak
-      if (habit.name === 'Protein Streak') {
-        const totalProtein = proteinIntakes.reduce((sum, intake) => sum + intake.amount, 0);
-        const isCompleted = totalProtein >= proteinTarget;
-        if (!!newCompletions[todayKey] !== isCompleted) {
-          if (isCompleted) newCompletions[todayKey] = true;
-          else delete newCompletions[todayKey];
-          changed = true;
+    setHabits(currentHabits => {
+        if (!currentHabits || currentHabits.length === 0) {
+            return currentHabits;
         }
-      }
 
-      // Sync Supplement Streak
-      if (habit.name === 'Supplement Streak') {
-        const todaysLogs = loggedFoodItems.filter(i => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
-        const isCompleted = todaysLogs.length > 0;
-        if (!!newCompletions[todayKey] !== isCompleted) {
-          if (isCompleted) newCompletions[todayKey] = true;
-          else delete newCompletions[todayKey];
-          changed = true;
+        let habitsChanged = false;
+
+        const newHabits = currentHabits.map(habit => {
+            if (!habit) return habit;
+            let newCompletions = { ...habit.completions };
+            let changedInThisHabit = false;
+
+            // Sync Protein Streak
+            if (habit.name === 'Protein Streak') {
+                const todaysIntakes = proteinIntakes.filter(intake => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === todayKey);
+                const totalProtein = todaysIntakes.reduce((sum, intake) => sum + intake.amount, 0);
+                const isCompleted = totalProtein >= proteinTarget;
+
+                if (!!newCompletions[todayKey] !== isCompleted) {
+                    if (isCompleted) newCompletions[todayKey] = true;
+                    else delete newCompletions[todayKey];
+                    changedInThisHabit = true;
+                }
+            }
+
+            // Sync Supplement Streak
+            if (habit.name === 'Supplement Streak') {
+                const todaysLogs = loggedFoodItems.filter(i => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
+                const isCompleted = todaysLogs.length > 0;
+
+                if (!!newCompletions[todayKey] !== isCompleted) {
+                    if (isCompleted) newCompletions[todayKey] = true;
+                    else delete newCompletions[todayKey];
+                    changedInThisHabit = true;
+                }
+            }
+
+            if (changedInThisHabit) {
+                habitsChanged = true;
+                return { ...habit, completions: newCompletions };
+            }
+            return habit;
+        });
+
+        if (habitsChanged) {
+            return newHabits;
         }
-      }
-
-      if (changed) {
-        habitsChanged = true;
-        return { ...habit, completions: newCompletions };
-      }
-      return habit;
+        return currentHabits;
     });
 
-    if (habitsChanged) {
-      setHabits(newHabits);
-    }
-
-  }, [proteinIntakes, proteinTarget, loggedFoodItems, habits, isLoading, setHabits]);
+  }, [proteinIntakes, proteinTarget, loggedFoodItems, isLoading]);
 
 
   // --- Handlers ---
