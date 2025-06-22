@@ -15,7 +15,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import {
   KeySquare, Loader2, ShieldCheck, Landmark, Globe, Users,
-  PlusSquare, Eye, EyeOff, Copy, Trash2, Edit
+  PlusSquare, Eye, EyeOff, Copy, Trash2, Edit, Save
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -331,7 +331,7 @@ export default function PasswordManagerPage() {
                                 {items.map(cred => {
                                     const isExpanded = expandedCardIds.has(cred.id);
                                     return (
-                                        <Card key={cred.id} className="w-[320px] flex-shrink-0 flex flex-col">
+                                        <Card key={cred.id} className="w-[300px] flex-shrink-0 flex flex-col">
                                             <CardHeader>
                                                 <CardTitle className="truncate">{cred.name}</CardTitle>
                                                 <CardDescription>
@@ -398,5 +398,3 @@ export default function PasswordManagerPage() {
     </AppLayout>
   );
 }
-
-    
