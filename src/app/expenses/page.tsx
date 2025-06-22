@@ -133,9 +133,9 @@ export default function ExpensesPage() {
                 <CardTitle className="text-lg">Budget Progress</CardTitle>
                 <CardDescription>You've spent {formatCurrency(totalExpenses)} of your {formatCurrency(monthlyBudget)} budget.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0 sm:pt-0">
+            <CardContent className="pt-0 sm:pt-0 pb-3">
                 <Progress value={budgetProgress} />
-                <p className="text-right text-sm text-muted-foreground mt-2">{budgetProgress.toFixed(0)}%</p>
+                <p className="text-right text-sm text-muted-foreground mt-1">{budgetProgress.toFixed(0)}%</p>
             </CardContent>
             <CardFooter className="pt-0 sm:pt-0">
                  <div className="w-full space-y-2">
