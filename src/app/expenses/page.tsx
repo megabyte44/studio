@@ -144,7 +144,7 @@ export default function ExpensesPage() {
                   <TableBody>
                     {transactions.length > 0 ? transactions.map((txn) => (
                       <TableRow key={txn.id}>
-                        <TableCell>{format(parseISO(txn.date), 'MMM dd, yyyy')}</TableCell>
+                        <TableCell>{format(parseISO(txn.date), 'dd-MM-yy')}</TableCell>
                         <TableCell className="font-medium">{txn.description}</TableCell>
                         <TableCell><Badge variant={txn.type === 'income' ? 'default' : 'secondary'} className={txn.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>{txn.category}</Badge></TableCell>
                         <TableCell className={`text-right font-medium ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
