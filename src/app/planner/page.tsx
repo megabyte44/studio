@@ -94,8 +94,8 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[80%] sm:max-w-sm p-1.5">
-                <DialogHeader className="p-1 pb-0">
+            <DialogContent className="w-[95%] sm:max-w-lg p-2">
+                <DialogHeader className="p-2 pb-0 mb-1">
                     <DialogTitle>Edit Daily Templates</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-1 py-0.5">
@@ -113,7 +113,7 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
 
                     {daySchedule.length > 0 && (
                       <>
-                        <h4 className="font-semibold text-sm">Template for {selectedTemplateDay}</h4>
+                        <h4 className="font-semibold text-sm mt-2">Template for {selectedTemplateDay}</h4>
                         <ScrollArea className="h-28 pr-2 border rounded-md">
                             <div className="space-y-1 p-1">
                                 {daySchedule.map(item => (
@@ -257,13 +257,9 @@ export default function PlannerPage() {
     return (
         <AppLayout>
             <TooltipProvider>
-                <div className="max-w-4xl mx-auto space-y-6">
-                    <header className="text-center space-y-2">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mx-auto">
-                           <CalendarClock className="h-8 w-8" />
-                        </div>
-                        <h1 className="text-3xl font-bold font-headline">Daily Planner</h1>
-                        <p className="text-lg text-muted-foreground">Manage your schedule, tasks, and time effectively.</p>
+                <div className="max-w-4xl mx-auto space-y-4">
+                    <header>
+                        <h1 className="text-2xl font-bold font-headline">Daily Planner</h1>
                     </header>
 
                     <Card>
