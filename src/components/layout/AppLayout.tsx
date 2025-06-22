@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   StickyNote,
   LogOut,
-  User,
   Moon,
   Sun,
   KeyRound,
@@ -33,8 +32,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -111,32 +108,8 @@ function SyncToggle() {
   );
 }
 
-function UserNav({ user, onLogout, onUsernameChange }: { user: { username: string } | null, onLogout: () => void, onUsernameChange: (newUsername: string) => void }) {
+function UserNav({ user, onLogout }: { user: { username: string } | null, onLogout: () => void }) {
   const router = useRouter();
-  const { toast } = useToast();
-  const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [tempUsername, setTempUsername] = useState(user?.username || '');
-
-  useEffect(() => {
-    if (user?.username) {
-      setTempUsername(user.username);
-    }
-  }, [user?.username]);
-
-  const handleUsernameSave = () => {
-    if (tempUsername.trim()) {
-      onUsernameChange(tempUsername.trim());
-      setIsEditingUsername(false);
-      toast({ title: 'Username updated successfully!' });
-    } else {
-      toast({ title: 'Username cannot be empty.', variant: 'destructive' });
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleUsernameSave();
-    if (e.key === 'Escape') setIsEditingUsername(false);
-  };
   
   if (!user) return <Skeleton className="h-8 w-8 rounded-full" />;
 
@@ -153,14 +126,7 @@ function UserNav({ user, onLogout, onUsernameChange }: { user: { username: strin
       <DropdownMenuContent className="w-64" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-2">
-            {isEditingUsername ? (
-              <div className="flex items-center gap-2">
-                <Input value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} onKeyDown={handleKeyDown} className="h-8" autoFocus />
-                <Button size="sm" onClick={handleUsernameSave}>Save</Button>
-              </div>
-            ) : (
-              <p className="text-sm font-medium leading-none">{user.username}</p>
-            )}
+            <p className="text-sm font-medium leading-none">{user.username}</p>
             <p className="text-xs leading-none text-muted-foreground">
               Welcome back!
             </p>
@@ -168,10 +134,6 @@ function UserNav({ user, onLogout, onUsernameChange }: { user: { username: strin
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-           <DropdownMenuItem onSelect={() => setIsEditingUsername(true)}>
-             <User className="mr-2 h-4 w-4" />
-             <span>Edit Username</span>
-           </DropdownMenuItem>
            <DropdownMenuItem onSelect={() => router.push('/profile')}>
             <UserCog className="mr-2 h-4 w-4" />
             <span>Edit Profile</span>
@@ -229,12 +191,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     router.push('/');
   };
   
-  const handleUsernameChange = (newUsername: string) => {
-    const updatedUser = { username: newUsername };
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-  };
-
   if (!isVerified) {
     return (
       <div className="flex h-screen w-screen items-center justify-center p-4">
@@ -254,7 +210,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
         <h1 className="font-headline text-lg font-bold text-primary">LifeOS</h1>
         <div className="flex-1" />
-        <UserNav user={user} onLogout={handleLogout} onUsernameChange={handleUsernameChange} />
+        <UserNav user={user} onLogout={handleLogout} />
       </header>
       <main className="flex-1 p-4 md:p-6 pb-24">
         {children}
