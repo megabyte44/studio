@@ -8,20 +8,37 @@ import type { Transaction } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO, formatISO } from 'date-fns';
-import { PiggyBank, Loader2, TrendingUp, TrendingDown, Save, PlusCircle, Pencil, Trash2 } from 'lucide-react';
+import { 
+    PiggyBank, Loader2, TrendingUp, TrendingDown, Save, PlusCircle, Trash2, 
+    Plane, Shirt, UtensilsCrossed, ShoppingBag, Bolt, HeartPulse, Ticket, MoreHorizontal, Salad, Users 
+} from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_BUDGET = 'lifeos_budget';
 const LOCAL_STORAGE_KEY_TRANSACTIONS = 'lifeos_transactions';
-const TRANSACTION_CATEGORIES = ["Food", "Transport", "Shopping", "Utilities", "Health", "Entertainment", "Income", "Other"];
+const TRANSACTION_CATEGORIES = ["Food", "Travel", "Shopping", "Utilities", "Health", "Entertainment", "Income", "Groceries", "Social", "Clothing", "Other"];
 
-const formatCurrency = (amountInCents: number) => `${(amountInCents / 100).toFixed(2)}`;
+const categoryDetails: Record<string, { icon: React.ElementType, color: string }> = {
+    'Travel': { icon: Plane, color: 'bg-yellow-100 text-yellow-800' },
+    'Clothing': { icon: Shirt, color: 'bg-pink-100 text-pink-800' },
+    'Food': { icon: UtensilsCrossed, color: 'bg-rose-100 text-rose-800' },
+    'Shopping': { icon: ShoppingBag, color: 'bg-blue-100 text-blue-800' },
+    'Utilities': { icon: Bolt, color: 'bg-orange-100 text-orange-800' },
+    'Health': { icon: HeartPulse, color: 'bg-red-100 text-red-800' },
+    'Entertainment': { icon: Ticket, color: 'bg-purple-100 text-purple-800' },
+    'Income': { icon: TrendingUp, color: 'bg-green-100 text-green-800' },
+    'Groceries': { icon: Salad, color: 'bg-lime-100 text-lime-800' },
+    'Social': { icon: Users, color: 'bg-cyan-100 text-cyan-800' },
+    'Other': { icon: MoreHorizontal, color: 'bg-gray-100 text-gray-800' },
+    'Transport': { icon: Plane, color: 'bg-yellow-100 text-yellow-800' }, // Alias for Travel
+};
+
+
+const formatCurrency = (amountInCents: number) => `${(amountInCents / 100).toFixed(0)}`;
 
 export default function ExpensesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -63,6 +80,18 @@ export default function ExpensesPage() {
     return { totalIncome: income, totalExpenses: expenses, remainingBudget: remaining, budgetProgress: progress };
   }, [transactions, monthlyBudget]);
   
+   const groupedTransactions = useMemo(() => {
+    const sorted = [...transactions].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+    return sorted.reduce((acc, txn) => {
+      const dateKey = format(parseISO(txn.date), 'yyyy-MM-dd');
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(txn);
+      return acc;
+    }, {} as Record<string, Transaction[]>);
+  }, [transactions]);
+
   const handleSetBudget = () => {
     const budgetValue = parseFloat(budgetInput);
     if (isNaN(budgetValue) || budgetValue < 0) {
@@ -131,38 +160,51 @@ export default function ExpensesPage() {
                 </TransactionDialog>
             </CardHeader>
             <CardContent className="pt-0 sm:pt-0">
-                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead className="text-center">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {transactions.length > 0 ? transactions.map((txn) => (
-                      <TableRow key={txn.id}>
-                        <TableCell>{format(parseISO(txn.date), 'dd-MM-yy')}</TableCell>
-                        <TableCell className="font-medium">{txn.description}</TableCell>
-                        <TableCell><Badge variant={txn.type === 'income' ? 'default' : 'secondary'} className={txn.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>{txn.category}</Badge></TableCell>
-                        <TableCell className={`text-right font-medium ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                            {txn.type === 'income' ? '+' : '-'}{formatCurrency(txn.amount)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteTransaction(txn.id)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </TableCell>
-                      </TableRow>
-                    )) : (
-                        <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground h-24">No transactions yet.</TableCell>
-                        </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                 {Object.keys(groupedTransactions).length > 0 ? (
+                    <div className="space-y-4">
+                        {Object.entries(groupedTransactions).map(([date, txns]) => {
+                            const dailyTotal = txns.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+                            
+                            return (
+                                <div key={date}>
+                                    <div className="flex justify-between items-center text-sm font-medium text-muted-foreground px-3 py-2 border-b bg-muted/50 rounded-t-md">
+                                        <span>{format(parseISO(date), 'dd MMM, EEEE')}</span>
+                                        <span>Expenses: {formatCurrency(dailyTotal)}</span>
+                                    </div>
+                                    <ul className="divide-y border-x border-b rounded-b-md">
+                                        {txns.map((txn) => {
+                                            const { icon: Icon, color } = categoryDetails[txn.category] || categoryDetails['Other'];
+                                            return (
+                                                <li key={txn.id} className="flex items-center justify-between p-3 group hover:bg-muted/50">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${color}`}>
+                                                            <Icon className="h-5 w-5" />
+                                                        </div>
+                                                        <p className="font-semibold">{txn.description}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`font-bold text-lg ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                                            {txn.type === 'income' ? '+' : ''}
+                                                            {txn.type === 'expense' ? '-' : ''}
+                                                            {formatCurrency(txn.amount)}
+                                                        </span>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteTransaction(txn.id)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="text-center text-muted-foreground h-24 flex items-center justify-center">
+                        No transactions yet.
+                    </div>
+                )}
             </CardContent>
         </Card>
 
