@@ -80,7 +80,7 @@ function WaterIntakeWidget() {
   const mlToday = glassesToday * ML_PER_GLASS;
   
   return (
-    <div className="flex flex-row items-center justify-center p-4 gap-6">
+    <div className="flex flex-col sm:flex-row items-center justify-center p-4 gap-6">
       <Button 
         onClick={handleIntakeChange} 
         variant="outline" 
@@ -88,15 +88,15 @@ function WaterIntakeWidget() {
       >
         <GlassWater className="h-10 w-10 text-primary/30 group-hover:text-primary/70 transition-colors" />
       </Button>
-      <div className="text-left">
-        <h3 className="font-headline text-base font-semibold flex items-center gap-2">
+      <div className="text-center sm:text-left">
+        <h3 className="font-headline text-base font-semibold flex items-center gap-2 justify-center sm:justify-start">
             <Droplets className="h-5 w-5 text-primary" />
             <span className="text-sm">Water Intake</span>
         </h3>
-        <p className="text-muted-foreground">
-            {mlToday}ml / {WATER_TARGET_ML}ml
+        <p className="text-muted-foreground text-lg">
+            <span className="font-bold text-foreground">{mlToday}ml</span> / {WATER_TARGET_ML}ml
         </p>
-         <p className="text-muted-foreground">
+         <p className="text-sm text-muted-foreground">
             ({glassesToday} of {TARGET_GLASSES} glasses)
         </p>
       </div>
