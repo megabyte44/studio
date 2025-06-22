@@ -71,15 +71,28 @@ export default function PasswordManagerPage() {
 
   // Load data from localStorage
   useEffect(() => {
+    setIsLoading(true);
     try {
       const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      setCredentials(storedData ? JSON.parse(storedData) : P_PASSWORDS);
+      if (storedData) {
+        let parsedData = JSON.parse(storedData);
+        if (Array.isArray(parsedData)) {
+          // Filter out invalid entries to prevent crashes
+          const validCredentials = parsedData.filter(item => item && typeof item === 'object' && item.id);
+          setCredentials(validCredentials);
+        } else {
+          setCredentials(P_PASSWORDS); // Fallback if data is not an array
+        }
+      } else {
+        setCredentials(P_PASSWORDS); // Fallback if no data
+      }
     } catch (e) {
       console.error("Failed to load credentials", e);
-      toast({ title: "Error", description: "Could not load vault data.", variant: "destructive" });
-      setCredentials(P_PASSWORDS);
+      toast({ title: "Error", description: "Could not load vault data. Resetting to defaults.", variant: "destructive" });
+      setCredentials(P_PASSWORDS); // Fallback on parsing error
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [toast]);
 
   // Save data to localStorage
@@ -159,7 +172,9 @@ export default function PasswordManagerPage() {
 
   const groupedCredentials = useMemo(() => {
     return credentials.reduce((acc, cred) => {
-      (acc[cred.category] = acc[cred.category] || []).push(cred);
+      if (cred && cred.category) {
+        (acc[cred.category] = acc[cred.category] || []).push(cred);
+      }
       return acc;
     }, {} as Record<string, Credential[]>);
   }, [credentials]);
