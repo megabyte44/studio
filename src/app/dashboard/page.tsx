@@ -78,7 +78,7 @@ function WaterIntakeWidget() {
       <Button 
         onClick={handleIntakeChange} 
         variant="outline" 
-        className="w-[100px] h-[150px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
+        className="w-[80px] h-[150px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
       >
         <GlassWater className="h-24 w-24 text-primary/30 group-hover:text-primary/70 transition-colors" />
       </Button>
