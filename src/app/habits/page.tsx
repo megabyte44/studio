@@ -476,12 +476,22 @@ export default function HabitsPage() {
         habitsToSet = P_HABITS;
       }
 
-      // De-duplicate habits based on name to prevent rendering issues from stale data
+      // De-duplicate habits based on name (case-insensitive) to prevent rendering issues from stale data
       if (Array.isArray(habitsToSet)) {
           const uniqueHabitsMap = new Map<string, Habit>();
           for (const habit of habitsToSet) {
               if (habit && habit.name) {
-                  uniqueHabitsMap.set(habit.name, habit);
+                  const normalizedName = habit.name.toLowerCase();
+                  const existingHabit = uniqueHabitsMap.get(normalizedName);
+
+                  // Prioritize keeping the 'Water Drinking' habit as it has special UI
+                  if (normalizedName === 'water drinking') {
+                      if (!existingHabit || habit.name === 'Water Drinking') {
+                          uniqueHabitsMap.set(normalizedName, habit);
+                      }
+                  } else if (!existingHabit) {
+                      uniqueHabitsMap.set(normalizedName, habit);
+                  }
               }
           }
           habitsToSet = Array.from(uniqueHabitsMap.values());
