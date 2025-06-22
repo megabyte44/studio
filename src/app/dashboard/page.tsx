@@ -81,7 +81,7 @@ function WaterIntakeWidget() {
         variant="outline" 
         className="w-[150px] h-[64px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
       >
-        <GlassWater className="h-12 w-12 text-primary/30 group-hover:text-primary/70 transition-colors" />
+        <GlassWater className="h-10 w-10 text-primary/30 group-hover:text-primary/70 transition-colors" />
       </Button>
       <div className="text-left">
         <h3 className="font-headline text-base font-semibold flex items-center gap-2">
@@ -241,16 +241,16 @@ function FinancialSnapshot() {
       <CardContent className="space-y-4 pt-0 sm:pt-0">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Today's Expenses</span>
-          <span className="font-semibold text-lg">₹{(todaysExpenses / 100).toFixed(2)}</span>
+          <span className="font-semibold text-lg">{(todaysExpenses / 100).toFixed(2)}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Net Balance</span>
-          <span className="font-bold text-2xl">₹{(netBalance / 100).toFixed(2)}</span>
+          <span className="font-bold text-2xl">{(netBalance / 100).toFixed(2)}</span>
         </div>
         <div>
           <div className="flex justify-between text-sm text-muted-foreground mb-1">
             <span>Monthly Budget</span>
-            <span>₹{(monthlyExpenses / 100).toFixed(2)} / ₹{(monthlyBudget / 100).toFixed(2)}</span>
+            <span>{(monthlyExpenses / 100).toFixed(2)} / {(monthlyBudget / 100).toFixed(2)}</span>
           </div>
           <Progress value={budgetUsagePercent} />
         </div>

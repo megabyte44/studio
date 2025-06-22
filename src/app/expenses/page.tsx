@@ -21,11 +21,11 @@ const LOCAL_STORAGE_KEY_BUDGET = 'lifeos_budget';
 const LOCAL_STORAGE_KEY_TRANSACTIONS = 'lifeos_transactions';
 const TRANSACTION_CATEGORIES = ["Food", "Transport", "Shopping", "Utilities", "Health", "Entertainment", "Income", "Other"];
 
-const formatCurrency = (amountInCents: number) => `₹${(amountInCents / 100).toFixed(2)}`;
+const formatCurrency = (amountInCents: number) => `${(amountInCents / 100).toFixed(2)}`;
 
 export default function ExpensesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [monthlyBudget, setMonthlyBudget] = useState(5000000); // Default: ₹50,000.00 in cents
+  const [monthlyBudget, setMonthlyBudget] = useState(5000000); // Default: 50,000.00 in cents
   const [isLoading, setIsLoading] = useState(true);
   const [budgetInput, setBudgetInput] = useState('');
 
