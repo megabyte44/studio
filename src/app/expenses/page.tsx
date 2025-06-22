@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -150,11 +149,8 @@ export default function ExpensesPage() {
         </Card>
 
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between py-4 sm:py-4">
-                <div className="space-y-1.5">
-                    <CardTitle className="text-lg">Recent Transactions</CardTitle>
-                    <CardDescription>A log of your recent income and expenses.</CardDescription>
-                </div>
+            <CardHeader className="flex flex-row items-center justify-between py-3 sm:py-3">
+                <CardTitle className="text-lg">Recent Transactions</CardTitle>
                 <TransactionDialog onSave={(newTxn) => setTransactions(prev => [newTxn, ...prev])}>
                     <Button><PlusCircle className="mr-2 h-4 w-4" />Add Transaction</Button>
                 </TransactionDialog>
