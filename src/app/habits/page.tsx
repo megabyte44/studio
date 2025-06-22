@@ -259,15 +259,12 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
   
   return (
     <div className="flex flex-col items-center justify-center gap-4 pt-2 text-center">
-        <p className="text-sm text-muted-foreground px-4">
-            Set your daily water intake goal in glasses. Each glass is 250ml.
-        </p>
         <div className="flex items-center justify-center gap-4">
             <Button onClick={() => handleTargetChange(-1)} variant="outline" size="icon" disabled={currentTargetInGlasses <= 1}>
                 <Minus className="h-4 w-4" />
             </Button>
             <div className="text-center">
-                <p className="text-4xl font-bold font-headline">{currentTargetInGlasses} glasses</p>
+                <p className="text-lg font-bold font-headline">{currentTargetInGlasses} glasses</p>
                 <p className="text-sm text-muted-foreground">({currentTargetInGlasses * ML_PER_GLASS}ml)</p>
             </div>
             <Button onClick={() => handleTargetChange(1)} variant="outline" size="icon">
@@ -455,25 +452,27 @@ export default function HabitsPage() {
     try {
       let habitsToSet: Habit[] = [];
       const storedHabits = localStorage.getItem('lifeos_habits');
+      
       if (storedHabits) {
-        habitsToSet = JSON.parse(storedHabits);
+          habitsToSet = JSON.parse(storedHabits);
       } else {
-        habitsToSet = P_HABITS;
+          habitsToSet = P_HABITS;
       }
-
-      // De-duplicate habits based on name (case-insensitive) to prevent rendering issues from stale data
+      
+      // De-duplicate habits based on name to prevent rendering issues from stale data
       if (Array.isArray(habitsToSet)) {
           const uniqueHabitsMap = new Map<string, Habit>();
           for (const habit of habitsToSet) {
               if (habit && habit.name) {
+                  // Use case-insensitive matching for de-duplication
                   const normalizedName = habit.name.toLowerCase();
                   const existingHabit = uniqueHabitsMap.get(normalizedName);
 
-                  // Prioritize keeping the 'Water Drinking' habit as it has special UI
+                  // Prioritize keeping the 'Water Drinking' habit as it has special UI and logic
                   if (normalizedName === 'water drinking') {
-                      if (!existingHabit || habit.name === 'Water Drinking') {
-                          uniqueHabitsMap.set(normalizedName, habit);
-                      }
+                       if (!existingHabit || habit.name === 'Water Drinking') {
+                           uniqueHabitsMap.set(normalizedName, habit);
+                       }
                   } else if (!existingHabit) {
                       uniqueHabitsMap.set(normalizedName, habit);
                   }
@@ -483,6 +482,7 @@ export default function HabitsPage() {
       } else {
           habitsToSet = P_HABITS;
       }
+      
       setHabits(habitsToSet);
       
       const storedCycleConfig = localStorage.getItem('gym_cycle_config');
