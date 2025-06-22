@@ -156,7 +156,7 @@ export default function ExpensesPage() {
     <AppLayout>
       <div className="space-y-6">
         <header>
-          <h1 className="text-3xl font-bold font-headline">Expense Tracker</h1>
+          <h1 className="text-2xl font-bold font-headline">Expense Tracker</h1>
           <p className="text-muted-foreground">Keep an eye on your spending.</p>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

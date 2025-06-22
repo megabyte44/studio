@@ -86,7 +86,6 @@ function Alarm() {
     const [time, setTime] = useState<string | null>(null);
 
     useEffect(() => {
-        setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         const timer = setInterval(() => {
             setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         }, 1000);
@@ -136,14 +135,14 @@ export default function DashboardPage() {
         <header>
           {user ? (
             <>
-              <h1 className="text-3xl font-bold font-headline">
+              <h1 className="text-2xl font-bold font-headline">
                 {greeting}, {user.username}!
               </h1>
               <p className="text-muted-foreground">Welcome back! Here's your life at a glance.</p>
             </>
           ) : (
              <>
-              <Skeleton className="h-9 w-3/5 mb-1" />
+              <Skeleton className="h-8 w-3/5 mb-1" />
               <Skeleton className="h-5 w-4/5" />
             </>
           )}

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -40,7 +39,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm z-10 shadow-2xl">
         <form onSubmit={handleLogin}>
           <CardHeader className="text-center">
-            <h1 className="font-headline text-3xl font-bold text-primary">LifeOS</h1>
+            <h1 className="font-headline text-2xl font-bold text-primary">LifeOS</h1>
             <CardDescription>Your all-in-one productivity partner.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

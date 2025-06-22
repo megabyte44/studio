@@ -69,7 +69,7 @@ export default function NotesPage() {
         <header>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold font-headline">Personal Notes</h1>
+              <h1 className="text-2xl font-bold font-headline">Personal Notes</h1>
               <p className="text-muted-foreground">Your digital canvas for thoughts and ideas.</p>
             </div>
             <Button>
