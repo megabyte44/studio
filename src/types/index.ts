@@ -1,3 +1,4 @@
+
 export type RoutineItem = {
   id: string;
   time: string;
@@ -12,12 +13,13 @@ export type TodoItem = {
   priority?: 'high' | 'medium' | 'low';
 };
 
-export type Expense = {
+export type Transaction = {
   id: string;
+  date: string; // ISO string 'yyyy-MM-dd'
   description: string;
-  amount: number;
   category: string;
-  date: string;
+  amount: number; // Stored in cents to avoid floating point issues
+  type: 'income' | 'expense';
 };
 
 export type Habit = {

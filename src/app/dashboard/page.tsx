@@ -4,8 +4,8 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus, GlassWater } from 'lucide-react';
-import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS, P_EXPENSES } from '@/lib/placeholder-data';
-import type { RoutineItem, TodoItem, Habit, Expense } from '@/types';
+import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS, P_TRANSACTIONS } from '@/lib/placeholder-data';
+import type { RoutineItem, TodoItem, Habit, Transaction } from '@/types';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -195,35 +195,39 @@ function TodaysPlan() {
 
 
 function FinancialSnapshot() {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [monthlyBudget, setMonthlyBudget] = useState(200000); // in cents
 
   useEffect(() => {
-    const loadExpenses = () => {
+    const loadData = () => {
       try {
-        const storedExpenses = localStorage.getItem('lifeos_expenses');
-        setExpenses(storedExpenses ? JSON.parse(storedExpenses) : P_EXPENSES);
+        const storedTransactions = localStorage.getItem('lifeos_transactions');
+        setTransactions(storedTransactions ? JSON.parse(storedTransactions) : P_TRANSACTIONS);
+        const storedBudget = localStorage.getItem('lifeos_budget');
+        setMonthlyBudget(storedBudget ? parseInt(storedBudget, 10) : 200000);
       } catch (e) {
-        console.error("Failed to load expenses, using placeholder data.", e);
-        setExpenses(P_EXPENSES);
+        console.error("Failed to load financial data, using placeholder data.", e);
+        setTransactions(P_TRANSACTIONS);
       }
     };
-    loadExpenses();
-    window.addEventListener('storage', loadExpenses);
-    return () => window.removeEventListener('storage', loadExpenses);
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const today = new Date();
-  const todaysExpenses = expenses
-    .filter(e => isSameDay(parseISO(e.date), today))
-    .reduce((sum, e) => sum + e.amount, 0);
+  const todaysExpenses = transactions
+    .filter(t => t.type === 'expense' && isSameDay(parseISO(t.date), today))
+    .reduce((sum, t) => sum + t.amount, 0);
   
-  const netBalance = 2890.50; // Placeholder
-  const monthlyBudget = 2000.00; // Placeholder
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const netBalance = totalIncome - totalExpenses;
   
   const startOfCurrentMonth = startOfMonth(today);
-  const monthlyExpenses = expenses
-    .filter(e => parseISO(e.date) >= startOfCurrentMonth)
-    .reduce((sum, e) => sum + e.amount, 0);
+  const monthlyExpenses = transactions
+    .filter(t => t.type === 'expense' && parseISO(t.date) >= startOfCurrentMonth)
+    .reduce((sum, t) => sum + t.amount, 0);
 
   const budgetUsagePercent = monthlyBudget > 0 ? (monthlyExpenses / monthlyBudget) * 100 : 0;
 
@@ -238,16 +242,16 @@ function FinancialSnapshot() {
       <CardContent className="space-y-4 pt-0 sm:pt-0">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Today's Expenses</span>
-          <span className="font-semibold text-lg">${todaysExpenses.toFixed(2)}</span>
+          <span className="font-semibold text-lg">${(todaysExpenses / 100).toFixed(2)}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Net Balance</span>
-          <span className="font-bold text-2xl">${netBalance.toFixed(2)}</span>
+          <span className="font-bold text-2xl">${(netBalance / 100).toFixed(2)}</span>
         </div>
         <div>
           <div className="flex justify-between text-sm text-muted-foreground mb-1">
             <span>Monthly Budget</span>
-            <span>${monthlyExpenses.toFixed(2)} / ${monthlyBudget.toFixed(2)}</span>
+            <span>${(monthlyExpenses / 100).toFixed(2)} / ${(monthlyBudget / 100).toFixed(2)}</span>
           </div>
           <Progress value={budgetUsagePercent} />
         </div>
