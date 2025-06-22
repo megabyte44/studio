@@ -68,7 +68,7 @@ function MainSidebar({user, handleLogout}: {user: {username: string} | null, han
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-3">
-          <h1 className="font-headline text-lg font-bold text-primary">PLM</h1>
+          <h1 className="font-headline text-lg font-bold text-primary">LifeOS</h1>
           <div className="flex-1" />
           <SidebarTrigger className="hidden md:flex"/>
         </div>

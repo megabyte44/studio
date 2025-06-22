@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Personal Life Manager',
+  title: 'LifeOS',
   description: 'Manage your day, expenses, habits, and notes all in one place.',
 };
 
