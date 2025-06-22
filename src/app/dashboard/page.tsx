@@ -8,6 +8,7 @@ import type { RoutineItem, TodoItem } from '@/types';
 import { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function DayRoutine() {
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>(P_ROUTINE_ITEMS);
@@ -85,10 +86,10 @@ function Alarm() {
     const [time, setTime] = useState<string | null>(null);
 
     useEffect(() => {
+        setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         const timer = setInterval(() => {
             setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         }, 1000);
-        setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         
         return () => clearInterval(timer);
     }, []);
@@ -100,7 +101,9 @@ function Alarm() {
                 <CardDescription>08:00 AM - Morning Briefing</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center">
-                <div className="text-6xl font-bold font-headline text-primary tabular-nums">{time ?? '00:00'}</div>
+                <div className="text-6xl font-bold font-headline text-primary tabular-nums">
+                    {time || <span className="opacity-50">00:00</span>}
+                </div>
                 <p className="text-muted-foreground">The current time</p>
             </CardContent>
         </Card>
@@ -108,12 +111,42 @@ function Alarm() {
 }
 
 export default function DashboardPage() {
+  const [user, setUser] = useState<{ username: string } | null>(null);
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    // This will only run on the client, after hydration
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) return 'Good Morning';
+      if (hour < 18) return 'Good Afternoon';
+      return 'Good Evening';
+    };
+    setGreeting(getGreeting());
+  }, []);
+
   return (
     <AppLayout>
       <div className="space-y-4">
         <header>
-          <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your life at a glance.</p>
+          {user ? (
+            <>
+              <h1 className="text-3xl font-bold font-headline">
+                {greeting}, {user.username}!
+              </h1>
+              <p className="text-muted-foreground">Welcome back! Here's your life at a glance.</p>
+            </>
+          ) : (
+             <>
+              <Skeleton className="h-9 w-3/5 mb-1" />
+              <Skeleton className="h-5 w-4/5" />
+            </>
+          )}
         </header>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
