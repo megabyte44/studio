@@ -138,6 +138,10 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
             <UserCog className="mr-2 h-4 w-4" />
             <span>Edit Profile</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => router.push('/password-manager')}>
+            <KeyRound className="mr-2 h-4 w-4" />
+            <span>Password Manager</span>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push('/')}>
             <PlusCircle className="mr-2 h-4 w-4" />
             <span>Add Account</span>
