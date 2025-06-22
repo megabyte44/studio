@@ -382,7 +382,7 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
 
   return (
     <TooltipProvider>
-        <div className="flex justify-end gap-1.5 flex-wrap p-4 pt-2">
+        <div className="mx-auto grid w-fit grid-cols-6 gap-1.5 p-4 pt-2">
             {days.map((day) => {
                 const dateString = format(day, 'yyyy-MM-dd');
                 const isCompleted = !!habit.completions[dateString];
@@ -411,6 +411,7 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
 
 export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [loggedFoodItems, setLoggedFoodItems] = useState<LoggedFoodItem[]>([]);
 
   useEffect(() => {
     try {
@@ -474,7 +475,7 @@ export default function HabitsPage() {
         <div className="space-y-4">
             <h2 className="text-xl font-bold font-headline flex items-center gap-2">
                 <BookOpenCheck className="h-6 w-6 text-primary" />
-                <span>Daily Habits & Streaks</span>
+                <span>Streak Book</span>
             </h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
                 {habits.map((habit) => {
