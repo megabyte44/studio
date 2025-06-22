@@ -5,15 +5,16 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus, GlassWater } from 'lucide-react';
 import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS, P_EXPENSES } from '@/lib/placeholder-data';
 import type { RoutineItem, TodoItem, Habit, Expense } from '@/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { format, isSameDay, parseISO, startOfMonth } from 'date-fns';
+import { format, isSameDay, parseISO, startOfMonth, parse } from 'date-fns';
 import { calculateStreak } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 function WaterIntakeWidget() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -100,35 +101,69 @@ function WaterIntakeWidget() {
 
 function TodaysPlan() {
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>(P_ROUTINE_ITEMS);
-  const upcomingItems = routineItems.slice(0, 4);
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
+
+  useEffect(() => {
+    itemRefs.current = itemRefs.current.slice(0, routineItems.length);
+    const now = new Date();
+
+    const currentItemIndex = routineItems.findLastIndex(item => {
+      try {
+        const itemTime = parse(item.time, 'hh:mm a', new Date());
+        return itemTime <= now;
+      } catch (e) {
+        console.error("Error parsing time:", item.time, e);
+        return false;
+      }
+    });
+
+    if (currentItemIndex !== -1 && itemRefs.current[currentItemIndex]) {
+      const timer = setTimeout(() => {
+        itemRefs.current[currentItemIndex]?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [routineItems]);
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="py-4 sm:py-4">
         <CardTitle className="font-headline flex items-center gap-3 text-lg">
           <CalendarCheck className="h-6 w-6 text-primary" />
           <span>Today's Plan</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ul className="space-y-3">
-          {upcomingItems.map((item) => (
-            <li key={item.id} className="bg-muted p-3 rounded-lg">
+      <CardContent className="pt-0 sm:pt-0">
+        <ScrollArea className="h-[280px] w-full pr-4">
+          <ul className="space-y-3">
+            {routineItems.map((item, index) => (
+              <li
+                key={item.id}
+                ref={el => {
+                  if (el) itemRefs.current[index] = el;
+                }}
+                className="bg-muted p-3 rounded-lg"
+              >
                 <p>
-                    <span className="font-bold text-primary">{item.time}:</span>
-                    <span className="font-semibold ml-2 text-card-foreground">{item.title}</span>
+                  <span className="font-bold text-primary">{item.time}:</span>
+                  <span className="font-semibold ml-2 text-card-foreground">{item.title}</span>
                 </p>
                 <p className="text-sm text-muted-foreground ml-2">{item.description}</p>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        </ScrollArea>
       </CardContent>
-       <CardFooter>
+       <CardFooter className="pt-0 sm:pt-0">
          <Button variant="outline" className="w-full">View Full Planner</Button>
        </CardFooter>
     </Card>
   );
 }
+
 
 function FinancialSnapshot() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -165,13 +200,13 @@ function FinancialSnapshot() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="py-4 sm:py-4">
         <CardTitle className="font-headline flex items-center gap-3 text-lg">
           <Wallet className="h-6 w-6 text-primary" />
           <span>Financial Snapshot</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-0 sm:pt-0">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Today's Expenses</span>
           <span className="font-semibold text-lg">${todaysExpenses.toFixed(2)}</span>
@@ -188,7 +223,7 @@ function FinancialSnapshot() {
           <Progress value={budgetUsagePercent} />
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="pt-0 sm:pt-0">
         <Button variant="outline" className="w-full" asChild>
             <Link href="/expenses">View Full Tracker</Link>
         </Button>
@@ -214,7 +249,7 @@ function TodoList() {
 
   return (
      <Card>
-      <CardHeader>
+      <CardHeader className="py-4 sm:py-4">
         <CardTitle className="font-headline flex items-center justify-between text-lg">
             <div className="flex items-center gap-3">
                 <ListChecks className="h-6 w-6 text-primary" />
@@ -225,7 +260,7 @@ function TodoList() {
             </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0 sm:pt-0">
         <ul className="space-y-3">
             {todos.map(todo => (
                  <li key={todo.id} className="flex items-center space-x-3 group border-b pb-3">
@@ -239,7 +274,7 @@ function TodoList() {
             ))}
         </ul>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="pt-0 sm:pt-0">
           <Button variant="outline" className="w-full">View All Tasks</Button>
       </CardFooter>
     </Card>
