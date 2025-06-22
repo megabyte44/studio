@@ -262,7 +262,7 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
 }
 
 function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habit: Habit) => void }) {
-  if (!habit || habit.name !== 'Water Drinking') return null;
+  if (!habit || habit.icon !== 'GlassWater') return null;
 
   const ML_PER_GLASS = 250;
   const currentTargetInGlasses = habit.target || 8; // Default to 8 glasses
@@ -293,8 +293,8 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
 function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: string, date: string) => void }) {
   const today = new Date();
   const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
-  const isWaterHabit = habit.name === 'Water Drinking';
-  const isSyncedHabit = ['Protein Streak', 'Supplement Streak', 'Workout'].includes(habit.name);
+  const isWaterHabit = habit.icon === 'GlassWater';
+  const isSyncedHabit = ['Beef', 'Pill', 'Dumbbell'].includes(habit.icon);
 
   const getIsCompleted = (dateString: string) => {
     const completion = habit.completions[dateString];
@@ -480,16 +480,8 @@ export default function HabitsPage() {
           const uniqueHabitsMap = new Map<string, Habit>();
           for (const habit of habitsToSet) {
               if (habit && habit.name) {
-                  // Use case-insensitive matching for de-duplication
                   const normalizedName = habit.name.toLowerCase();
-                  const existingHabit = uniqueHabitsMap.get(normalizedName);
-
-                  // Prioritize keeping the 'Water Drinking' habit as it has special UI and logic
-                  if (normalizedName === 'water drinking') {
-                       if (!existingHabit || habit.name === 'Water Drinking') {
-                           uniqueHabitsMap.set(normalizedName, habit);
-                       }
-                  } else if (!existingHabit) {
+                  if (!uniqueHabitsMap.has(normalizedName)) {
                       uniqueHabitsMap.set(normalizedName, habit);
                   }
               }
@@ -559,7 +551,7 @@ export default function HabitsPage() {
             let changedInThisHabit = false;
 
             // Sync Protein Streak
-            if (habit.name === 'Protein Streak') {
+            if (habit.icon === 'Beef') {
                 const todaysIntakes = proteinIntakes.filter(intake => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === todayKey);
                 const totalProtein = todaysIntakes.reduce((sum, intake) => sum + intake.amount, 0);
                 const isCompleted = totalProtein >= proteinTarget;
@@ -572,7 +564,7 @@ export default function HabitsPage() {
             }
 
             // Sync Supplement Streak
-            if (habit.name === 'Supplement Streak') {
+            if (habit.icon === 'Pill') {
                 const todaysLogs = loggedFoodItems.filter(i => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
                 const isCompleted = todaysLogs.length > 0;
 
@@ -606,7 +598,8 @@ export default function HabitsPage() {
 
   const handleToggleCompletion = (habitId: string, date: string) => {
     setHabits(habits.map(h => {
-        if (h.id === habitId && !['Water Drinking', 'Protein Streak', 'Supplement Streak', 'Workout'].includes(h.name)) {
+        const SYNCED_ICONS = ['GlassWater', 'Beef', 'Pill', 'Dumbbell'];
+        if (h.id === habitId && !SYNCED_ICONS.includes(h.icon)) {
             const newCompletions = {...h.completions};
             if(newCompletions[date]) {
                 delete newCompletions[date];
@@ -630,7 +623,7 @@ export default function HabitsPage() {
   const getWorkoutDayInfo = useWorkoutDayInfo(cyclicalWorkoutSplit, cycleConfig);
   const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfo(new Date()), [getWorkoutDayInfo]);
   
-  const workoutHabit = habits.find(h => h.name === 'Workout');
+  const workoutHabit = habits.find(h => h.icon === 'Dumbbell');
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const isTodayWorkoutCompleted = workoutHabit ? !!workoutHabit.completions[todayKey] : false;
 
@@ -718,7 +711,7 @@ export default function HabitsPage() {
             <Accordion type="single" collapsible className="w-full space-y-4">
                 {habits.map((habit) => {
                     const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
-                    const isWaterHabit = habit.name === 'Water Drinking';
+                    const isWaterHabit = habit.icon === 'GlassWater';
                     const streak = calculateStreak(
                         habit.completions,
                         isWaterHabit ? (habit.target || 8) : 1

@@ -41,16 +41,8 @@ function WaterIntakeWidget() {
             const uniqueHabitsMap = new Map<string, Habit>();
             for (const habit of habitsToSet) {
                 if (habit && habit.name) {
-                    // Use case-insensitive matching for de-duplication
                     const normalizedName = habit.name.toLowerCase();
-                    const existingHabit = uniqueHabitsMap.get(normalizedName);
-
-                    // Prioritize keeping the 'Water Drinking' habit as it has special UI and logic
-                    if (normalizedName === 'water drinking') {
-                         if (!existingHabit || habit.name === 'Water Drinking') {
-                             uniqueHabitsMap.set(normalizedName, habit);
-                         }
-                    } else if (!existingHabit) {
+                    if (!uniqueHabitsMap.has(normalizedName)) {
                         uniqueHabitsMap.set(normalizedName, habit);
                     }
                 }
@@ -60,10 +52,10 @@ function WaterIntakeWidget() {
             habitsToSet = P_HABITS;
         }
         
-        const hasWaterHabit = habitsToSet.some(h => h.name === 'Water Drinking');
+        const hasWaterHabit = habitsToSet.some(h => h.icon === 'GlassWater');
 
         if (!hasWaterHabit) {
-            const waterHabitTemplate = P_HABITS.find(h => h.name === 'Water Drinking');
+            const waterHabitTemplate = P_HABITS.find(h => h.icon === 'GlassWater');
             if (waterHabitTemplate) {
                 habitsToSet.push(waterHabitTemplate);
                 localStorage.setItem('lifeos_habits', JSON.stringify(habitsToSet));
@@ -91,7 +83,7 @@ function WaterIntakeWidget() {
     };
   }, []);
 
-  const waterHabit = habits.find(h => h.name === 'Water Drinking');
+  const waterHabit = habits.find(h => h.icon === 'GlassWater');
   const ML_PER_GLASS = 250;
   const TARGET_GLASSES = waterHabit?.target || 8;
   const WATER_TARGET_ML = TARGET_GLASSES * ML_PER_GLASS;
