@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { format, isSameDay, parseISO, startOfMonth, parse } from 'date-fns';
 import { calculateStreak } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 function WaterIntakeWidget() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -300,9 +301,6 @@ function TodoList() {
             ))}
         </ul>
       </CardContent>
-      <CardFooter className="pt-0 sm:pt-0">
-          <Button variant="outline" className="w-full">View All Tasks</Button>
-      </CardFooter>
     </Card>
   )
 }
