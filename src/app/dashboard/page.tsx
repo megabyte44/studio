@@ -49,7 +49,7 @@ function WaterIntakeWidget() {
     };
   }, []);
 
-  const waterHabit = habits.find(h => h.name === 'Drink 2L Water');
+  const waterHabit = habits.find(h => h.name === 'Water Drinking');
   const WATER_TARGET_ML = 2000;
   const ML_PER_GLASS = 250;
   const TARGET_GLASSES = WATER_TARGET_ML / ML_PER_GLASS;

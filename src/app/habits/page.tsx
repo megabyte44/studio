@@ -231,7 +231,7 @@ function GymTracker({ habits, setHabits }: { habits: Habit[]; setHabits: (habits
                     {/* Food & Supplement Log Card */}
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
-                      setLoggedItems={setLoggedFoodItems}
+                      setLoggedItems={setLoggedItems}
                       customItems={customFoodItems}
                       onManageItems={() => setIsFoodManagerOpen(true)}
                     />
@@ -651,5 +651,3 @@ export default function HabitsPage() {
     </AppLayout>
   );
 }
-
-    
