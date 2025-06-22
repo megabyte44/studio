@@ -94,12 +94,12 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[95%] sm:max-w-lg p-2">
-                <DialogHeader className="p-2 pb-1">
+            <DialogContent className="w-[95%] sm:max-w-sm p-1.5">
+                <DialogHeader className="p-1 pb-1">
                     <DialogTitle>Edit Daily Templates</DialogTitle>
                     <DialogDescription className="text-xs">Modify the base schedule for each day.</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-1 py-1">
+                <div className="space-y-1 py-0.5">
                     <div className="space-y-1">
                         <Label htmlFor="template-day-select" className="text-xs">Select Day</Label>
                         <Select value={selectedTemplateDay} onValueChange={setSelectedTemplateDay}>
@@ -112,9 +112,9 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                         </Select>
                     </div>
 
-                    <h4 className="font-semibold pt-1 text-sm">Template for {selectedTemplateDay}</h4>
+                    <h4 className="font-semibold text-sm">Template for {selectedTemplateDay}</h4>
                     {daySchedule.length > 0 && (
-                        <ScrollArea className="h-32 pr-2 border rounded-md">
+                        <ScrollArea className="h-28 pr-2 border rounded-md">
                             <div className="space-y-1 p-1">
                                 {daySchedule.map(item => (
                                     <div key={item.id} className="flex items-center justify-between p-1 rounded-md bg-muted/50 text-xs">
@@ -131,7 +131,7 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                         </ScrollArea>
                     )}
 
-                    <div className="pt-2 mt-1 border-t space-y-1">
+                    <div className="pt-1.5 mt-1.5 border-t space-y-1">
                          <h4 className="font-semibold text-sm">Add Item to Template</h4>
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1">
                             <div className="sm:col-span-2 space-y-1">
@@ -156,7 +156,7 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                          </div>
                     </div>
                 </div>
-                <DialogFooter className="pt-2 flex-row justify-end gap-x-2">
+                <DialogFooter className="pt-1.5 flex-row justify-end gap-x-2">
                     <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
                     <Button size="sm" onClick={handleAddItemToTemplate}>Add to Template</Button>
                 </DialogFooter>
