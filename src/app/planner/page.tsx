@@ -94,16 +94,16 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[95%] sm:max-w-xl">
-                <DialogHeader>
+            <DialogContent className="w-[95%] sm:max-w-xl p-4">
+                <DialogHeader className="pb-2">
                     <DialogTitle>Edit Daily Schedule Templates</DialogTitle>
-                    <DialogDescription>Modify the base schedule for each day of the week. These are your default items.</DialogDescription>
+                    <DialogDescription>Modify the base schedule for each day of the week.</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="template-day-select">Select Day to Edit Template</Label>
+                <div className="space-y-2 py-2">
+                    <div className="space-y-1">
+                        <Label htmlFor="template-day-select">Select Day to Edit</Label>
                         <Select value={selectedTemplateDay} onValueChange={setSelectedTemplateDay}>
-                            <SelectTrigger id="template-day-select">
+                            <SelectTrigger id="template-day-select" className="h-9">
                                 <SelectValue placeholder="Select a day" />
                             </SelectTrigger>
                             <SelectContent>
@@ -112,18 +112,18 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                         </Select>
                     </div>
 
-                    <h4 className="font-semibold pt-2 border-t">Items for {selectedTemplateDay}'s Template</h4>
-                    <ScrollArea className="h-48 pr-4">
+                    <h4 className="font-semibold pt-1">Items for {selectedTemplateDay}'s Template</h4>
+                    <ScrollArea className="h-40 pr-3 border rounded-md">
                          {daySchedule.length > 0 ? (
-                            <div className="space-y-2">
+                            <div className="space-y-1 p-2">
                                 {daySchedule.map(item => (
-                                    <div key={item.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50 text-sm">
+                                    <div key={item.id} className="flex items-center justify-between p-1.5 rounded-md bg-muted/50 text-xs">
                                         <div>
-                                            <span className="font-semibold">{item.startTime} - {item.endTime}</span>: {item.title}
-                                            {item.tag && <span className="ml-2 text-xs bg-primary/20 text-primary-foreground px-1.5 py-0.5 rounded-full">{item.tag}</span>}
+                                            <span className="font-semibold">{item.startTime}-{item.endTime}</span>: {item.title}
+                                            {item.tag && <span className="ml-1.5 text-xs bg-primary/20 text-primary-foreground px-1 py-0.5 rounded-full">{item.tag}</span>}
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteItemFromTemplate(item.id)}>
-                                            <Trash className="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => handleDeleteItemFromTemplate(item.id)}>
+                                            <Trash className="h-3.5 w-3.5" />
                                         </Button>
                                     </div>
                                 ))}
@@ -131,34 +131,34 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                         ) : <p className="text-sm text-muted-foreground text-center py-4">No items in this template.</p>}
                     </ScrollArea>
 
-                    <div className="pt-4 border-t space-y-4">
-                         <h4 className="font-semibold">Add New Item to {selectedTemplateDay}'s Template</h4>
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="sm:col-span-2 space-y-2">
+                    <div className="pt-2 mt-2 border-t space-y-2">
+                         <h4 className="font-semibold">Add New Item to Template</h4>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="sm:col-span-2 space-y-1">
                                 <Label htmlFor="template-item-title">Title</Label>
-                                <Input id="template-item-title" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Morning Commute" />
+                                <Input id="template-item-title" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Morning Commute" className="h-9" />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                                 <Label htmlFor="template-item-start-time">Start Time</Label>
-                                <Input id="template-item-start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                                <Input id="template-item-start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="h-9" />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                                 <Label htmlFor="template-item-duration">Duration</Label>
                                 <Select value={duration} onValueChange={setDuration}>
-                                    <SelectTrigger id="template-item-duration"><SelectValue/></SelectTrigger>
+                                    <SelectTrigger id="template-item-duration" className="h-9"><SelectValue/></SelectTrigger>
                                     <SelectContent>{durationOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent>
                                 </Select>
                             </div>
-                             <div className="sm:col-span-2 space-y-2">
+                             <div className="sm:col-span-2 space-y-1">
                                 <Label htmlFor="template-item-tag">Tag (Optional)</Label>
-                                <Input id="template-item-tag" value={tag} onChange={e => setTag(e.target.value)} placeholder="e.g., Routine, Errand" />
+                                <Input id="template-item-tag" value={tag} onChange={e => setTag(e.target.value)} placeholder="e.g., Routine, Errand" className="h-9" />
                             </div>
                          </div>
                     </div>
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
-                    <Button onClick={handleAddItemToTemplate}>Add Item to Template</Button>
+                <DialogFooter className="pt-2">
+                    <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
+                    <Button size="sm" onClick={handleAddItemToTemplate}>Add to Template</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
