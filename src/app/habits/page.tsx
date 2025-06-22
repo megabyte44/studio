@@ -379,27 +379,42 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
 function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: string, date: string) => void }) {
   const today = new Date();
   const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
+  const isWaterHabit = habit.name === 'Drink 2L Water';
+  const WATER_TARGET_GLASSES = 8;
+
+  const getIsCompleted = (dateString: string) => {
+    const completion = habit.completions[dateString];
+    if (isWaterHabit) {
+      return typeof completion === 'number' && completion >= WATER_TARGET_GLASSES;
+    }
+    return !!completion;
+  };
 
   return (
     <TooltipProvider>
         <div className="mx-auto grid w-fit grid-cols-6 gap-1.5 p-4 pt-2">
             {days.map((day) => {
                 const dateString = format(day, 'yyyy-MM-dd');
-                const isCompleted = !!habit.completions[dateString];
+                const isCompleted = getIsCompleted(dateString);
                 return (
                     <Tooltip key={dateString} delayDuration={0}>
                         <TooltipTrigger asChild>
                             <button
                                 onClick={() => onToggle(habit.id, dateString)}
+                                disabled={isWaterHabit}
                                 className={cn(
                                     'h-7 w-7 rounded-sm transition-colors',
                                     isCompleted ? 'bg-primary hover:bg-primary/90' : 'bg-secondary hover:bg-accent',
-                                    isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                                    isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                                    isWaterHabit && 'cursor-not-allowed'
                                 )}
                             />
                         </TooltipTrigger>
                         <TooltipContent>
                             <p>{format(day, 'MMM d, yyyy')}</p>
+                            {isWaterHabit && typeof habit.completions[dateString] === 'number' && (
+                                <p className="text-xs text-muted-foreground">{habit.completions[dateString]} glasses</p>
+                            )}
                         </TooltipContent>
                     </Tooltip>
                 );
@@ -503,7 +518,10 @@ export default function HabitsPage() {
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     {isWaterHabit ? (
-                                        <WaterIntakeManager habit={habit} onUpdate={handleUpdateHabit} />
+                                        <>
+                                            <WaterIntakeManager habit={habit} onUpdate={handleUpdateHabit} />
+                                            <HabitGrid habit={habit} onToggle={handleToggleCompletion} />
+                                        </>
                                     ) : (
                                         <HabitGrid habit={habit} onToggle={handleToggleCompletion} />
                                     )}
