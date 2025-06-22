@@ -1,15 +1,18 @@
 'use client';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Trash2, ArrowUp, ArrowDown, Droplets, GlassWater } from 'lucide-react';
-import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS } from '@/lib/placeholder-data';
-import type { RoutineItem, TodoItem, Habit } from '@/types';
+import { PlusCircle, Trash2, Droplets, GlassWater, Wallet, CalendarCheck, ListChecks, PenSquare } from 'lucide-react';
+import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS, P_EXPENSES } from '@/lib/placeholder-data';
+import type { RoutineItem, TodoItem, Habit, Expense } from '@/types';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { format, isSameDay, parseISO, startOfMonth } from 'date-fns';
 import { calculateStreak } from '@/lib/utils';
 
 function WaterIntakeWidget() {
@@ -73,13 +76,14 @@ function WaterIntakeWidget() {
     <Card>
       <CardHeader>
         <CardTitle className="font-headline flex items-center justify-between">
-          <span>Water Intake</span>
+          <div className='flex items-center gap-3'>
+            <Droplets className="h-6 w-6 text-primary" />
+            <span>Water Intake</span>
+          </div>
           <div className="flex items-center gap-1 text-primary">
-            <Droplets className="h-5 w-5" />
             <span className="font-bold text-lg">{streak} Day Streak</span>
           </div>
         </CardTitle>
-        <CardDescription>Log your daily water consumption to build the habit.</CardDescription>
       </CardHeader>
       <CardContent>
         <Button onClick={handleToggleWaterIntake} className="w-full" variant={isCompletedToday ? "secondary" : "default"}>
@@ -91,43 +95,101 @@ function WaterIntakeWidget() {
   );
 }
 
-
-function DayRoutine() {
+function TodaysPlan() {
   const [routineItems, setRoutineItems] = useState<RoutineItem[]>(P_ROUTINE_ITEMS);
+  const upcomingItems = routineItems.slice(0, 4);
 
   return (
-    <Card className="h-full">
+    <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center justify-between">
-          <span>Day Routine</span>
-          <Button variant="ghost" size="icon">
-            <PlusCircle className="h-5 w-5" />
-          </Button>
+        <CardTitle className="font-headline flex items-center gap-3">
+          <CalendarCheck className="h-6 w-6 text-primary" />
+          <span>Today's Plan</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-4">
-          {routineItems.map((item) => (
-            <li key={item.id} className="flex items-start space-x-4 group">
-              <div className="flex-shrink-0 w-20 text-right">
-                <p className="font-bold text-primary">{item.time}</p>
-              </div>
-              <div className="relative w-full">
-                <div className="absolute top-2 -left-[22.5px] h-full border-l-2 border-border"></div>
-                <div className="absolute top-2 -left-[26px] h-3 w-3 rounded-full bg-primary border-2 border-background"></div>
-                <p className="font-semibold text-card-foreground">{item.title}</p>
-                <p className="text-sm text-muted-foreground">{item.description}</p>
-                 <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-0 right-0 flex items-center">
-                    <Button variant="ghost" size="icon" className="h-7 w-7"><ArrowUp className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7"><ArrowDown className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              </div>
+        <ul className="space-y-3">
+          {upcomingItems.map((item) => (
+            <li key={item.id} className="bg-muted p-3 rounded-lg">
+                <p>
+                    <span className="font-bold text-primary">{item.time}:</span>
+                    <span className="font-semibold ml-2 text-card-foreground">{item.title}</span>
+                </p>
+                <p className="text-sm text-muted-foreground ml-2">{item.description}</p>
             </li>
           ))}
         </ul>
       </CardContent>
+       <CardFooter>
+         <Button variant="outline" className="w-full">View Full Planner</Button>
+       </CardFooter>
+    </Card>
+  );
+}
+
+function FinancialSnapshot() {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  useEffect(() => {
+    const loadExpenses = () => {
+      try {
+        const storedExpenses = localStorage.getItem('lifeos_expenses');
+        setExpenses(storedExpenses ? JSON.parse(storedExpenses) : P_EXPENSES);
+      } catch (e) {
+        console.error("Failed to load expenses, using placeholder data.", e);
+        setExpenses(P_EXPENSES);
+      }
+    };
+    loadExpenses();
+    window.addEventListener('storage', loadExpenses);
+    return () => window.removeEventListener('storage', loadExpenses);
+  }, []);
+
+  const today = new Date();
+  const todaysExpenses = expenses
+    .filter(e => isSameDay(parseISO(e.date), today))
+    .reduce((sum, e) => sum + e.amount, 0);
+  
+  const netBalance = 2890.50; // Placeholder
+  const monthlyBudget = 2000.00; // Placeholder
+  
+  const startOfCurrentMonth = startOfMonth(today);
+  const monthlyExpenses = expenses
+    .filter(e => parseISO(e.date) >= startOfCurrentMonth)
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const budgetUsagePercent = monthlyBudget > 0 ? (monthlyExpenses / monthlyBudget) * 100 : 0;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-headline flex items-center gap-3">
+          <Wallet className="h-6 w-6 text-primary" />
+          <span>Financial Snapshot</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex justify-between items-center">
+          <span className="text-muted-foreground">Today's Expenses</span>
+          <span className="font-semibold text-lg">${todaysExpenses.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-muted-foreground">Net Balance</span>
+          <span className="font-bold text-2xl">${netBalance.toFixed(2)}</span>
+        </div>
+        <div>
+          <div className="flex justify-between text-sm text-muted-foreground mb-1">
+            <span>Monthly Budget</span>
+            <span>${monthlyExpenses.toFixed(2)} / ${monthlyBudget.toFixed(2)}</span>
+          </div>
+          <Progress value={budgetUsagePercent} />
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button variant="outline" className="w-full" asChild>
+            <Link href="/expenses">View Full Tracker</Link>
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
@@ -138,12 +200,23 @@ function TodoList() {
     const toggleTodo = (id: string) => {
         setTodos(todos.map(todo => todo.id === id ? {...todo, completed: !todo.completed} : todo));
     }
+    
+    const getPriorityBadgeVariant = (priority?: 'high' | 'medium' | 'low') => {
+        switch (priority) {
+            case 'high': return 'destructive';
+            case 'medium': return 'secondary';
+            default: return 'outline';
+        }
+    }
 
   return (
      <Card>
       <CardHeader>
         <CardTitle className="font-headline flex items-center justify-between">
-            <span>To-Do List</span>
+            <div className="flex items-center gap-3">
+                <ListChecks className="h-6 w-6 text-primary" />
+                <span>Today's To-Do List</span>
+            </div>
             <Button variant="ghost" size="icon">
                 <PlusCircle className="h-5 w-5" />
             </Button>
@@ -152,14 +225,20 @@ function TodoList() {
       <CardContent>
         <ul className="space-y-3">
             {todos.map(todo => (
-                 <li key={todo.id} className="flex items-center space-x-3 group">
+                 <li key={todo.id} className="flex items-center space-x-3 group border-b pb-3">
                     <Checkbox id={`todo-${todo.id}`} checked={todo.completed} onCheckedChange={() => toggleTodo(todo.id)} />
                     <label htmlFor={`todo-${todo.id}`} className={cn("flex-1 text-sm", todo.completed && "line-through text-muted-foreground")}>{todo.text}</label>
+                    {todo.priority && (
+                        <Badge variant={getPriorityBadgeVariant(todo.priority)} className="capitalize">{todo.priority}</Badge>
+                    )}
                     <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                  </li>
             ))}
         </ul>
       </CardContent>
+      <CardFooter>
+          <Button variant="outline" className="w-full">View All Tasks</Button>
+      </CardFooter>
     </Card>
   )
 }
@@ -168,13 +247,12 @@ function Alarm() {
     const [time, setTime] = useState<string | null>(null);
 
     useEffect(() => {
-        // This effect runs only on the client, after hydration
         const updateCurrentTime = () => {
             setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         };
         
-        updateCurrentTime(); // Set time immediately on mount
-        const timer = setInterval(updateCurrentTime, 1000); // Then update every second
+        updateCurrentTime();
+        const timer = setInterval(updateCurrentTime, 1000);
         
         return () => clearInterval(timer);
     }, []);
@@ -195,12 +273,20 @@ function Alarm() {
     )
 }
 
+function FloatingActionButton() {
+    return (
+        <Link href="/notes" className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors">
+            <PenSquare className="h-6 w-6" />
+            <span className="sr-only">Quick Note</span>
+        </Link>
+    )
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<{ username: string } | null>(null);
   const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
-    // This will only run on the client, after hydration
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -221,29 +307,33 @@ export default function DashboardPage() {
         <header>
           {user ? (
             <>
-              <h1 className="text-3xl font-bold font-headline">
+              <h1 className="text-2xl font-bold font-headline">
                 {greeting}, {user.username}!
               </h1>
-              <p className="text-muted-foreground">Welcome back! Here's your life at a glance.</p>
+              <p className="text-muted-foreground">Here's your life at a glance.</p>
             </>
           ) : (
              <>
-              <Skeleton className="h-8 w-3/5 mb-1" />
+              <Skeleton className="h-8 w-3/5 mb-2" />
               <Skeleton className="h-5 w-4/5" />
             </>
           )}
         </header>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-                <WaterIntakeWidget />
-                <DayRoutine />
+            <div className="lg:col-span-2">
+                <TodaysPlan />
             </div>
-            <div className="space-y-6">
-                <TodoList />
+            <div className="lg:col-span-1 space-y-6">
+                <WaterIntakeWidget />
+                <FinancialSnapshot />
                 <Alarm />
+            </div>
+            <div className="lg:col-span-3">
+                <TodoList />
             </div>
         </div>
       </div>
+      <FloatingActionButton />
     </AppLayout>
   );
 }

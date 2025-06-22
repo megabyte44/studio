@@ -12,14 +12,14 @@ export const P_ROUTINE_ITEMS: RoutineItem[] = [
 ];
 
 export const P_TODO_ITEMS: TodoItem[] = [
-  { id: '1', text: 'Finalize Q3 report presentation', completed: false },
-  { id: '2', text: 'Book dentist appointment', completed: false },
-  { id: '3', text: 'Buy groceries for the week', completed: true },
-  { id: '4', text: 'Call mom', completed: false },
+  { id: '1', text: 'Finalize Q3 report presentation', completed: false, priority: 'high' },
+  { id: '2', text: 'Book dentist appointment', completed: false, priority: 'medium' },
+  { id: '3', text: 'Buy groceries for the week', completed: true, priority: 'low' },
+  { id: '4', text: 'Call mom', completed: false, priority: 'low' },
 ];
 
 export const P_EXPENSES: Expense[] = [
-  { id: '1', description: 'Morning Coffee', amount: 4.50, category: 'Food', date: formatISO(subDays(new Date(), 1)) },
+  { id: '1', description: 'Morning Coffee', amount: 4.50, category: 'Food', date: formatISO(subDays(new Date(), 0)) },
   { id: '2', description: 'Monthly Gym Subscription', amount: 50.00, category: 'Health', date: formatISO(subDays(new Date(), 2)) },
   { id: '3', description: 'Gasoline for car', amount: 65.20, category: 'Transport', date: formatISO(subDays(new Date(), 2)) },
   { id: '4', description: 'Groceries from Whole Foods', amount: 124.80, category: 'Groceries', date: formatISO(subDays(new Date(), 3)) },

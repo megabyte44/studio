@@ -9,6 +9,7 @@ export type TodoItem = {
   id: string;
   text: string;
   completed: boolean;
+  priority?: 'high' | 'medium' | 'low';
 };
 
 export type Expense = {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { P_EXPENSES } from '@/lib/placeholder-data';
 import type { Expense } from '@/types';
@@ -158,7 +158,26 @@ function ExpenseChart({ expenses }: { expenses: Expense[] }) {
 }
 
 export default function ExpensesPage() {
-  const [expenses, setExpenses] = useState<Expense[]>(P_EXPENSES);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  useEffect(() => {
+    try {
+      const storedExpenses = localStorage.getItem('lifeos_expenses');
+      setExpenses(storedExpenses ? JSON.parse(storedExpenses) : P_EXPENSES);
+    } catch (error) {
+      console.error("Failed to load expenses from localStorage", error);
+      setExpenses(P_EXPENSES);
+    }
+    setIsInitialLoad(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      localStorage.setItem('lifeos_expenses', JSON.stringify(expenses));
+    }
+  }, [expenses, isInitialLoad]);
+
 
   const addExpense = (expense: Expense) => {
     setExpenses([expense, ...expenses]);
