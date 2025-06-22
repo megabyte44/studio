@@ -102,7 +102,7 @@ export default function ExpensesPage() {
             <p className="text-muted-foreground max-w-xl mx-auto">Track your income, expenses, and manage your budget with ease.</p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 gap-6">
             <StatCard title="Total Income" amount={totalIncome} icon={TrendingUp} variant="income" />
             <StatCard title="Total Spent" amount={totalExpenses} icon={TrendingDown} variant="expense" />
             <StatCard title="Monthly Budget" amount={monthlyBudget} icon={PiggyBank} />
@@ -111,7 +111,7 @@ export default function ExpensesPage() {
 
         <Card>
             <CardHeader>
-                <CardTitle>Budget Progress</CardTitle>
+                <CardTitle className="text-lg">Budget Progress</CardTitle>
                 <CardDescription>You've spent {formatCurrency(totalExpenses)} of your {formatCurrency(monthlyBudget)} budget.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -132,7 +132,7 @@ export default function ExpensesPage() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="space-y-1.5">
-                    <CardTitle>Recent Transactions</CardTitle>
+                    <CardTitle className="text-lg">Recent Transactions</CardTitle>
                     <CardDescription>A log of your recent income and expenses.</CardDescription>
                 </div>
                 <TransactionDialog onSave={(newTxn) => setTransactions(prev => [newTxn, ...prev])}>
