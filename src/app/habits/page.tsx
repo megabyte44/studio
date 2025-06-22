@@ -7,8 +7,11 @@ import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, Pr
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill, BrainCircuit, Bed, Run, Sunrise, Guitar, Code, Leaf } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import { 
+    PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, 
+    AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill, BrainCircuit, Bed, Run, 
+    Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater 
+} from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -23,6 +26,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
+const iconMap: Record<string, React.ElementType> = {
+    PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, 
+    AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill, BrainCircuit, Bed, Run, 
+    Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater
+};
 
 // --- Initial Data for Gym Tracker ---
 const initialWorkoutSplit: CyclicalWorkoutSplit = {
@@ -593,7 +601,7 @@ export default function HabitsPage() {
         return currentHabits;
     });
 
-  }, [proteinIntakes, proteinTarget, loggedFoodItems, customFoodItems, isLoading]);
+  }, [proteinIntakes, proteinTarget, loggedFoodItems, customFoodItems, isLoading, habits]);
 
 
   // --- Handlers ---
@@ -732,7 +740,8 @@ export default function HabitsPage() {
             </h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
                 {habits.map((habit) => {
-                    const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
+                    if (!habit) return null;
+                    const Icon = iconMap[habit.icon] || iconMap.CheckCircle2;
                     const isWaterHabit = habit.icon === 'GlassWater';
                     const isSyncedHabit = SPECIAL_HABIT_ICONS.includes(habit.icon);
                     const streak = calculateStreak(
@@ -829,15 +838,15 @@ export default function HabitsPage() {
 }
 
 const availableIcons = [
-  { name: 'CheckCircle2', label: 'Check Circle', icon: LucideIcons.CheckCircle2 },
-  { name: 'BookOpen', label: 'Book Open', icon: LucideIcons.BookOpen },
-  { name: 'Bed', label: 'Bed', icon: LucideIcons.Bed },
-  { name: 'Run', label: 'Running', icon: LucideIcons.Run },
-  { name: 'BrainCircuit', label: 'Meditate', icon: LucideIcons.BrainCircuit },
-  { name: 'Sunrise', label: 'Sunrise', icon: LucideIcons.Sunrise },
-  { name: 'Guitar', label: 'Guitar', icon: LucideIcons.Guitar },
-  { name: 'Code', label: 'Coding', icon: LucideIcons.Code },
-  { name: 'Leaf', label: 'Nature', icon: LucideIcons.Leaf },
+  { name: 'CheckCircle2', label: 'Check Circle' },
+  { name: 'BookOpen', label: 'Book Open' },
+  { name: 'Bed', label: 'Bed' },
+  { name: 'Run', label: 'Running' },
+  { name: 'BrainCircuit', label: 'Meditate' },
+  { name: 'Sunrise', label: 'Sunrise' },
+  { name: 'Guitar', label: 'Guitar' },
+  { name: 'Code', label: 'Coding' },
+  { name: 'Leaf', label: 'Nature' },
 ];
 
 function AddHabitDialog({
@@ -896,14 +905,18 @@ function AddHabitDialog({
                                 <SelectValue placeholder="Select an icon" />
                             </SelectTrigger>
                             <SelectContent>
-                                {availableIcons.map(iconInfo => (
-                                    <SelectItem key={iconInfo.name} value={iconInfo.name}>
-                                        <div className="flex items-center gap-2">
-                                            <iconInfo.icon className="h-4 w-4" />
-                                            <span>{iconInfo.label}</span>
-                                        </div>
-                                    </SelectItem>
-                                ))}
+                                {availableIcons.map(iconInfo => {
+                                    const IconComponent = iconMap[iconInfo.name];
+                                    if (!IconComponent) return null;
+                                    return (
+                                        <SelectItem key={iconInfo.name} value={iconInfo.name}>
+                                            <div className="flex items-center gap-2">
+                                                <IconComponent className="h-4 w-4" />
+                                                <span>{iconInfo.label}</span>
+                                            </div>
+                                        </SelectItem>
+                                    )
+                                })}
                             </SelectContent>
                         </Select>
                     </div>
