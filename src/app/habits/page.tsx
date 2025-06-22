@@ -65,7 +65,8 @@ function GymTracker({
     proteinIntakes, setProteinIntakes, 
     loggedFoodItems, setLoggedFoodItems,
     proteinTarget, setProteinTarget,
-    customFoodItems, onManageCustomFoodItems,
+    customFoodItems,
+    onManageCustomFoodItems,
     cyclicalWorkoutSplit, cycleConfig,
     onToggleWorkoutCompletion,
     isTodayCompleted,
@@ -134,7 +135,7 @@ function GymTracker({
                     {/* Protein Intake Card */}
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
-                      setIntakes={setIntakes}
+                      setIntakes={setProteinIntakes}
                       target={proteinTarget}
                       setTarget={setProteinTarget}
                     />
