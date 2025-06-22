@@ -6,7 +6,6 @@ import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, 
 import { P_ROUTINE_ITEMS, P_TODO_ITEMS, P_HABITS, P_TRANSACTIONS } from '@/lib/placeholder-data';
 import type { RoutineItem, TodoItem, Habit, Transaction } from '@/types';
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -255,11 +254,6 @@ function FinancialSnapshot() {
           <Progress value={budgetUsagePercent} />
         </div>
       </CardContent>
-      <CardFooter className="pt-0 sm:pt-0">
-        <Button variant="outline" className="w-full" asChild>
-            <Link href="/expenses">View Full Tracker</Link>
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
