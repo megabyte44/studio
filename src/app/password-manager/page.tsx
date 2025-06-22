@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -123,13 +124,16 @@ export default function PasswordManagerPage() {
   };
 
   const handleToggleVisibility = (id: string, fieldName: string) => {
-    setVisibilities(prev => ({
-      ...prev,
-      [id]: {
-        ...(prev[id] || {}),
-        [fieldName]: !(prev[id]?.[fieldName])
-      }
-    }));
+    setVisibilities(prev => {
+        const currentVisibility = prev[id]?.[fieldName] ?? false;
+        return {
+            ...prev,
+            [id]: {
+                ...(prev[id] || {}),
+                [fieldName]: !currentVisibility
+            }
+        };
+    });
   };
 
   const toggleCardExpansion = (id: string) => {
@@ -251,9 +255,9 @@ export default function PasswordManagerPage() {
                                                 <CardDescription>
                                                     {isExpanded
                                                         ? `Last updated: ${cred.lastUpdated}`
-                                                        : cred.category === 'Banking' && cred.accountNumber
-                                                            ? `Account No: ••••${cred.accountNumber.slice(-4)}`
-                                                            : `Username: ${cred.username}`
+                                                        : cred.category === 'Banking'
+                                                            ? `Account No: ${cred.accountNumber ? `••••${cred.accountNumber.slice(-4)}` : 'Not Set'}`
+                                                            : `Username: ${cred.username || 'Not Set'}`
                                                     }
                                                 </CardDescription>
                                             </CardHeader>
