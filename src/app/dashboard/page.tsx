@@ -78,12 +78,12 @@ function WaterIntakeWidget() {
       <Button 
         onClick={handleIntakeChange} 
         variant="outline" 
-        className="w-[150px] h-[72px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
+        className="w-[150px] h-[64px] flex-shrink-0 flex items-center justify-center rounded-xl border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 group"
       >
-        <GlassWater className="h-14 w-14 text-primary/30 group-hover:text-primary/70 transition-colors" />
+        <GlassWater className="h-12 w-12 text-primary/30 group-hover:text-primary/70 transition-colors" />
       </Button>
       <div className="text-left">
-        <h3 className="font-headline text-lg font-semibold flex items-center gap-2">
+        <h3 className="font-headline text-base font-semibold flex items-center gap-2">
             <Droplets className="h-5 w-5 text-primary" />
             Water Intake
         </h3>
