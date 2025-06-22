@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -12,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO, formatISO, startOfMonth } from 'date-fns';
+import { Label } from '@/components/ui/label';
 import { 
     PiggyBank, Loader2, TrendingUp, TrendingDown, Save, PlusCircle, Trash2, 
     Plane, Shirt, UtensilsCrossed, ShoppingBag, Bolt, HeartPulse, Ticket, MoreHorizontal, Salad, Users 
@@ -37,7 +39,7 @@ const categoryDetails: Record<string, { icon: React.ElementType, color: string }
 };
 
 
-const formatCurrency = (amountInCents: number) => `${(amountInCents / 100).toFixed(0)}`;
+const formatCurrency = (amountInCents: number) => `${(amountInCents / 100).toFixed(2)}`;
 
 export default function ExpensesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -133,8 +135,8 @@ export default function ExpensesPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
             <StatCard title="Total Income" amount={totalIncome} icon={TrendingUp} variant="income" />
             <StatCard title="Total Spent" amount={totalExpenses} icon={TrendingDown} variant="expense" />
             <StatCard title="Monthly Budget" amount={monthlyBudget} icon={PiggyBank} />
@@ -142,15 +144,15 @@ export default function ExpensesPage() {
         </div>
 
         <Card>
-            <CardHeader className="py-4 sm:py-4">
+            <CardHeader className="p-3 sm:p-4">
                 <CardTitle className="text-lg">Budget Progress</CardTitle>
                 <CardDescription>You've spent {formatCurrency(monthlyExpenses)} of your {formatCurrency(monthlyBudget)} budget.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0 sm:pt-0 pb-2">
+            <CardContent className="pt-0 sm:pt-0 pb-2 px-3 sm:px-4">
                 <Progress value={budgetProgress} />
                 <p className="text-right text-sm text-muted-foreground mt-1">{budgetProgress.toFixed(0)}%</p>
             </CardContent>
-            <CardFooter className="pt-0 sm:pt-0">
+            <CardFooter className="pt-0 sm:pt-0 p-3 sm:p-4">
                  <div className="w-full space-y-2">
                     <label htmlFor="monthly-budget-input" className="text-sm font-medium">Set Your Monthly Budget:</label>
                     <div className="flex gap-2">
@@ -162,13 +164,13 @@ export default function ExpensesPage() {
         </Card>
 
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between py-3 sm:py-3 h-[50px]">
+            <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4">
                 <CardTitle className="text-lg">Recent Transactions</CardTitle>
                 <TransactionDialog onSave={(newTxn) => setTransactions(prev => [newTxn, ...prev])}>
-                    <Button><PlusCircle className="mr-2 h-4 w-4" />Add Transaction</Button>
+                    <Button><PlusCircle className="mr-2 h-4 w-4" />Add</Button>
                 </TransactionDialog>
             </CardHeader>
-            <CardContent className="pt-0 sm:pt-0">
+            <CardContent className="pt-0 sm:pt-0 p-0 sm:p-2">
                  {Object.keys(groupedTransactions).length > 0 ? (
                     <div className="space-y-4">
                         {Object.entries(groupedTransactions).map(([date, txns]) => {
@@ -176,7 +178,7 @@ export default function ExpensesPage() {
                             
                             return (
                                 <div key={date}>
-                                    <div className="flex justify-between items-center text-sm font-medium text-muted-foreground px-3 py-2 border-b bg-muted/50 rounded-t-md">
+                                    <div className="flex justify-between items-center text-sm font-medium text-muted-foreground px-2 py-1.5 border-b bg-muted/50 rounded-t-md">
                                         <span>{format(parseISO(date), 'dd MMM, EEEE')}</span>
                                         <span>Expenses: {formatCurrency(dailyTotal)}</span>
                                     </div>
@@ -184,18 +186,18 @@ export default function ExpensesPage() {
                                         {txns.map((txn) => {
                                             const { icon: Icon, color } = categoryDetails[txn.category] || categoryDetails['Other'];
                                             return (
-                                                <li key={txn.id} className="flex items-center justify-between p-3 group hover:bg-muted/50">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${color}`}>
-                                                            <Icon className="h-5 w-5" />
+                                                <li key={txn.id} className="flex items-center justify-between p-2 group hover:bg-muted/50">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center ${color}`}>
+                                                            <Icon className="h-4 w-4" />
                                                         </div>
                                                         <p className="font-semibold">{txn.description}</p>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`font-bold text-lg ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className={`font-bold text-base ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                                                             {formatCurrency(Math.abs(txn.amount))}
                                                         </span>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteTransaction(txn.id)}>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteTransaction(txn.id)}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -224,11 +226,11 @@ function StatCard({ title, amount, icon: Icon, variant }: { title: string, amoun
     const amountColor = variant === 'income' ? 'text-green-600' : variant === 'expense' ? 'text-red-600' : '';
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-4 sm:py-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2 sm:p-4">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
             </CardHeader>
-            <CardContent className="pt-0 sm:pt-0">
+            <CardContent className="pt-0 px-3 sm:px-4">
                 <div className={`text-2xl font-bold ${amountColor}`}>{formatCurrency(Math.abs(amount))}</div>
             </CardContent>
         </Card>
@@ -279,28 +281,28 @@ function TransactionDialog({ children, onSave }: { children: React.ReactNode, on
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent>
+            <DialogContent className="p-4">
                 <DialogHeader>
                     <DialogTitle>Add New Transaction</DialogTitle>
                     <DialogDescription>Enter transaction details. Click save when done.</DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <label htmlFor="date" className="text-right">Date</label>
-                        <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} className="col-span-3" />
+                <div className="space-y-3 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="date">Date</Label>
+                        <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} />
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <label htmlFor="description" className="text-right">Description</label>
-                        <Input id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="e.g., Morning Coffee" className="col-span-3" />
+                     <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Input id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="e.g., Morning Coffee" />
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <label htmlFor="amount" className="text-right">Amount</label>
-                        <Input id="amount" type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="e.g., 150.00" className="col-span-3" />
+                     <div className="space-y-2">
+                        <Label htmlFor="amount">Amount</Label>
+                        <Input id="amount" type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="e.g., 150.00" />
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <label htmlFor="category" className="text-right">Category</label>
+                     <div className="space-y-2">
+                        <Label htmlFor="category">Category</Label>
                         <Select value={category} onValueChange={setCategory}>
-                            <SelectTrigger className="col-span-3">
+                            <SelectTrigger>
                                 <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
                             <SelectContent>
@@ -308,10 +310,10 @@ function TransactionDialog({ children, onSave }: { children: React.ReactNode, on
                             </SelectContent>
                         </Select>
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <label htmlFor="type" className="text-right">Type</label>
+                     <div className="space-y-2">
+                        <Label htmlFor="type">Type</Label>
                          <Select value={type} onValueChange={(value) => setType(value as 'income' | 'expense')}>
-                            <SelectTrigger className="col-span-3">
+                            <SelectTrigger>
                                 <SelectValue placeholder="Select a type" />
                             </SelectTrigger>
                             <SelectContent>
