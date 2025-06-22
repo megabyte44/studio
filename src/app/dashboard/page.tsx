@@ -1,3 +1,4 @@
+
 'use client';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -100,32 +101,54 @@ function WaterIntakeWidget() {
 }
 
 function TodaysPlan() {
-  const [routineItems, setRoutineItems] = useState<RoutineItem[]>(P_ROUTINE_ITEMS);
-  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const [routineItems] = useState<RoutineItem[]>(P_ROUTINE_ITEMS);
+  const [displayedItems, setDisplayedItems] = useState<RoutineItem[]>([]);
+  const [highlightedIndex, setHighlightedIndex] = useState(1);
 
   useEffect(() => {
-    itemRefs.current = itemRefs.current.slice(0, routineItems.length);
-    const now = new Date();
-
-    const currentItemIndex = routineItems.findLastIndex(item => {
-      try {
-        const itemTime = parse(item.time, 'hh:mm a', new Date());
-        return itemTime <= now;
-      } catch (e) {
-        console.error("Error parsing time:", item.time, e);
-        return false;
+    const calculateDisplayedItems = () => {
+      if (routineItems.length <= 3) {
+        setDisplayedItems(routineItems);
+        const now = new Date();
+        const currentIndex = routineItems.findLastIndex(item => 
+            parse(item.time, 'hh:mm a', new Date()) <= now
+        );
+        setHighlightedIndex(currentIndex);
+        return;
       }
-    });
 
-    if (currentItemIndex !== -1 && itemRefs.current[currentItemIndex]) {
-      const timer = setTimeout(() => {
-        itemRefs.current[currentItemIndex]?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
-      }, 100);
-      return () => clearTimeout(timer);
-    }
+      const now = new Date();
+      let currentIndex = routineItems.findIndex(item => {
+        try {
+          return parse(item.time, 'hh:mm a', new Date()) > now;
+        } catch {
+          return false;
+        }
+      });
+
+      if (currentIndex === -1) {
+        currentIndex = routineItems.length - 1;
+      }
+
+      let itemsToShow: RoutineItem[];
+      
+      if (currentIndex === 0) {
+        itemsToShow = routineItems.slice(0, 3);
+        setHighlightedIndex(0);
+      } else if (currentIndex === routineItems.length - 1) {
+        itemsToShow = routineItems.slice(routineItems.length - 3);
+        setHighlightedIndex(2);
+      } else {
+        itemsToShow = routineItems.slice(currentIndex - 1, currentIndex + 2);
+        setHighlightedIndex(1);
+      }
+      setDisplayedItems(itemsToShow);
+    };
+
+    calculateDisplayedItems();
+    const timer = setInterval(calculateDisplayedItems, 60000); // Update every minute
+
+    return () => clearInterval(timer);
   }, [routineItems]);
 
   return (
@@ -137,25 +160,31 @@ function TodaysPlan() {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0 sm:pt-0">
-        <ScrollArea className="h-[280px] w-full pr-4">
+        {displayedItems.length > 0 ? (
           <ul className="space-y-3">
-            {routineItems.map((item, index) => (
+            {displayedItems.map((item, index) => (
               <li
                 key={item.id}
-                ref={el => {
-                  if (el) itemRefs.current[index] = el;
-                }}
-                className="bg-muted p-3 rounded-lg"
+                className={cn(
+                  'p-3 rounded-lg transition-all duration-500 ease-in-out',
+                  index === highlightedIndex
+                    ? 'bg-primary/10 transform scale-105 shadow-lg'
+                    : 'bg-muted opacity-60 scale-95'
+                )}
               >
                 <p>
-                  <span className="font-bold text-primary">{item.time}:</span>
+                  <span className={cn('font-bold', index === highlightedIndex ? "text-primary" : "")}>{item.time}:</span>
                   <span className="font-semibold ml-2 text-card-foreground">{item.title}</span>
                 </p>
                 <p className="text-sm text-muted-foreground ml-2">{item.description}</p>
               </li>
             ))}
           </ul>
-        </ScrollArea>
+        ) : (
+            <div className="text-center py-8 text-muted-foreground">
+                <p>No routine items for today.</p>
+            </div>
+        )}
       </CardContent>
        <CardFooter className="pt-0 sm:pt-0">
          <Button variant="outline" className="w-full">View Full Planner</Button>
