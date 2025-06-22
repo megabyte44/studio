@@ -36,14 +36,27 @@ function WaterIntakeWidget() {
             habitsToSet = P_HABITS;
         }
         
-        // De-duplicate habits based on name to prevent rendering issues from stale data
         if (Array.isArray(habitsToSet)) {
+            const specialHabitIcons = ['Beef', 'Pill', 'Dumbbell', 'GlassWater'];
             const uniqueHabitsMap = new Map<string, Habit>();
+            const specialHabitsFound = new Set<string>();
+
             for (const habit of habitsToSet) {
-                if (habit && habit.name) {
-                    const normalizedName = habit.name.toLowerCase();
-                    if (!uniqueHabitsMap.has(normalizedName)) {
-                        uniqueHabitsMap.set(normalizedName, habit);
+                if (habit && habit.name && habit.icon) {
+                    const isSpecial = specialHabitIcons.includes(habit.icon);
+                    if (isSpecial) {
+                        // For special, icon-driven habits, we only want one of each.
+                        // The key is the icon.
+                        if (!specialHabitsFound.has(habit.icon)) {
+                            uniqueHabitsMap.set(habit.icon, habit);
+                            specialHabitsFound.add(habit.icon);
+                        }
+                    } else {
+                        // For normal habits, de-duplicate by name.
+                        const normalizedName = habit.name.toLowerCase();
+                        if (!uniqueHabitsMap.has(normalizedName)) {
+                            uniqueHabitsMap.set(normalizedName, habit);
+                        }
                     }
                 }
             }
