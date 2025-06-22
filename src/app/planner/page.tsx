@@ -94,10 +94,9 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[95%] sm:max-w-sm p-1.5">
-                <DialogHeader className="p-1 pb-1">
+            <DialogContent className="w-[80%] sm:max-w-sm p-1.5">
+                <DialogHeader className="p-1 pb-0">
                     <DialogTitle>Edit Daily Templates</DialogTitle>
-                    <DialogDescription className="text-xs">Modify the base schedule for each day.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-1 py-0.5">
                     <div className="space-y-1">
@@ -112,8 +111,9 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                         </Select>
                     </div>
 
-                    <h4 className="font-semibold text-sm">Template for {selectedTemplateDay}</h4>
                     {daySchedule.length > 0 && (
+                      <>
+                        <h4 className="font-semibold text-sm">Template for {selectedTemplateDay}</h4>
                         <ScrollArea className="h-28 pr-2 border rounded-md">
                             <div className="space-y-1 p-1">
                                 {daySchedule.map(item => (
@@ -129,6 +129,7 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
                                 ))}
                             </div>
                         </ScrollArea>
+                      </>
                     )}
 
                     <div className="pt-1.5 mt-1.5 border-t space-y-1">
