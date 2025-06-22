@@ -722,7 +722,7 @@ export default function HabitsPage() {
                 <span>Streak Book</span>
             </h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-                {habits.map((habit) => {
+                {habits.filter(habit => habit.icon !== 'Beef').map((habit) => {
                     const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
                     const isWaterHabit = habit.icon === 'GlassWater';
                     const streak = calculateStreak(
