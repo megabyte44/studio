@@ -94,7 +94,7 @@ function TemplateDialog({ isOpen, onOpenChange, weeklySchedule, onScheduleUpdate
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="w-[95%] sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle>Edit Daily Schedule Templates</DialogTitle>
                     <DialogDescription>Modify the base schedule for each day of the week. These are your default items.</DialogDescription>
