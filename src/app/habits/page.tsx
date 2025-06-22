@@ -294,6 +294,7 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
   const today = new Date();
   const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
   const isWaterHabit = habit.name === 'Water Drinking';
+  const isSyncedHabit = ['Protein Streak', 'Supplement Streak', 'Workout'].includes(habit.name);
 
   const getIsCompleted = (dateString: string) => {
     const completion = habit.completions[dateString];
@@ -315,12 +316,12 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
                         <TooltipTrigger asChild>
                             <button
                                 onClick={() => onToggle(habit.id, dateString)}
-                                disabled={isWaterHabit}
+                                disabled={isWaterHabit || isSyncedHabit}
                                 className={cn(
                                     'h-7 w-7 rounded-sm transition-colors',
                                     isCompleted ? 'bg-primary hover:bg-primary/90' : 'bg-secondary hover:bg-accent',
                                     isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
-                                    isWaterHabit && 'cursor-not-allowed'
+                                    (isWaterHabit || isSyncedHabit) && 'cursor-not-allowed'
                                 )}
                             />
                         </TooltipTrigger>
@@ -605,7 +606,7 @@ export default function HabitsPage() {
 
   const handleToggleCompletion = (habitId: string, date: string) => {
     setHabits(habits.map(h => {
-        if (h.id === habitId && h.name !== 'Water Drinking') {
+        if (h.id === habitId && !['Water Drinking', 'Protein Streak', 'Supplement Streak', 'Workout'].includes(h.name)) {
             const newCompletions = {...h.completions};
             if(newCompletions[date]) {
                 delete newCompletions[date];
