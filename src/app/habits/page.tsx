@@ -249,43 +249,28 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
 function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habit: Habit) => void }) {
   if (!habit || habit.name !== 'Water Drinking') return null;
 
-  const WATER_TARGET_ML = 2000;
   const ML_PER_GLASS = 250;
-  const TARGET_GLASSES = WATER_TARGET_ML / ML_PER_GLASS;
+  const currentTargetInGlasses = habit.target || 8; // Default to 8 glasses
 
-  const handleIntakeChange = (increment: number) => {
-    const todayKey = format(new Date(), 'yyyy-MM-dd');
-    const newCompletions = { ...habit.completions };
-    const currentCount = typeof newCompletions[todayKey] === 'number' ? (newCompletions[todayKey] as number) : 0;
-    const newCount = Math.max(0, currentCount + increment);
-
-    if (newCount > 0) {
-      newCompletions[todayKey] = newCount;
-    } else {
-      delete newCompletions[todayKey];
-    }
-    
-    onUpdate({ ...habit, completions: newCompletions });
+  const handleTargetChange = (increment: number) => {
+    const newTarget = Math.max(1, currentTargetInGlasses + increment); // Minimum 1 glass
+    onUpdate({ ...habit, target: newTarget });
   };
-  
-  const todayKey = format(new Date(), 'yyyy-MM-dd');
-  const glassesToday = typeof habit.completions[todayKey] === 'number' ? (habit.completions[todayKey] as number) : 0;
-  const mlToday = glassesToday * ML_PER_GLASS;
   
   return (
     <div className="flex flex-col items-center justify-center gap-4 pt-2 text-center">
         <p className="text-sm text-muted-foreground px-4">
-            Log your daily water intake. Each glass is 250ml. Your goal is 2L ({TARGET_GLASSES} glasses).
+            Set your daily water intake goal in glasses. Each glass is 250ml.
         </p>
         <div className="flex items-center justify-center gap-4">
-            <Button onClick={() => handleIntakeChange(-1)} variant="outline" size="icon" disabled={glassesToday === 0}>
+            <Button onClick={() => handleTargetChange(-1)} variant="outline" size="icon" disabled={currentTargetInGlasses <= 1}>
                 <Minus className="h-4 w-4" />
             </Button>
             <div className="text-center">
-                <p className="text-4xl font-bold font-headline">{mlToday}ml</p>
-                <p className="text-sm text-muted-foreground">{glassesToday} / {TARGET_GLASSES} glasses</p>
+                <p className="text-4xl font-bold font-headline">{currentTargetInGlasses} glasses</p>
+                <p className="text-sm text-muted-foreground">({currentTargetInGlasses * ML_PER_GLASS}ml)</p>
             </div>
-            <Button onClick={() => handleIntakeChange(1)} variant="outline" size="icon">
+            <Button onClick={() => handleTargetChange(1)} variant="outline" size="icon">
                 <Plus className="h-4 w-4" />
             </Button>
         </div>
@@ -297,12 +282,12 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
   const today = new Date();
   const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
   const isWaterHabit = habit.name === 'Water Drinking';
-  const WATER_TARGET_GLASSES = 8;
 
   const getIsCompleted = (dateString: string) => {
     const completion = habit.completions[dateString];
     if (isWaterHabit) {
-      return typeof completion === 'number' && completion >= WATER_TARGET_GLASSES;
+      const target = habit.target || 8;
+      return typeof completion === 'number' && completion >= target;
     }
     return !!completion;
   };
@@ -635,8 +620,6 @@ export default function HabitsPage() {
   };
 
 
-  const WATER_TARGET_GLASSES = 8;
-  
   if (isLoading) {
     return (
         <AppLayout>
@@ -702,7 +685,7 @@ export default function HabitsPage() {
                     const isWaterHabit = habit.name === 'Water Drinking';
                     const streak = calculateStreak(
                         habit.completions,
-                        isWaterHabit ? WATER_TARGET_GLASSES : 1
+                        isWaterHabit ? (habit.target || 8) : 1
                     );
 
                     return (
@@ -729,6 +712,7 @@ export default function HabitsPage() {
                                                         setIsEditHabitDialogOpen(true);
                                                     }
                                                 }}
+                                                tabIndex={0}
                                             >
                                                 <Edit className="h-3 w-3" />
                                             </div>

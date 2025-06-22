@@ -26,6 +26,7 @@ export type Habit = {
   id: string;
   name: string;
   icon: string;
+  target?: number;
   completions: Record<string, boolean | number>; // e.g. { '2024-07-21': true, '2024-07-22': 4 }
 };
 

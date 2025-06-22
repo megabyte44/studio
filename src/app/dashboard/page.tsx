@@ -41,7 +41,18 @@ function WaterIntakeWidget() {
             const uniqueHabitsMap = new Map<string, Habit>();
             for (const habit of habitsToSet) {
                 if (habit && habit.name) {
-                    uniqueHabitsMap.set(habit.name, habit);
+                    // Use case-insensitive matching for de-duplication
+                    const normalizedName = habit.name.toLowerCase();
+                    const existingHabit = uniqueHabitsMap.get(normalizedName);
+
+                    // Prioritize keeping the 'Water Drinking' habit as it has special UI and logic
+                    if (normalizedName === 'water drinking') {
+                         if (!existingHabit || habit.name === 'Water Drinking') {
+                             uniqueHabitsMap.set(normalizedName, habit);
+                         }
+                    } else if (!existingHabit) {
+                        uniqueHabitsMap.set(normalizedName, habit);
+                    }
                 }
             }
             habitsToSet = Array.from(uniqueHabitsMap.values());
@@ -81,9 +92,9 @@ function WaterIntakeWidget() {
   }, []);
 
   const waterHabit = habits.find(h => h.name === 'Water Drinking');
-  const WATER_TARGET_ML = 2000;
   const ML_PER_GLASS = 250;
-  const TARGET_GLASSES = WATER_TARGET_ML / ML_PER_GLASS;
+  const TARGET_GLASSES = waterHabit?.target || 8;
+  const WATER_TARGET_ML = TARGET_GLASSES * ML_PER_GLASS;
 
   const handleIntakeChange = () => {
     if (!waterHabit) return;

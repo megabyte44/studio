@@ -56,7 +56,7 @@ export const P_HABITS: Habit[] = [
   { id: '1', name: 'Protein Streak', icon: 'Beef', completions: generateHabitCompletions(30, 0.8) },
   { id: '2', name: 'Meditate 10 mins', icon: 'BrainCircuit', completions: generateHabitCompletions(30, 0.6) },
   { id: '3', name: 'Workout', icon: 'Dumbbell', completions: generateHabitCompletions(30, 0.5) },
-  { id: '4', name: 'Water Drinking', icon: 'GlassWater', completions: generateWaterCompletions(30, 0.9, 10) },
+  { id: '4', name: 'Water Drinking', icon: 'GlassWater', target: 8, completions: generateWaterCompletions(30, 0.9, 10) },
 ];
 
 export const P_NOTES: Note[] = [
