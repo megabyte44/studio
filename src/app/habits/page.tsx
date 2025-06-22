@@ -7,13 +7,14 @@ import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, Pr
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill } from 'lucide-react';
+import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, Droplets, Plus, Minus, BookOpen, BookOpenCheck, Pill, BrainCircuit, Bed, Run, Sunrise, Guitar, Code, Leaf } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,6 +32,7 @@ const initialWorkoutSplit: CyclicalWorkoutSplit = {
   "Day 4 (Rest)": { title: "Rest or Active Recovery", exercises: [] },
 };
 const initialCustomFoodItems = ["Protein Powder", "Creatine", "Oatmeal", "Eggs", "Chicken Breast", "Greek Yogurt"];
+const SPECIAL_HABIT_ICONS = ['GlassWater', 'Dumbbell', 'Beef', 'Pill'];
 
 type GymTrackerProps = {
   habits: Habit[];
@@ -293,8 +295,8 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
 function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: string, date: string) => void }) {
   const today = new Date();
   const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
+  const isSyncedHabit = SPECIAL_HABIT_ICONS.includes(habit.icon);
   const isWaterHabit = habit.icon === 'GlassWater';
-  const isSyncedHabit = ['Beef', 'Pill', 'Dumbbell'].includes(habit.icon);
 
   const getIsCompleted = (dateString: string) => {
     const completion = habit.completions[dateString];
@@ -316,12 +318,12 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
                         <TooltipTrigger asChild>
                             <button
                                 onClick={() => onToggle(habit.id, dateString)}
-                                disabled={isWaterHabit || isSyncedHabit}
+                                disabled={isSyncedHabit}
                                 className={cn(
                                     'h-7 w-7 rounded-sm transition-colors',
                                     isCompleted ? 'bg-primary hover:bg-primary/90' : 'bg-secondary hover:bg-accent',
                                     isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
-                                    (isWaterHabit || isSyncedHabit) && 'cursor-not-allowed'
+                                    isSyncedHabit && 'cursor-not-allowed'
                                 )}
                             />
                         </TooltipTrigger>
@@ -449,6 +451,8 @@ export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [isEditHabitDialogOpen, setIsEditHabitDialogOpen] = useState(false);
+  const [isAddHabitDialogOpen, setIsAddHabitDialogOpen] = useState(false);
+  const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
   
   // Gym & Nutrition State (lifted up)
   const [proteinIntakes, setProteinIntakes] = useState<ProteinIntake[]>([]);
@@ -476,26 +480,14 @@ export default function HabitsPage() {
       }
       
       if (Array.isArray(habitsToSet)) {
-          const specialHabitIcons = ['Beef', 'Pill', 'Dumbbell', 'GlassWater'];
           const uniqueHabitsMap = new Map<string, Habit>();
-          const specialHabitsFound = new Set<string>();
-
+          
           for (const habit of habitsToSet) {
               if (habit && habit.name && habit.icon) {
-                  const isSpecial = specialHabitIcons.includes(habit.icon);
-                  if (isSpecial) {
-                      // For special, icon-driven habits, we only want one of each.
-                      // The key is the icon.
-                      if (!specialHabitsFound.has(habit.icon)) {
-                          uniqueHabitsMap.set(habit.icon, habit);
-                          specialHabitsFound.add(habit.icon);
-                      }
-                  } else {
-                      // For normal habits, de-duplicate by name.
-                      const normalizedName = habit.name.toLowerCase();
-                      if (!uniqueHabitsMap.has(normalizedName)) {
-                          uniqueHabitsMap.set(normalizedName, habit);
-                      }
+                  const isSpecial = SPECIAL_HABIT_ICONS.includes(habit.icon);
+                  const key = isSpecial ? habit.icon : habit.name.toLowerCase();
+                  if (!uniqueHabitsMap.has(key)) {
+                      uniqueHabitsMap.set(key, habit);
                   }
               }
           }
@@ -579,7 +571,7 @@ export default function HabitsPage() {
             // Sync Supplement Streak
             if (habit.icon === 'Pill') {
                 const todaysLogs = loggedFoodItems.filter(i => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
-                const isCompleted = todaysLogs.length > 0;
+                const isCompleted = todaysLogs.some(log => customFoodItems.includes(log.name));
 
                 if (!!newCompletions[todayKey] !== isCompleted) {
                     if (isCompleted) newCompletions[todayKey] = true;
@@ -601,7 +593,7 @@ export default function HabitsPage() {
         return currentHabits;
     });
 
-  }, [proteinIntakes, proteinTarget, loggedFoodItems, isLoading]);
+  }, [proteinIntakes, proteinTarget, loggedFoodItems, customFoodItems, isLoading]);
 
 
   // --- Handlers ---
@@ -611,8 +603,7 @@ export default function HabitsPage() {
 
   const handleToggleCompletion = (habitId: string, date: string) => {
     setHabits(habits.map(h => {
-        const SYNCED_ICONS = ['GlassWater', 'Beef', 'Pill', 'Dumbbell'];
-        if (h.id === habitId && !SYNCED_ICONS.includes(h.icon)) {
+        if (h.id === habitId && !SPECIAL_HABIT_ICONS.includes(h.icon)) {
             const newCompletions = {...h.completions};
             if(newCompletions[date]) {
                 delete newCompletions[date];
@@ -633,6 +624,24 @@ export default function HabitsPage() {
     );
   };
   
+    const handleDeleteHabit = () => {
+        if (!habitToDelete) return;
+        setHabits(prev => prev.filter(h => h.id !== habitToDelete.id));
+        setHabitToDelete(null);
+        toast({ title: "Habit Deleted", description: `"${habitToDelete.name}" has been removed.` });
+    };
+
+    const handleAddHabit = (name: string, icon: string) => {
+        const newHabit: Habit = {
+            id: `habit-${Date.now()}`,
+            name: name,
+            icon: icon,
+            completions: {},
+        };
+        setHabits(prev => [...prev, newHabit]);
+        toast({ title: "Habit Added!", description: `"${newHabit.name}" has been added to your Streak Book.` });
+    };
+
   const getWorkoutDayInfo = useWorkoutDayInfo(cyclicalWorkoutSplit, cycleConfig);
   const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfo(new Date()), [getWorkoutDayInfo]);
   
@@ -685,7 +694,7 @@ export default function HabitsPage() {
             <h1 className="text-3xl font-bold font-headline">Habit & Gym Tracker</h1>
             <p className="text-muted-foreground">Cultivate good habits and track your gym progress.</p>
           </div>
-          <Button>
+          <Button onClick={() => setIsAddHabitDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             New Habit
           </Button>
@@ -722,9 +731,10 @@ export default function HabitsPage() {
                 <span>Streak Book</span>
             </h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-                {habits.filter(habit => habit.icon !== 'Beef').map((habit) => {
+                {habits.map((habit) => {
                     const Icon = (LucideIcons as any)[habit.icon] || LucideIcons.CheckCircle2;
                     const isWaterHabit = habit.icon === 'GlassWater';
+                    const isSyncedHabit = SPECIAL_HABIT_ICONS.includes(habit.icon);
                     const streak = calculateStreak(
                         habit.completions,
                         isWaterHabit ? (habit.target || 8) : 1
@@ -738,25 +748,32 @@ export default function HabitsPage() {
                                         <div className="flex items-center gap-3">
                                             <Icon className="h-6 w-6 text-muted-foreground" />
                                             <span className="font-semibold text-base">{habit.name}</span>
-                                            <div
-                                                role="button"
-                                                aria-label="Edit habit"
-                                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md hover:bg-accent cursor-pointer"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditingHabit(habit);
-                                                    setIsEditHabitDialogOpen(true);
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div
+                                                    role="button"
+                                                    aria-label="Edit habit"
+                                                    className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-accent cursor-pointer"
+                                                    onClick={(e) => {
                                                         e.stopPropagation();
                                                         setEditingHabit(habit);
                                                         setIsEditHabitDialogOpen(true);
-                                                    }
-                                                }}
-                                                tabIndex={0}
-                                            >
-                                                <Edit className="h-3 w-3" />
+                                                    }}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </div>
+                                                {!isSyncedHabit && (
+                                                    <div
+                                                        role="button"
+                                                        aria-label="Delete habit"
+                                                        className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-destructive/10 text-destructive cursor-pointer"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setHabitToDelete(habit);
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 text-orange-500">
@@ -788,6 +805,115 @@ export default function HabitsPage() {
         onOpenChange={setIsEditHabitDialogOpen}
         onSave={handleSaveHabitName}
       />
+      <AddHabitDialog
+        isOpen={isAddHabitDialogOpen}
+        onOpenChange={setIsAddHabitDialogOpen}
+        onSave={handleAddHabit}
+       />
+       <AlertDialog open={!!habitToDelete} onOpenChange={() => setHabitToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the "{habitToDelete?.name}" habit and all its data.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setHabitToDelete(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteHabit}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+       </AlertDialog>
     </AppLayout>
   );
 }
+
+const availableIcons = [
+  { name: 'CheckCircle2', label: 'Check Circle', icon: LucideIcons.CheckCircle2 },
+  { name: 'BookOpen', label: 'Book Open', icon: LucideIcons.BookOpen },
+  { name: 'Bed', label: 'Bed', icon: LucideIcons.Bed },
+  { name: 'Run', label: 'Running', icon: LucideIcons.Run },
+  { name: 'BrainCircuit', label: 'Meditate', icon: LucideIcons.BrainCircuit },
+  { name: 'Sunrise', label: 'Sunrise', icon: LucideIcons.Sunrise },
+  { name: 'Guitar', label: 'Guitar', icon: LucideIcons.Guitar },
+  { name: 'Code', label: 'Coding', icon: LucideIcons.Code },
+  { name: 'Leaf', label: 'Nature', icon: LucideIcons.Leaf },
+];
+
+function AddHabitDialog({
+  isOpen,
+  onOpenChange,
+  onSave,
+}: {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (name: string, icon: string) => void;
+}) {
+    const { toast } = useToast();
+    const [name, setName] = useState('');
+    const [icon, setIcon] = useState(availableIcons[0].name);
+
+    const handleSave = () => {
+        if (!name.trim()) {
+            toast({ title: 'Name is required', variant: 'destructive' });
+            return;
+        }
+        onSave(name, icon);
+        onOpenChange(false);
+        setName('');
+        setIcon(availableIcons[0].name);
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            if (!open) {
+                setName('');
+                setIcon(availableIcons[0].name);
+            }
+            onOpenChange(open);
+        }}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Create a New Habit</DialogTitle>
+                    <DialogDescription>
+                        Give your new habit a name and an icon to get started.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="new-habit-name">Habit Name</Label>
+                        <Input
+                            id="new-habit-name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="e.g., Read for 15 minutes"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-habit-icon">Icon</Label>
+                        <Select value={icon} onValueChange={setIcon}>
+                            <SelectTrigger id="new-habit-icon">
+                                <SelectValue placeholder="Select an icon" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {availableIcons.map(iconInfo => (
+                                    <SelectItem key={iconInfo.name} value={iconInfo.name}>
+                                        <div className="flex items-center gap-2">
+                                            <iconInfo.icon className="h-4 w-4" />
+                                            <span>{iconInfo.label}</span>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={handleSave}>Create Habit</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
