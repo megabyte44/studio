@@ -27,26 +27,39 @@ function WaterIntakeWidget() {
   useEffect(() => {
     const loadHabits = () => {
       try {
-        let currentHabits: Habit[] = [];
+        let habitsToSet: Habit[] = [];
         const storedHabits = localStorage.getItem('lifeos_habits');
         
         if (storedHabits) {
-            currentHabits = JSON.parse(storedHabits);
+            habitsToSet = JSON.parse(storedHabits);
         } else {
-            currentHabits = P_HABITS;
+            habitsToSet = P_HABITS;
         }
         
-        const hasWaterHabit = currentHabits.some(h => h.name === 'Water Drinking');
+        // De-duplicate habits based on name to prevent rendering issues from stale data
+        if (Array.isArray(habitsToSet)) {
+            const uniqueHabitsMap = new Map<string, Habit>();
+            for (const habit of habitsToSet) {
+                if (habit && habit.name) {
+                    uniqueHabitsMap.set(habit.name, habit);
+                }
+            }
+            habitsToSet = Array.from(uniqueHabitsMap.values());
+        } else {
+            habitsToSet = P_HABITS;
+        }
+        
+        const hasWaterHabit = habitsToSet.some(h => h.name === 'Water Drinking');
 
         if (!hasWaterHabit) {
             const waterHabitTemplate = P_HABITS.find(h => h.name === 'Water Drinking');
             if (waterHabitTemplate) {
-                currentHabits.push(waterHabitTemplate);
-                localStorage.setItem('lifeos_habits', JSON.stringify(currentHabits));
+                habitsToSet.push(waterHabitTemplate);
+                localStorage.setItem('lifeos_habits', JSON.stringify(habitsToSet));
             }
         }
         
-        setHabits(currentHabits);
+        setHabits(habitsToSet);
       } catch (e) {
         console.error("Failed to load habits, using placeholder data.", e);
         setHabits(P_HABITS);

@@ -468,8 +468,27 @@ export default function HabitsPage() {
   // --- Effects for Loading Data ---
   useEffect(() => {
     try {
+      let habitsToSet: Habit[] = [];
       const storedHabits = localStorage.getItem('lifeos_habits');
-      setHabits(storedHabits ? JSON.parse(storedHabits) : P_HABITS);
+      if (storedHabits) {
+        habitsToSet = JSON.parse(storedHabits);
+      } else {
+        habitsToSet = P_HABITS;
+      }
+
+      // De-duplicate habits based on name to prevent rendering issues from stale data
+      if (Array.isArray(habitsToSet)) {
+          const uniqueHabitsMap = new Map<string, Habit>();
+          for (const habit of habitsToSet) {
+              if (habit && habit.name) {
+                  uniqueHabitsMap.set(habit.name, habit);
+              }
+          }
+          habitsToSet = Array.from(uniqueHabitsMap.values());
+      } else {
+          habitsToSet = P_HABITS;
+      }
+      setHabits(habitsToSet);
       
       const storedCycleConfig = localStorage.getItem('gym_cycle_config');
       if(storedCycleConfig) setCycleConfig(JSON.parse(storedCycleConfig));
@@ -736,5 +755,3 @@ export default function HabitsPage() {
     </AppLayout>
   );
 }
-
-    
