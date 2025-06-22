@@ -32,129 +32,40 @@ const initialWorkoutSplit: CyclicalWorkoutSplit = {
 };
 const initialCustomFoodItems = ["Protein Powder", "Creatine", "Oatmeal", "Eggs", "Chicken Breast", "Greek Yogurt"];
 
+type GymTrackerProps = {
+  habits: Habit[];
+  setHabits: (habits: Habit[]) => void;
+  proteinIntakes: ProteinIntake[];
+  setProteinIntakes: (intakes: ProteinIntake[]) => void;
+  loggedFoodItems: LoggedFoodItem[];
+  setLoggedFoodItems: (items: LoggedFoodItem[]) => void;
+  proteinTarget: number;
+  setProteinTarget: (target: number) => void;
+  customFoodItems: string[];
+  setCustomFoodItems: (items: string[]) => void;
+  cyclicalWorkoutSplit: CyclicalWorkoutSplit;
+  setCyclicalWorkoutSplit: (split: CyclicalWorkoutSplit) => void;
+  cycleConfig: CycleConfig;
+  setCycleConfig: (config: CycleConfig) => void;
+};
 
-function GymTracker({ habits, setHabits }: { habits: Habit[]; setHabits: (habits: Habit[]) => void }) {
-    const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(true);
-    
-    // State
-    const [proteinIntakes, setProteinIntakes] = useState<ProteinIntake[]>([]);
-    const [loggedFoodItems, setLoggedFoodItems] = useState<LoggedFoodItem[]>([]);
-    const [proteinTarget, setProteinTarget] = useState(150);
-    const [customFoodItems, setCustomFoodItems] = useState<string[]>(initialCustomFoodItems);
-    const [cyclicalWorkoutSplit, setCyclicalWorkoutSplit] = useState<CyclicalWorkoutSplit>(initialWorkoutSplit);
-    const [cycleConfig, setCycleConfig] = useState<CycleConfig>({ startDate: format(new Date(), 'yyyy-MM-dd'), startDayKey: "Day 1" });
 
-    // Dialog states
-    const [isCycleConfigOpen, setIsCycleConfigOpen] = useState(false);
-    const [isWorkoutPlanOpen, setIsWorkoutPlanOpen] = useState(false);
-    const [isFoodManagerOpen, setIsFoodManagerOpen] = useState(false);
-
-    // --- Logic and Handlers ---
-    const getWorkoutDayInfoForDate = useCallback((date: Date) => {
-        const cycleWorkoutKeys = Object.keys(cyclicalWorkoutSplit);
-        const cycleLength = cycleWorkoutKeys.length;
-        if (!cycleConfig.startDate || !cycleConfig.startDayKey || cycleLength === 0) {
-            return { key: "N/A", title: "Cycle Not Configured", exercises: [], isRestDay: false };
-        }
-        
-        const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        const normalizedStartDate = new Date(parseISO(cycleConfig.startDate));
-        
-        const daysSinceStart = differenceInCalendarDays(normalizedDate, normalizedStartDate);
-
-        if (daysSinceStart < 0) {
-            return { key: "N/A", title: "Cycle Starts in Future", exercises: [], isRestDay: true };
-        }
-
-        let startIndexInCycle = cycleWorkoutKeys.indexOf(cycleConfig.startDayKey);
-        if (startIndexInCycle === -1) {
-            return { key: "Error", title: "Invalid Start Day Key", exercises: [], isRestDay: true };
-        }
-        const currentDayIndexInCycle = (startIndexInCycle + daysSinceStart) % cycleLength;
-        const workoutKey = cycleWorkoutKeys[currentDayIndexInCycle];
-        const workoutData = cyclicalWorkoutSplit[workoutKey] || { title: "Undefined Workout", exercises: [] };
-        const isRestDay = workoutData.exercises.length === 0 || workoutData.title.toLowerCase().includes("rest");
-
-        return { key: workoutKey, ...workoutData, isRestDay };
-    }, [cyclicalWorkoutSplit, cycleConfig]);
-
-    const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfoForDate(new Date()), [getWorkoutDayInfoForDate]);
-    
-    const workoutHabit = habits.find(h => h.name === 'Workout');
-    const todayKey = format(new Date(), 'yyyy-MM-dd');
-    const isTodayCompleted = workoutHabit ? !!workoutHabit.completions[todayKey] : false;
-
-    // Effect for loading from localStorage
-    useEffect(() => {
-        try {
-            const storedCycleConfig = localStorage.getItem('gym_cycle_config');
-            if(storedCycleConfig) setCycleConfig(JSON.parse(storedCycleConfig));
-            
-            const storedSplit = localStorage.getItem('gym_workout_split');
-            if(storedSplit) setCyclicalWorkoutSplit(JSON.parse(storedSplit));
-
-            const storedProteinTarget = localStorage.getItem('gym_protein_target');
-            if(storedProteinTarget) setProteinTarget(JSON.parse(storedProteinTarget));
-
-            const storedCustomFoods = localStorage.getItem('gym_custom_foods');
-            if(storedCustomFoods) setCustomFoodItems(JSON.parse(storedCustomFoods));
-        } catch (e) {
-            console.error("Failed to load gym data from local storage", e);
-        }
-
-        const timer = setTimeout(() => setIsLoading(false), 500);
-        return () => clearTimeout(timer);
-    }, []);
-
-    // Effect for saving to localStorage
-    useEffect(() => {
-        if (isLoading) return;
-        localStorage.setItem('gym_cycle_config', JSON.stringify(cycleConfig));
-        localStorage.setItem('gym_workout_split', JSON.stringify(cyclicalWorkoutSplit));
-        localStorage.setItem('gym_protein_target', JSON.stringify(proteinTarget));
-        localStorage.setItem('gym_custom_foods', JSON.stringify(customFoodItems));
-    }, [cycleConfig, cyclicalWorkoutSplit, proteinTarget, customFoodItems, isLoading]);
-    
-    // --- Event Handlers ---
-    const handleToggleWorkoutCompletion = () => {
-        const workoutHabit = habits.find(h => h.name === 'Workout');
-        if (!workoutHabit) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Workout habit not found.' });
-            return;
-        }
-
-        const isCompleted = !!workoutHabit.completions[todayKey];
-
-        const updatedHabits = habits.map(h => {
-            if (h.id === workoutHabit.id) {
-                const newCompletions = { ...h.completions };
-                if (isCompleted) {
-                    delete newCompletions[todayKey];
-                } else {
-                    newCompletions[todayKey] = true;
-                }
-                return { ...h, completions: newCompletions };
-            }
-            return h;
-        });
-
-        setHabits(updatedHabits);
-        toast({ title: !isCompleted ? 'Workout Completed!' : 'Workout marked as not done.' });
-    };
-
-    if (isLoading) {
-        return (
-            <div className="space-y-6">
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-64 w-full" />
-                <div className="grid md:grid-cols-2 gap-6">
-                    <Skeleton className="h-80 w-full" />
-                    <Skeleton className="h-80 w-full" />
-                </div>
-            </div>
-        );
-    }
+function GymTracker({ 
+    habits, setHabits, 
+    proteinIntakes, setProteinIntakes, 
+    loggedFoodItems, setLoggedFoodItems,
+    proteinTarget, setProteinTarget,
+    customFoodItems, onManageCustomFoodItems,
+    cyclicalWorkoutSplit, cycleConfig,
+    onToggleWorkoutCompletion,
+    isTodayCompleted,
+    todaysWorkoutInfo,
+}: GymTrackerProps & { 
+    onManageCustomFoodItems: () => void,
+    onToggleWorkoutCompletion: () => void,
+    isTodayCompleted: boolean,
+    todaysWorkoutInfo: ReturnType<typeof useWorkoutDayInfo>
+}) {
     
     return (
         <div className="space-y-6">
@@ -180,18 +91,8 @@ function GymTracker({ habits, setHabits }: { habits: Habit[]; setHabits: (habits
                             </CardDescription>
                         </div>
                          <div className="flex gap-2">
-                            <Dialog open={isCycleConfigOpen} onOpenChange={setIsCycleConfigOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon"><CalendarDays className="h-5 w-5" /></Button>
-                                </DialogTrigger>
-                                {/* Cycle Config Dialog Content */}
-                            </Dialog>
-                             <Dialog open={isWorkoutPlanOpen} onOpenChange={setIsWorkoutPlanOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon"><Edit className="h-5 w-5" /></Button>
-                                </DialogTrigger>
-                                {/* Manage Workout Plan Dialog */}
-                            </Dialog>
+                             <Button variant="ghost" size="icon"><CalendarDays className="h-5 w-5" /></Button>
+                             <Button variant="ghost" size="icon"><Edit className="h-5 w-5" /></Button>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -210,7 +111,7 @@ function GymTracker({ habits, setHabits }: { habits: Habit[]; setHabits: (habits
                     </CardContent>
                     {!todaysWorkoutInfo.isRestDay && (
                         <CardFooter>
-                            <Button className="w-full" onClick={handleToggleWorkoutCompletion} variant={isTodayCompleted ? 'secondary' : 'default'}>
+                            <Button className="w-full" onClick={onToggleWorkoutCompletion} variant={isTodayCompleted ? 'secondary' : 'default'}>
                                 <Check className="mr-2 h-4 w-4"/>
                                 {isTodayCompleted ? 'Workout Completed!' : "Mark Today's Workout as Done"}
                             </Button>
@@ -231,13 +132,12 @@ function GymTracker({ habits, setHabits }: { habits: Habit[]; setHabits: (habits
                     {/* Food & Supplement Log Card */}
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
-                      setLoggedItems={setLoggedItems}
+                      setLoggedItems={setLoggedFoodItems}
                       customItems={customFoodItems}
-                      onManageItems={() => setIsFoodManagerOpen(true)}
+                      onManageItems={onManageCustomFoodItems}
                     />
                 </div>
             </div>
-            {/* Dialogs need to be implemented */}
         </div>
     )
 }
@@ -512,31 +412,144 @@ function EditHabitDialog({
   );
 }
 
+const useWorkoutDayInfo = (cyclicalWorkoutSplit: CyclicalWorkoutSplit, cycleConfig: CycleConfig) => {
+    return useCallback((date: Date) => {
+        const cycleWorkoutKeys = Object.keys(cyclicalWorkoutSplit);
+        const cycleLength = cycleWorkoutKeys.length;
+        if (!cycleConfig.startDate || !cycleConfig.startDayKey || cycleLength === 0) {
+            return { key: "N/A", title: "Cycle Not Configured", exercises: [], isRestDay: false };
+        }
+        
+        const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const normalizedStartDate = new Date(parseISO(cycleConfig.startDate));
+        
+        const daysSinceStart = differenceInCalendarDays(normalizedDate, normalizedStartDate);
+
+        if (daysSinceStart < 0) {
+            return { key: "N/A", title: "Cycle Starts in Future", exercises: [], isRestDay: true };
+        }
+
+        let startIndexInCycle = cycleWorkoutKeys.indexOf(cycleConfig.startDayKey);
+        if (startIndexInCycle === -1) {
+            return { key: "Error", title: "Invalid Start Day Key", exercises: [], isRestDay: true };
+        }
+        const currentDayIndexInCycle = (startIndexInCycle + daysSinceStart) % cycleLength;
+        const workoutKey = cycleWorkoutKeys[currentDayIndexInCycle];
+        const workoutData = cyclicalWorkoutSplit[workoutKey] || { title: "Undefined Workout", exercises: [] };
+        const isRestDay = workoutData.exercises.length === 0 || workoutData.title.toLowerCase().includes("rest");
+
+        return { key: workoutKey, ...workoutData, isRestDay };
+    }, [cyclicalWorkoutSplit, cycleConfig]);
+};
+
+
 export default function HabitsPage() {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Core State
   const [habits, setHabits] = useState<Habit[]>([]);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [isEditHabitDialogOpen, setIsEditHabitDialogOpen] = useState(false);
+  
+  // Gym & Nutrition State (lifted up)
+  const [proteinIntakes, setProteinIntakes] = useState<ProteinIntake[]>([]);
+  const [loggedFoodItems, setLoggedFoodItems] = useState<LoggedFoodItem[]>([]);
+  const [proteinTarget, setProteinTarget] = useState(150);
+  const [customFoodItems, setCustomFoodItems] = useState<string[]>(initialCustomFoodItems);
+  const [cyclicalWorkoutSplit, setCyclicalWorkoutSplit] = useState<CyclicalWorkoutSplit>(initialWorkoutSplit);
+  const [cycleConfig, setCycleConfig] = useState<CycleConfig>({ startDate: format(new Date(), 'yyyy-MM-dd'), startDayKey: "Day 1" });
 
+  // Dialog states for GymTracker
+  const [isCycleConfigOpen, setIsCycleConfigOpen] = useState(false);
+  const [isWorkoutPlanOpen, setIsWorkoutPlanOpen] = useState(false);
+  const [isFoodManagerOpen, setIsFoodManagerOpen] = useState(false);
+
+  // --- Effects for Loading Data ---
   useEffect(() => {
     try {
       const storedHabits = localStorage.getItem('lifeos_habits');
-      if (storedHabits) {
-        setHabits(JSON.parse(storedHabits));
-      } else {
-        setHabits(P_HABITS);
-      }
+      setHabits(storedHabits ? JSON.parse(storedHabits) : P_HABITS);
+      
+      const storedCycleConfig = localStorage.getItem('gym_cycle_config');
+      if(storedCycleConfig) setCycleConfig(JSON.parse(storedCycleConfig));
+      
+      const storedSplit = localStorage.getItem('gym_workout_split');
+      if(storedSplit) setCyclicalWorkoutSplit(JSON.parse(storedSplit));
+
+      const storedProteinTarget = localStorage.getItem('gym_protein_target');
+      if(storedProteinTarget) setProteinTarget(JSON.parse(storedProteinTarget));
+
+      const storedCustomFoods = localStorage.getItem('gym_custom_foods');
+      if(storedCustomFoods) setCustomFoodItems(JSON.parse(storedCustomFoods));
+
     } catch (error) {
-      console.error("Failed to load habits from localStorage", error);
+      console.error("Failed to load data from localStorage", error);
+      toast({ variant: 'destructive', title: "Error", description: "Could not load saved data." });
       setHabits(P_HABITS);
     }
-  }, []);
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
+  // --- Effects for Saving Data ---
   useEffect(() => {
-    if (habits.length > 0) {
-      localStorage.setItem('lifeos_habits', JSON.stringify(habits));
-    }
-  }, [habits]);
+    if (isLoading) return;
+    localStorage.setItem('lifeos_habits', JSON.stringify(habits));
+    localStorage.setItem('gym_cycle_config', JSON.stringify(cycleConfig));
+    localStorage.setItem('gym_workout_split', JSON.stringify(cyclicalWorkoutSplit));
+    localStorage.setItem('gym_protein_target', JSON.stringify(proteinTarget));
+    localStorage.setItem('gym_custom_foods', JSON.stringify(customFoodItems));
+  }, [habits, cycleConfig, cyclicalWorkoutSplit, proteinTarget, customFoodItems, isLoading]);
 
+  // --- Habit Syncing Logic ---
+  useEffect(() => {
+    if (isLoading || !habits.length) return;
+
+    const todayKey = format(new Date(), 'yyyy-MM-dd');
+    let habitsChanged = false;
+    
+    const newHabits = habits.map(habit => {
+      let newCompletions = { ...habit.completions };
+      let changed = false;
+
+      // Sync Protein Streak
+      if (habit.name === 'Protein Streak') {
+        const totalProtein = proteinIntakes.reduce((sum, intake) => sum + intake.amount, 0);
+        const isCompleted = totalProtein >= proteinTarget;
+        if (!!newCompletions[todayKey] !== isCompleted) {
+          if (isCompleted) newCompletions[todayKey] = true;
+          else delete newCompletions[todayKey];
+          changed = true;
+        }
+      }
+
+      // Sync Supplement Streak
+      if (habit.name === 'Supplement Streak') {
+        const todaysLogs = loggedFoodItems.filter(i => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
+        const isCompleted = todaysLogs.length > 0;
+        if (!!newCompletions[todayKey] !== isCompleted) {
+          if (isCompleted) newCompletions[todayKey] = true;
+          else delete newCompletions[todayKey];
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        habitsChanged = true;
+        return { ...habit, completions: newCompletions };
+      }
+      return habit;
+    });
+
+    if (habitsChanged) {
+      setHabits(newHabits);
+    }
+
+  }, [proteinIntakes, proteinTarget, loggedFoodItems, habits, isLoading, setHabits]);
+
+
+  // --- Handlers ---
   const handleUpdateHabit = (updatedHabit: Habit) => {
     setHabits(habits.map(h => h.id === updatedHabit.id ? updatedHabit : h));
   };
@@ -563,8 +576,52 @@ export default function HabitsPage() {
       )
     );
   };
+  
+  const getWorkoutDayInfo = useWorkoutDayInfo(cyclicalWorkoutSplit, cycleConfig);
+  const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfo(new Date()), [getWorkoutDayInfo]);
+  
+  const workoutHabit = habits.find(h => h.name === 'Workout');
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const isTodayWorkoutCompleted = workoutHabit ? !!workoutHabit.completions[todayKey] : false;
+
+  const handleToggleWorkoutCompletion = () => {
+    if (!workoutHabit) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Workout habit not found.' });
+        return;
+    }
+    const updatedHabits = habits.map(h => {
+        if (h.id === workoutHabit.id) {
+            const newCompletions = { ...h.completions };
+            if (isTodayWorkoutCompleted) {
+                delete newCompletions[todayKey];
+            } else {
+                newCompletions[todayKey] = true;
+            }
+            return { ...h, completions: newCompletions };
+        }
+        return h;
+    });
+    setHabits(updatedHabits);
+    toast({ title: !isTodayWorkoutCompleted ? 'Workout Completed!' : 'Workout marked as not done.' });
+  };
+
 
   const WATER_TARGET_GLASSES = 8;
+  
+  if (isLoading) {
+    return (
+        <AppLayout>
+            <div className="space-y-6">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-64 w-full" />
+                <div className="grid md:grid-cols-2 gap-6">
+                    <Skeleton className="h-80 w-full" />
+                    <Skeleton className="h-80 w-full" />
+                </div>
+            </div>
+        </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -581,7 +638,28 @@ export default function HabitsPage() {
         </header>
         
         <Separator />
-        <GymTracker habits={habits} setHabits={setHabits} />
+        
+        <GymTracker 
+            habits={habits}
+            setHabits={setHabits}
+            proteinIntakes={proteinIntakes}
+            setProteinIntakes={setProteinIntakes}
+            loggedFoodItems={loggedFoodItems}
+            setLoggedFoodItems={setLoggedFoodItems}
+            proteinTarget={proteinTarget}
+            setProteinTarget={setProteinTarget}
+            customFoodItems={customFoodItems}
+            setCustomFoodItems={setCustomFoodItems}
+            cyclicalWorkoutSplit={cyclicalWorkoutSplit}
+            setCyclicalWorkoutSplit={setCyclicalWorkoutSplit}
+            cycleConfig={cycleConfig}
+            setCycleConfig={setCycleConfig}
+            onManageCustomFoodItems={() => setIsFoodManagerOpen(true)}
+            onToggleWorkoutCompletion={handleToggleWorkoutCompletion}
+            isTodayCompleted={isTodayWorkoutCompleted}
+            todaysWorkoutInfo={todaysWorkoutInfo}
+        />
+
         <Separator />
 
         <div className="space-y-4">
@@ -658,3 +736,6 @@ export default function HabitsPage() {
     </AppLayout>
   );
 }
+
+
+    
