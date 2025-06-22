@@ -6,10 +6,10 @@ import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, Pr
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, AlertTriangle, ChevronLeft, ChevronRight, GlassWater } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, differenceInCalendarDays } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { calculateStreak, cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
@@ -19,29 +19,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
-
-const calculateStreak = (completions: Record<string, boolean>): number => {
-    let streak = 0;
-    let today = new Date();
-    if (completions[format(today, 'yyyy-MM-dd')]) {
-        streak++;
-    } else if (completions[format(subDays(today, 1), 'yyyy-MM-dd')]) {
-        today = subDays(today, 1);
-        streak++;
-    } else {
-        return 0;
-    }
-
-    for (let i = 1; i < 365; i++) {
-        const prevDay = subDays(today, i);
-        if (completions[format(prevDay, 'yyyy-MM-dd')]) {
-            streak++;
-        } else {
-            break;
-        }
-    }
-    return streak;
-};
 
 // --- Initial Data for Gym Tracker ---
 const initialWorkoutSplit: CyclicalWorkoutSplit = {
@@ -461,7 +438,27 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
 }
 
 export default function HabitsPage() {
-  const [habits, setHabits] = useState<Habit[]>(P_HABITS);
+  const [habits, setHabits] = useState<Habit[]>([]);
+
+  useEffect(() => {
+    try {
+      const storedHabits = localStorage.getItem('lifeos_habits');
+      if (storedHabits) {
+        setHabits(JSON.parse(storedHabits));
+      } else {
+        setHabits(P_HABITS);
+      }
+    } catch (error) {
+      console.error("Failed to load habits from localStorage", error);
+      setHabits(P_HABITS);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (habits.length > 0) {
+      localStorage.setItem('lifeos_habits', JSON.stringify(habits));
+    }
+  }, [habits]);
 
   const handleToggleCompletion = (habitId: string, date: string) => {
     setHabits(habits.map(h => {
@@ -483,7 +480,7 @@ export default function HabitsPage() {
       <div className="space-y-6">
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold font-headline">Habit & Gym Tracker</h1>
+            <h1 className="text-3xl font-bold font-headline">Habit & Gym Tracker</h1>
             <p className="text-muted-foreground">Cultivate good habits and track your gym progress.</p>
           </div>
           <Button>
