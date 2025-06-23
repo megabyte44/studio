@@ -85,7 +85,6 @@ function GymTracker({
                     <Dumbbell className="h-6 w-6 text-primary" />
                     <span>Gym Tracker</span>
                 </h2>
-                <p className="text-muted-foreground">Plan your workouts, monitor your nutrition, and track your progress.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -143,9 +142,9 @@ function GymTracker({
                     {/* Food & Supplement Log Card */}
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
-                      setLoggedItems={setLoggedFoodItems}
-                      customItems={customFoodItems}
-                      onManageItems={onManageCustomFoodItems}
+                      setLoggedItems={setLoggedItems}
+                      customItems={customItems}
+                      onManageItems={onManageItems}
                     />
                 </div>
             </div>
