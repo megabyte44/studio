@@ -68,7 +68,7 @@ function GymTracker({
     proteinIntakes, setProteinIntakes, 
     loggedFoodItems, setLoggedFoodItems,
     proteinTarget, setProteinTarget,
-    customFoodItems,
+    customFoodItems, setCustomFoodItems,
     onManageCustomFoodItems,
     cyclicalWorkoutSplit, cycleConfig,
     onToggleWorkoutCompletion,
@@ -99,11 +99,14 @@ function GymTracker({
                  {/* Workout Plan Card */}
                 <Card className={cn("lg:col-span-3", isTodayCompleted && "bg-muted/50")}>
                     <CardHeader>
-                        <div>
+                        <div className="flex items-center justify-between">
                             <CardTitle className="font-headline flex items-center gap-3 text-lg">
                                 <span>{todaysWorkoutInfo.key}: {todaysWorkoutInfo.title}</span>
                             </CardTitle>
                         </div>
+                         <CardDescription>
+                            Today ({format(new Date(), 'EEEE, MMM d')})
+                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {todaysWorkoutInfo.exercises.length > 0 ? (
@@ -524,79 +527,79 @@ function GymSettingsDialog({
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>Manage Gym Plan</DialogTitle>
-                    <DialogDescription>
+                <DialogHeader className="p-1 pb-0">
+                    <DialogTitle className="text-base">Manage Gym Plan</DialogTitle>
+                    <DialogDescription className="text-xs">
                         Edit your workout plan and cycle configuration.
                     </DialogDescription>
                 </DialogHeader>
 
-                <ScrollArea className="max-h-[60vh] pr-4 -mr-4">
-                    <div className="py-4 space-y-4">
+                <div className="p-1">
+                    <ScrollArea className="max-h-[60vh] pr-2 -mr-2">
                         <Tabs defaultValue="plan" className="w-full">
-                            <TabsList>
-                                <TabsTrigger value="plan">Workout Plan</TabsTrigger>
-                                <TabsTrigger value="cycle">Cycle Configuration</TabsTrigger>
+                            <TabsList className="h-8">
+                                <TabsTrigger value="plan" className="text-xs px-2 py-1">Workout Plan</TabsTrigger>
+                                <TabsTrigger value="cycle" className="text-xs px-2 py-1">Cycle Configuration</TabsTrigger>
                             </TabsList>
-                            <TabsContent value="plan" className="mt-4">
-                                    <Accordion type="multiple" className="w-full space-y-2">
+                            <TabsContent value="plan" className="mt-2">
+                                    <Accordion type="multiple" className="w-full space-y-1">
                                         {Object.entries(editedSplit).map(([dayKey, dayData]) => (
                                             <AccordionItem value={dayKey} key={dayKey} className="border rounded-md px-2">
-                                                <AccordionTrigger className="py-2 hover:no-underline">
+                                                <AccordionTrigger className="py-1.5 hover:no-underline">
                                                     <div className="flex justify-between items-center w-full">
-                                                        <span className="text-sm font-medium">{dayKey}: {dayData.title}</span>
-                                                        <Button variant="ghost" size="icon" className="mr-2 h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDeleteDay(dayKey); }}>
-                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        <span className="text-xs font-medium">{dayKey}: {dayData.title}</span>
+                                                        <Button variant="ghost" size="icon" className="mr-2 h-6 w-6" onClick={(e) => { e.stopPropagation(); handleDeleteDay(dayKey); }}>
+                                                            <Trash2 className="h-3 w-3 text-destructive" />
                                                         </Button>
                                                     </div>
                                                 </AccordionTrigger>
-                                                <AccordionContent className="space-y-3 pb-3">
+                                                <AccordionContent className="space-y-2 pb-2">
                                                     <div>
                                                         <Label htmlFor={`title-${dayKey}`} className="text-xs">Day Title</Label>
-                                                        <Input id={`title-${dayKey}`} value={dayData.title} onChange={(e) => handleDayTitleChange(dayKey, e.target.value)} className="h-8 text-sm" />
+                                                        <Input id={`title-${dayKey}`} value={dayData.title} onChange={(e) => handleDayTitleChange(dayKey, e.target.value)} className="h-7 text-xs" />
                                                     </div>
-                                                    <div className="space-y-2">
-                                                        <h4 className="font-medium text-sm">Exercises</h4>
+                                                    <div className="space-y-1">
+                                                        <h4 className="font-medium text-xs">Exercises</h4>
                                                         {dayData.exercises.map((ex, exIndex) => (
-                                                            <div key={exIndex} className="flex items-center gap-1.5">
-                                                                <Input placeholder="Name" value={ex.name} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'name', e.target.value)} className="flex-grow h-8 text-sm"/>
-                                                                <Input placeholder="Sets" value={ex.sets} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'sets', e.target.value)} className="w-16 h-8 text-sm"/>
-                                                                <Input placeholder="Reps" value={ex.reps} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'reps', e.target.value)} className="w-16 h-8 text-sm"/>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteExercise(dayKey, exIndex)}>
-                                                                    <Trash2 className="h-4 w-4 text-destructive"/>
+                                                            <div key={exIndex} className="flex items-center gap-1">
+                                                                <Input placeholder="Name" value={ex.name} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'name', e.target.value)} className="flex-grow h-7 text-xs"/>
+                                                                <Input placeholder="Sets" value={ex.sets} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'sets', e.target.value)} className="w-14 h-7 text-xs"/>
+                                                                <Input placeholder="Reps" value={ex.reps} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'reps', e.target.value)} className="w-14 h-7 text-xs"/>
+                                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteExercise(dayKey, exIndex)}>
+                                                                    <Trash2 className="h-3 w-3 text-destructive"/>
                                                                 </Button>
                                                             </div>
                                                         ))}
-                                                        <Button variant="outline" size="sm" onClick={() => handleAddExercise(dayKey)}>Add Exercise</Button>
+                                                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddExercise(dayKey)}>Add Exercise</Button>
                                                     </div>
                                                 </AccordionContent>
                                             </AccordionItem>
                                         ))}
                                     </Accordion>
-                                    <Button variant="secondary" size="sm" className="mt-4" onClick={handleAddDay}>Add Workout Day</Button>
+                                    <Button variant="secondary" size="sm" className="mt-2 h-7 px-2 text-xs" onClick={handleAddDay}>Add Workout Day</Button>
                             </TabsContent>
-                            <TabsContent value="cycle" className="mt-4">
-                                 <div className="space-y-4">
+                            <TabsContent value="cycle" className="mt-2">
+                                 <div className="space-y-2">
                                     <div>
-                                        <Label>Cycle Start Date</Label>
+                                        <Label className="text-xs">Cycle Start Date</Label>
                                         <p className="text-xs text-muted-foreground">Select the date your cycle begins.</p>
                                         <Calendar
                                             mode="single"
                                             selected={editedConfig.startDate ? parseISO(editedConfig.startDate) : new Date()}
                                             onSelect={(date) => date && setEditedConfig(prev => ({...prev, startDate: format(date, 'yyyy-MM-dd')}))}
-                                            className="rounded-md border"
+                                            className="rounded-md border p-0"
                                         />
                                     </div>
                                     <div>
-                                        <Label>Starting Day of Cycle</Label>
+                                        <Label className="text-xs">Starting Day of Cycle</Label>
                                         <p className="text-xs text-muted-foreground">Select which workout corresponds to the start date.</p>
                                         <Select value={editedConfig.startDayKey} onValueChange={(value) => setEditedConfig(prev => ({...prev, startDayKey: value}))}>
-                                            <SelectTrigger className="h-8 text-sm">
+                                            <SelectTrigger className="h-7 text-xs">
                                                 <SelectValue placeholder="Select a day" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {Object.keys(editedSplit).map(dayKey => (
-                                                    <SelectItem key={dayKey} value={dayKey} className="text-sm">{dayKey}: {editedSplit[dayKey].title}</SelectItem>
+                                                    <SelectItem key={dayKey} value={dayKey} className="text-xs">{dayKey}: {editedSplit[dayKey].title}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -604,11 +607,11 @@ function GymSettingsDialog({
                                 </div>
                             </TabsContent>
                         </Tabs>
-                    </div>
-                </ScrollArea>
-                <DialogFooter>
-                    <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button size="sm" onClick={handleSaveChanges}>Save Changes</Button>
+                    </ScrollArea>
+                </div>
+                <DialogFooter className="p-1 pt-0">
+                    <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button size="sm" className="h-7 px-2 text-xs" onClick={handleSaveChanges}>Save Changes</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
