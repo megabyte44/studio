@@ -175,21 +175,19 @@ function WaterIntakeWidget() {
                             How many glasses of water (250ml each) do you aim to drink daily?
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4">
-                        <div className="space-y-2">
-                             <Label htmlFor="water-target">Daily Glasses Target</Label>
-                             <Input
-                                id="water-target"
-                                type="number"
-                                value={newTargetInput}
-                                onChange={(e) => setNewTargetInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleTargetSave();
-                                    }
-                                }}
-                            />
-                        </div>
+                    <div className="space-y-2">
+                         <Label htmlFor="water-target">Daily Glasses Target</Label>
+                         <Input
+                            id="water-target"
+                            type="number"
+                            value={newTargetInput}
+                            onChange={(e) => setNewTargetInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleTargetSave();
+                                }
+                            }}
+                        />
                     </div>
                     <DialogFooter>
                         <Button onClick={handleTargetSave}>Save Goal</Button>
