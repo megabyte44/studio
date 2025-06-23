@@ -164,9 +164,9 @@ export default function PlannerPage() {
                                     )}
                                 </ScrollArea>
 
-                                <div className="pt-2 border-t">
-                                    <h3 className="font-semibold text-base mb-2">Add Ad-hoc Item</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div className="pt-1 border-t">
+                                    <h3 className="font-semibold text-base mb-1">Add Ad-hoc Item</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                                         <div className="sm:col-span-2 space-y-1">
                                             <Label htmlFor="new-item-title" className="text-xs">Title</Label>
                                             <Input id="new-item-title" value={newItemTitle} onChange={e => setNewItemTitle(e.target.value)} placeholder="e.g., Study Session, Meeting" />
