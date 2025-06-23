@@ -500,7 +500,9 @@ function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onE
     return (
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="overload-setup" className="border-none">
-                <AccordionTrigger className="py-1 hover:no-underline justify-end"></AccordionTrigger>
+                <AccordionTrigger className="py-1 hover:no-underline justify-end text-xs font-semibold">
+                    Overload Setup
+                </AccordionTrigger>
                 <AccordionContent className="space-y-1.5 pt-1">
                     <div>
                         <Label htmlFor={`k-value-${exercise.id}`} className="text-xs">Exercise Type (k-Value)</Label>
@@ -580,7 +582,7 @@ function GymSettingsDialog({
     setEditedSplit((prev) => {
       const newSplit = { ...prev };
       const newExercise: Exercise = {
-        id: crypto.randomUUID(),
+        id: `ex-${crypto.randomUUID()}`,
         name: 'New Exercise',
         sets: '3-4',
         kValue: 0.5,
@@ -684,14 +686,20 @@ function GymSettingsDialog({
                           >
                             Day Title
                           </Label>
-                          <Input
-                            id={`title-${dayKey}`}
-                            value={dayData.title}
-                            onChange={(e) =>
-                              handleDayTitleChange(dayKey, e.target.value)
-                            }
-                            className="h-7 text-xs"
-                          />
+                          {dayData.exercises.length === 0 ? (
+                            <p className="text-sm h-7 px-3 py-1.5 text-muted-foreground rounded-md bg-muted/50">
+                                {dayData.title}
+                            </p>
+                            ) : (
+                            <Input
+                                id={`title-${dayKey}`}
+                                value={dayData.title}
+                                onChange={(e) =>
+                                handleDayTitleChange(dayKey, e.target.value)
+                                }
+                                className="h-7 text-xs"
+                            />
+                          )}
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-medium text-xs">Exercises</h4>
