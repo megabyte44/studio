@@ -674,7 +674,7 @@ function GymSettingsDialog({
                           </Button>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="space-y-2 pb-2">
+                      <AccordionContent className="space-y-2 pb-2 max-h-64 overflow-y-auto pr-2">
                         <div>
                           <Label
                             htmlFor={`title-${dayKey}`}
