@@ -125,10 +125,10 @@ export default function PlannerPage() {
                     </header>
 
                     <Card className="w-full flex-grow flex flex-col">
-                        <CardHeader className="p-3 flex-row items-center justify-between">
+                        <CardHeader className="p-1 flex-row items-center justify-between">
                             <CardTitle className="text-base font-semibold">Schedule for {selectedDay}</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-2 pt-0 flex-grow flex flex-col overflow-hidden">
+                        <CardContent className="p-2 pt-0 h-full flex flex-col">
                             <div className="space-y-2 flex-grow flex flex-col min-h-0">
                                 <div className="space-y-1">
                                     <Label htmlFor="day-select" className="text-xs">Select a day to view/add to:</Label>
@@ -142,7 +142,7 @@ export default function PlannerPage() {
                                     </Select>
                                 </div>
                                 
-                                <ScrollArea className="pr-2 border rounded-md p-1.5 flex-grow">
+                                <ScrollArea className="pr-2 border rounded-md p-1.5 flex-grow h-32" style={{ maxHeight: 'calc(4 * 2.5rem)' }}>
                                     {daySchedule.length > 0 ? (
                                         <div className="space-y-1.5">
                                             {daySchedule.map(item => (
