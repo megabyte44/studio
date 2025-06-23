@@ -22,7 +22,7 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username && dob) {
-      localStorage.setItem('user', JSON.stringify({ username, dob: dob.toISOString() }));
+      localStorage.setItem('user', JSON.stringify({ username, dob: dob.toISOString(), avatarSeed: username }));
       router.push('/dashboard');
     } else {
       toast({

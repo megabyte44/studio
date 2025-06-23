@@ -111,17 +111,19 @@ function SyncToggle() {
   );
 }
 
-function UserNav({ user, onLogout }: { user: { username: string } | null, onLogout: () => void }) {
+function UserNav({ user, onLogout }: { user: { username: string; avatarSeed?: string } | null, onLogout: () => void }) {
   const router = useRouter();
   
   if (!user) return <Skeleton className="h-8 w-8 rounded-full" />;
+
+  const avatarSeed = user.avatarSeed || user.username;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${user.username}`} alt={user.username} />
+            <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${avatarSeed}`} alt={user.username} />
             <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
@@ -199,7 +201,7 @@ function HeaderCalendar() {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = useState<{ username: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; avatarSeed?: string } | null>(null);
   const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
