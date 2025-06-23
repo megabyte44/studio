@@ -292,7 +292,7 @@ function EditNoteCard({
 
 function NoteCard({ note, onEdit, onView }: { note: Note; onEdit: () => void; onView: () => void }) {
   return (
-    <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
+    <Card className="flex flex-col h-96 hover:shadow-lg transition-shadow duration-300">
       <div onClick={onView} className="cursor-pointer flex-grow flex flex-col min-h-0">
           <CardHeader>
             <CardTitle className="font-headline text-lg">{note.title}</CardTitle>
