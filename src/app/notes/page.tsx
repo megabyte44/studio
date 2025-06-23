@@ -231,7 +231,7 @@ function EditNoteCard({
             className="text-lg font-headline font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto" 
           />
         </div>
-        <Badge variant="outline" className="capitalize w-fit">{note.type} Note</Badge>
+        <Badge variant="outline" className="capitalize w-fit">{note.type}</Badge>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col min-h-0">
         {note.type === 'text' ? (
@@ -293,8 +293,8 @@ function NoteCard({ note, onEdit, onView }: { note: Note; onEdit: () => void; on
                 <Badge variant="outline" className="capitalize">{note.type}</Badge>
             </div>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col min-h-0">
-            <ScrollArea className="flex-grow pr-4">
+          <CardContent className="flex-grow flex flex-col min-h-0 p-[2px] pt-0">
+            <ScrollArea className="flex-grow pr-[2px]">
                 {note.type === 'text' && (
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{String(note.content)}</p>
                 )}
