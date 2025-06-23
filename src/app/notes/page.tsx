@@ -6,7 +6,7 @@ import type { Note } from '@/types';
 import { P_NOTES } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Search, LayoutGrid, List, Trash2, X, Save } from 'lucide-react';
+import { PlusCircle, Search, LayoutGrid, List, Trash2, X, Save, Edit } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format, formatISO, parseISO } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -254,9 +254,9 @@ function EditNoteCard({
 }
 
 
-function NoteCard({ note, layout, onClick }: { note: Note; layout: Layout; onClick: () => void }) {
+function NoteCard({ note, onEdit }: { note: Note; onEdit: () => void }) {
   return (
-    <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={onClick}>
+    <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
       <CardHeader>
         <CardTitle className="font-headline text-lg">{note.title}</CardTitle>
         <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2">
@@ -264,24 +264,29 @@ function NoteCard({ note, layout, onClick }: { note: Note; layout: Layout; onCli
             <Badge variant="outline" className="capitalize">{note.type}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow">
-        {note.type === 'text' && (
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{String(note.content).substring(0, layout === 'grid' ? 150 : 1000)}{String(note.content).length > 150 && layout === 'grid' ? '...' : ''}</p>
-        )}
-        {note.type === 'checklist' && Array.isArray(note.content) && (
-          <ul className="space-y-2">
-            {(layout === 'grid' ? note.content.slice(0, 4) : note.content).map((item, index) => (
-              <li key={index} className="flex items-center gap-2">
-                <Checkbox checked={item.completed} disabled />
-                <span className={cn(item.completed && 'line-through text-muted-foreground')}>{item.text}</span>
-              </li>
-            ))}
-            {note.content.length > 4 && layout === 'grid' && (
-                <li className="text-sm text-muted-foreground">...and {note.content.length - 4} more</li>
+      <CardContent className="flex-grow flex flex-col min-h-0">
+        <ScrollArea className="flex-grow pr-4">
+            {note.type === 'text' && (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{String(note.content)}</p>
             )}
-          </ul>
-        )}
+            {note.type === 'checklist' && Array.isArray(note.content) && (
+              <ul className="space-y-2">
+                {note.content.map((item, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <Checkbox checked={item.completed} disabled />
+                    <span className={cn(item.completed && 'line-through text-muted-foreground')}>{item.text}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+        </ScrollArea>
       </CardContent>
+      <CardFooter className="pt-4 flex-shrink-0">
+          <Button variant="outline" size="sm" className="w-full" onClick={onEdit}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Note
+          </Button>
+      </CardFooter>
     </Card>
   );
 }
@@ -405,8 +410,7 @@ export default function NotesPage() {
               <NoteCard
                 key={note.id}
                 note={note}
-                layout={layout}
-                onClick={() => {
+                onEdit={() => {
                   if (isAddingNote) setIsAddingNote(false);
                   setEditingNoteId(note.id);
                 }}
