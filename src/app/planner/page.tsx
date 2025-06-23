@@ -137,14 +137,14 @@ export default function PlannerPage() {
                         <h1 className="text-xl font-bold font-headline">Daily Planner</h1>
                     </header>
 
-                    <Card>
-                        <CardHeader className="p-4">
+                    <Card className="w-full h-full">
+                        <CardHeader className="p-3">
                             <CardTitle className="flex items-center justify-between">
                                 <span className="text-base font-semibold">Schedule for {selectedDay}</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-0">
-                            <div className="space-y-4">
+                        <CardContent className="p-2 pt-0">
+                            <div className="space-y-2">
                                 <div>
                                     <Label htmlFor="day-select">Select a day to view/add to:</Label>
                                     <Select value={selectedDay} onValueChange={setSelectedDay}>
@@ -157,7 +157,7 @@ export default function PlannerPage() {
                                     </Select>
                                 </div>
                                 
-                                <ScrollArea className="h-96 pr-4 border rounded-md p-2">
+                                <ScrollArea className="h-48 pr-4 border rounded-md p-2">
                                     {daySchedule.length > 0 ? (
                                         <div className="space-y-2">
                                             {daySchedule.map(item => (
