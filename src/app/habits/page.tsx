@@ -64,7 +64,7 @@ const initialWorkoutSplitRaw: CyclicalWorkoutSplit = {
   "Day 1": { title: "Push Day (Chest, Shoulders, Triceps)", exercises: [{ id: 'ex-1', name: "Bench Press", sets: "3-4" }, { id: 'ex-2', name: "Overhead Press", sets: "3" }, { id: 'ex-3', name: "Incline Dumbbell Press", sets: "3" }, { id: 'ex-4', name: "Tricep Dips/Pushdowns", sets: "3" }, { id: 'ex-5', name: "Lateral Raises", sets: "3" }] },
   "Day 2": { title: "Pull Day (Back, Biceps)", exercises: [{ id: 'ex-6', name: "Pull-ups/Lat Pulldowns", sets: "3-4" }, { id: 'ex-7', name: "Bent-over Rows", sets: "3" }, { id: 'ex-8', name: "Seated Cable Rows", sets: "3" }, { id: 'ex-9', name: "Barbell Curls", sets: "3" }, { id: 'ex-10', name: "Face Pulls", sets: "3" }] },
   "Day 3": { title: "Leg Day (Quads, Hamstrings, Calves)", exercises: [{ id: 'ex-11', name: "Squats", sets: "3-4" }, { id: 'ex-12', name: "Romanian Deadlifts", sets: "3" }, { id: 'ex-13', name: "Leg Press", sets: "3" }, { id: 'ex-14', name: "Leg Curls", sets: "3" }, { id: 'ex-15', name: "Calf Raises", sets: "3" }] },
-  "Day 4 (Rest)": { title: "Rest or Active Recovery", exercises: [] },
+  "Day 4": { title: "Rest or Active Recovery", exercises: [] },
 };
 const initialWorkoutSplit = augmentWorkoutSplit(initialWorkoutSplitRaw);
 const initialCustomFoodItems = ["Protein Powder", "Creatine", "Oatmeal", "Eggs", "Chicken Breast", "Greek Yogurt"];
@@ -501,7 +501,7 @@ function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onE
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="overload-setup" className="border-none">
                 <AccordionTrigger className="py-1 hover:no-underline justify-end text-xs font-semibold">
-                    Overload Setup
+                    <Settings className="h-4 w-4 text-muted-foreground" />
                 </AccordionTrigger>
                 <AccordionContent className="space-y-1.5 pt-1">
                     <div>
@@ -686,24 +686,18 @@ function GymSettingsDialog({
                           >
                             Day Title
                           </Label>
-                          {dayData.exercises.length === 0 ? (
-                            <p className="text-sm h-7 px-3 py-1.5 text-muted-foreground rounded-md bg-muted/50">
-                                {dayData.title}
-                            </p>
-                            ) : (
-                            <Input
-                                id={`title-${dayKey}`}
-                                value={dayData.title}
-                                onChange={(e) =>
-                                handleDayTitleChange(dayKey, e.target.value)
-                                }
-                                className="h-7 text-xs"
-                            />
-                          )}
+                          <Input
+                            id={`title-${dayKey}`}
+                            value={dayData.title}
+                            onChange={(e) =>
+                              handleDayTitleChange(dayKey, e.target.value)
+                            }
+                            className="h-7 text-xs"
+                          />
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-medium text-xs">Exercises</h4>
-                           <ScrollArea className="h-64 rounded-md border p-1.5">
+                           <ScrollArea className="h-40 rounded-md border p-1.5">
                             <div className="space-y-2 pr-2">
                               {dayData.exercises.map((ex, exIndex) => (
                                 <div key={ex.id || crypto.randomUUID()} className="border-t pt-2 first:border-t-0 first:pt-0">
