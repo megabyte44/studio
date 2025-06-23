@@ -131,43 +131,47 @@ function CredentialDialog({
                         {credential ? `Updating details for ${credential.name}.` : 'Fill in the details for the new credential.'}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid md:grid-cols-2 gap-1 py-1 px-2">
-                    <div>
-                        <Label htmlFor="newAccountName" className="text-xs">Account Name</Label>
-                        <Input id="newAccountName" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Netflix" className="h-8" />
-                    </div>
-                    <div>
-                        <Label htmlFor="newAccountCategory" className="text-xs">Category</Label>
-                        <Select value={category} onValueChange={(v) => setCategory(v as any)}>
-                            <SelectTrigger id="newAccountCategory" className="h-8"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Website">Website</SelectItem>
-                                <SelectItem value="Banking">Banking</SelectItem>
-                                <SelectItem value="Social Media">Social Media</SelectItem>
-                                <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                        </Select>
+                <div className="space-y-2 py-1 px-2">
+                     <div className="grid grid-cols-2 gap-1">
+                        <div>
+                            <Label htmlFor="newAccountName" className="text-xs">Account Name</Label>
+                            <Input id="newAccountName" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Netflix" className="h-8" />
+                        </div>
+                        <div>
+                            <Label htmlFor="newAccountCategory" className="text-xs">Category</Label>
+                            <Select value={category} onValueChange={(v) => setCategory(v as any)}>
+                                <SelectTrigger id="newAccountCategory" className="h-8"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Website">Website</SelectItem>
+                                    <SelectItem value="Banking">Banking</SelectItem>
+                                    <SelectItem value="Social Media">Social Media</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     {category === 'Banking' ? (
-                        <div className="md:col-span-2 border-t pt-2 mt-2 space-y-1">
+                        <div className="border-t pt-2 mt-2 space-y-1">
                             <h3 className="text-sm font-semibold flex items-center gap-2"><Landmark className="h-4 w-4 text-primary" /> Banking Details</h3>
-                            <div className="grid md:grid-cols-2 gap-1">
-                                <div><Label htmlFor="accNum" className="text-xs">Account Number</Label><Input id="accNum" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} className="h-8" /></div>
-                                <div><Label htmlFor="ifsc" className="text-xs">IFSC Code</Label><Input id="ifsc" value={ifscCode} onChange={e => setIfscCode(e.target.value)} className="h-8" /></div>
-                                <div><Label htmlFor="upi" className="text-xs">UPI PIN</Label><Input type="password" id="upi" value={upiPin} onChange={e => setUpiPin(e.target.value)} className="h-8" /></div>
-                                <div><Label htmlFor="nbid" className="text-xs">Netbanking ID</Label><Input id="nbid" value={netbankingId} onChange={e => setNetbankingId(e.target.value)} className="h-8" /></div>
-                                <div><Label htmlFor="mpin" className="text-xs">MPIN</Label><Input type="password" id="mpin" value={mpin} onChange={e => setMpin(e.target.value)} className="h-8" /></div>
-                                <div><Label htmlFor="nbpass" className="text-xs">Netbanking Password</Label><Input type="password" id="nbpass" value={netbankingPassword} onChange={e => setNetbankingPassword(e.target.value)} className="h-8" /></div>
-                                <div className="md:col-span-2"><Label htmlFor="txpass" className="text-xs">Transaction Password</Label><Input type="password" id="txpass" value={transactionPassword} onChange={e => setTransactionPassword(e.target.value)} className="h-8" /></div>
-                            </div>
+                             <ScrollArea className="h-56 rounded-md border p-2">
+                                <div className="space-y-2 pr-2">
+                                    <div><Label htmlFor="accNum" className="text-xs">Account Number</Label><Input id="accNum" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} className="h-8" /></div>
+                                    <div><Label htmlFor="ifsc" className="text-xs">IFSC Code</Label><Input id="ifsc" value={ifscCode} onChange={e => setIfscCode(e.target.value)} className="h-8" /></div>
+                                    <div><Label htmlFor="upi" className="text-xs">UPI PIN</Label><Input type="password" id="upi" value={upiPin} onChange={e => setUpiPin(e.target.value)} className="h-8" /></div>
+                                    <div><Label htmlFor="nbid" className="text-xs">Netbanking ID</Label><Input id="nbid" value={netbankingId} onChange={e => setNetbankingId(e.target.value)} className="h-8" /></div>
+                                    <div><Label htmlFor="mpin" className="text-xs">MPIN</Label><Input type="password" id="mpin" value={mpin} onChange={e => setMpin(e.target.value)} className="h-8" /></div>
+                                    <div><Label htmlFor="nbpass" className="text-xs">Netbanking Password</Label><Input type="password" id="nbpass" value={netbankingPassword} onChange={e => setNetbankingPassword(e.target.value)} className="h-8" /></div>
+                                    <div><Label htmlFor="txpass" className="text-xs">Transaction Password</Label><Input type="password" id="txpass" value={transactionPassword} onChange={e => setTransactionPassword(e.target.value)} className="h-8" /></div>
+                                </div>
+                            </ScrollArea>
                         </div>
                     ) : (
-                        <>
+                        <div className="space-y-2">
                             <div><Label htmlFor="username" className="text-xs">Username / Email</Label><Input id="username" value={username} onChange={e => setUsername(e.target.value)} className="h-8" /></div>
                             <div><Label htmlFor="password" className="text-xs">Password</Label><Input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} className="h-8" /></div>
-                            {category === 'Website' && <div className="md:col-span-2"><Label htmlFor="website" className="text-xs">Website URL</Label><Input id="website" value={website} onChange={e => setWebsite(e.target.value)} className="h-8" /></div>}
-                        </>
+                            {category === 'Website' && <div><Label htmlFor="website" className="text-xs">Website URL</Label><Input id="website" value={website} onChange={e => setWebsite(e.target.value)} className="h-8" /></div>}
+                        </div>
                     )}
                 </div>
                 <DialogFooter className="p-2 pt-0">
