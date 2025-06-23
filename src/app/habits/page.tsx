@@ -100,10 +100,6 @@ function GymTracker({
                                 Today ({format(new Date(), 'eeee, MMM d')})
                             </CardDescription>
                         </div>
-                         <div className="flex gap-2">
-                             <Button variant="ghost" size="icon"><CalendarDays className="h-5 w-5" /></Button>
-                             <Button variant="ghost" size="icon"><Edit className="h-5 w-5" /></Button>
-                        </div>
                     </CardHeader>
                     <CardContent>
                         {todaysWorkoutInfo.exercises.length > 0 ? (
