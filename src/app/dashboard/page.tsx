@@ -309,9 +309,38 @@ function TodaysPlan() {
         )}
       </CardContent>
        <CardFooter className="pt-0 sm:pt-0">
-         <Link href="/planner" className="w-full">
-            <Button variant="outline" className="w-full">View Full Planner</Button>
-         </Link>
+         <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">View Full Planner</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Full Plan for {format(new Date(), 'EEEE')}</DialogTitle>
+                    <DialogDescription>
+                        Here is your complete schedule for today.
+                    </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="max-h-[60vh] pr-6">
+                    <div className="py-4 space-y-3">
+                    {routineItems.length > 0 ? (
+                        routineItems.map((item) => (
+                            <div key={item.id} className="p-3 rounded-lg bg-muted">
+                                <p>
+                                <span className="font-bold text-primary">{item.startTime}:</span>
+                                <span className="font-semibold ml-2 text-card-foreground">{item.title}</span>
+                                </p>
+                                {item.tag && <p className="text-sm text-muted-foreground ml-2">{item.tag}</p>}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                            <p>No routine items for today.</p>
+                        </div>
+                    )}
+                    </div>
+                </ScrollArea>
+            </DialogContent>
+         </Dialog>
        </CardFooter>
     </Card>
   );
