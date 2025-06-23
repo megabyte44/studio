@@ -146,7 +146,7 @@ function GymTracker({
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
                       setLoggedItems={setLoggedFoodItems}
-                      customItems={customItems}
+                      customItems={customFoodItems}
                       onManageItems={onManageCustomFoodItems}
                     />
                 </div>
@@ -526,7 +526,7 @@ function GymSettingsDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl h-[90vh] flex flex-col">
+            <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
                 <DialogHeader className="p-6 pb-2">
                     <DialogTitle>Manage Gym Plan</DialogTitle>
                     <DialogDescription>Edit your workout plan and cycle configuration.</DialogDescription>
@@ -604,7 +604,7 @@ function GymSettingsDialog({
                         </TabsContent>
                     </Tabs>
                 </div>
-                <DialogFooter className="p-6 pt-2">
+                <DialogFooter className="p-6 pt-2 border-t">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                     <Button onClick={handleSaveChanges}>Save Changes</Button>
                 </DialogFooter>
@@ -899,10 +899,15 @@ export default function HabitsPage() {
         <Separator />
 
         <div className="space-y-4">
-            <h2 className="text-xl font-bold font-headline flex items-center gap-2">
-                <BookOpenCheck className="h-6 w-6 text-primary" />
-                <span>Streak Book</span>
-            </h2>
+            <header className="flex items-center justify-between">
+                <h2 className="text-xl font-bold font-headline flex items-center gap-2">
+                    <BookOpenCheck className="h-6 w-6 text-primary" />
+                    <span>Streak Book</span>
+                </h2>
+                <Button variant="ghost" size="icon" onClick={() => setIsAddHabitDialogOpen(true)}>
+                    <PlusCircle className="h-5 w-5" />
+                </Button>
+            </header>
             <Accordion type="single" collapsible className="w-full space-y-4">
                 {habits.map((habit) => {
                     if (!habit) return null;
@@ -1104,3 +1109,4 @@ function AddHabitDialog({
         </Dialog>
     );
 }
+
