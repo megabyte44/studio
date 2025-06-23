@@ -16,14 +16,11 @@ import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const avatarSeeds = ["Felix", "Mimi", "Leo", "Cleo", "Max"];
-
 export default function ProfilePage() {
   const { toast } = useToast();
   const [user, setUser] = useState<{ username: string; dob?: string; avatarSeed?: string } | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
   const [dobInput, setDobInput] = useState<Date | undefined>();
-  const [selectedAvatarSeed, setSelectedAvatarSeed] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +29,6 @@ export default function ProfilePage() {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       setUsernameInput(parsedUser.username || '');
-      setSelectedAvatarSeed(parsedUser.avatarSeed || parsedUser.username);
       if (parsedUser.dob) {
         setDobInput(parseISO(parsedUser.dob));
       }
@@ -53,7 +49,7 @@ export default function ProfilePage() {
     const updatedUser = {
       username: usernameInput,
       dob: dobInput ? dobInput.toISOString() : user?.dob,
-      avatarSeed: selectedAvatarSeed,
+      avatarSeed: usernameInput,
     };
 
     localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -118,24 +114,13 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-2">
-                    <Label>Choose Your Avatar</Label>
-                    <div className="flex flex-wrap items-center gap-4">
-                        {avatarSeeds.map((seed) => (
-                            <button
-                                key={seed}
-                                type="button"
-                                className={cn(
-                                    'rounded-full ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                                    selectedAvatarSeed === seed && 'ring-2 ring-primary'
-                                )}
-                                onClick={() => setSelectedAvatarSeed(seed)}
-                            >
-                                <Avatar className="h-16 w-16">
-                                    <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${seed}`} alt={seed} />
-                                    <AvatarFallback>{seed.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                            </button>
-                        ))}
+                    <Label>Your Avatar</Label>
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-20 w-20">
+                            <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${usernameInput || 'default'}`} alt={usernameInput} />
+                            <AvatarFallback>{usernameInput ? usernameInput.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                        <p className="text-sm text-muted-foreground">Your avatar is automatically generated based on your username.</p>
                     </div>
                 </div>
                 <div className="space-y-2">
