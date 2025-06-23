@@ -45,7 +45,7 @@ const augmentWorkoutSplit = (split: CyclicalWorkoutSplit): CyclicalWorkoutSplit 
         newSplit[dayKey] = {
             ...dayData,
             exercises: dayData.exercises.map(ex => ({
-                id: ex.id || `ex-${Math.random().toString(36).substr(2, 9)}`,
+                id: ex.id || `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 ...ex,
                 kValue: ex.kValue || 0.5,
                 baselineWeight: ex.baselineWeight || 0,
@@ -584,7 +584,7 @@ function GymSettingsDialog({
       const newExercise: Exercise = {
         id: `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: 'New Exercise',
-        sets: '',
+        sets: '3-4',
         kValue: 0.5,
         baselineWeight: 0,
         baselineReps: 0,
@@ -697,7 +697,7 @@ function GymSettingsDialog({
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-medium text-xs">Exercises</h4>
-                           <ScrollArea className="max-h-48 pr-2">
+                           <ScrollArea className="max-h-64 pr-2">
                             <div className="space-y-1">
                               {dayData.exercises.map((ex, exIndex) => (
                                 <div key={ex.id || exIndex} className="border-t pt-2">
@@ -726,7 +726,7 @@ function GymSettingsDialog({
                                           e.target.value
                                         )
                                       }
-                                      className="w-14 h-7 text-xs"
+                                      className="w-16 h-7 text-xs"
                                     />
                                     <Button
                                       variant="ghost"
@@ -1717,4 +1717,5 @@ function AddHabitDialog({
         </Dialog>
     );
 }
+
 
