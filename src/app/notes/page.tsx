@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -238,7 +239,7 @@ function EditNoteCard({
           </ScrollArea>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex flex-wrap items-center justify-between gap-2">
         <div>
             <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onDelete(note.id)}>
                 <Trash2 className="mr-2 h-4 w-4"/> Delete
