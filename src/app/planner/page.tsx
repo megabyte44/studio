@@ -3,12 +3,11 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash, Loader2, Info } from 'lucide-react';
@@ -34,6 +33,7 @@ const getCurrentDayName = () => {
 };
 
 const calculateEndTime = (startTime: string, durationMinutes: number) => {
+    if (!startTime) return '';
     const [hours, minutes] = startTime.split(':').map(Number);
     const startDate = new Date();
     startDate.setHours(hours, minutes, 0, 0);
@@ -138,9 +138,11 @@ export default function PlannerPage() {
 
                     <Card>
                         <CardHeader className="p-3">
-                            <CardTitle>Schedule for {selectedDay}</CardTitle>
+                            <CardTitle className="flex items-center justify-between">
+                                <span>Schedule for {selectedDay}</span>
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-3 pt-0">
+                        <CardContent className="p-2 pt-0">
                             <div className="space-y-4">
                                 <div>
                                     <Label htmlFor="day-select">Select a day to view/add to:</Label>
