@@ -119,17 +119,17 @@ export default function PlannerPage() {
     return (
         <AppLayout>
             <TooltipProvider>
-                <div className="h-full">
+                <div className="h-full flex flex-col">
                     <header className="mb-2">
                         <h1 className="text-lg font-semibold font-headline">Daily Planner</h1>
                     </header>
 
-                    <Card className="w-full h-[calc(100vh-120px)]">
+                    <Card className="w-full flex-grow flex flex-col">
                         <CardHeader className="p-3 flex-row items-center justify-between">
                             <CardTitle className="text-base font-semibold">Schedule for {selectedDay}</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-2 pt-0 h-[calc(100%-60px)] flex flex-col">
-                            <div className="space-y-2 flex-grow flex flex-col">
+                        <CardContent className="p-2 pt-0 flex-grow flex flex-col overflow-hidden">
+                            <div className="space-y-2 flex-grow flex flex-col min-h-0">
                                 <div className="space-y-1">
                                     <Label htmlFor="day-select" className="text-xs">Select a day to view/add to:</Label>
                                     <Select value={selectedDay} onValueChange={setSelectedDay}>
@@ -142,7 +142,7 @@ export default function PlannerPage() {
                                     </Select>
                                 </div>
                                 
-                                <ScrollArea className="h-48 pr-2 border rounded-md p-1.5 flex-grow">
+                                <ScrollArea className="pr-2 border rounded-md p-1.5 flex-grow">
                                     {daySchedule.length > 0 ? (
                                         <div className="space-y-1.5">
                                             {daySchedule.map(item => (
