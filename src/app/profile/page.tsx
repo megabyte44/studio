@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  const [user, setUser] = useState<{ username: string; dob?: string; avatarSeed?: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; dob?: string; } | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
   const [dobInput, setDobInput] = useState<Date | undefined>();
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +49,6 @@ export default function ProfilePage() {
     const updatedUser = {
       username: usernameInput,
       dob: dobInput ? dobInput.toISOString() : user?.dob,
-      avatarSeed: usernameInput,
     };
 
     localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -117,10 +116,10 @@ export default function ProfilePage() {
                     <Label>Your Avatar</Label>
                     <div className="flex items-center gap-4">
                         <Avatar className="h-20 w-20">
-                            <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${usernameInput || 'default'}`} alt={usernameInput} />
+                            <AvatarImage src="https://placehold.co/100x100.png" alt={usernameInput} data-ai-hint="avatar user" />
                             <AvatarFallback>{usernameInput ? usernameInput.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
-                        <p className="text-sm text-muted-foreground">Your avatar is automatically generated based on your username.</p>
+                        <p className="text-sm text-muted-foreground">This is your display picture.</p>
                     </div>
                 </div>
                 <div className="space-y-2">
