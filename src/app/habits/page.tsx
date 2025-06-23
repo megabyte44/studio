@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -314,35 +313,6 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
             </CardContent>
         </Card>
     );
-}
-
-function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habit: Habit) => void }) {
-  if (!habit || habit.icon !== 'GlassWater') return null;
-
-  const ML_PER_GLASS = 250;
-  const currentTargetInGlasses = habit.target || 8; 
-
-  const handleTargetChange = (increment: number) => {
-    const newTarget = Math.max(1, currentTargetInGlasses + increment); 
-    onUpdate({ ...habit, target: newTarget });
-  };
-  
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 pt-2 text-center">
-        <div className="flex items-center justify-center gap-4">
-            <Button onClick={() => handleTargetChange(-1)} variant="outline" size="icon" disabled={currentTargetInGlasses <= 1}>
-                <Minus className="h-4 w-4" />
-            </Button>
-            <div className="text-center">
-                <p className="text-lg font-bold font-headline" style={{ fontSize: '18px' }}>{currentTargetInGlasses} glasses</p>
-                <p className="text-sm text-muted-foreground">({currentTargetInGlasses * ML_PER_GLASS}ml)</p>
-            </div>
-            <Button onClick={() => handleTargetChange(1)} variant="outline" size="icon">
-                <Plus className="h-4 w-4" />
-            </Button>
-        </div>
-    </div>
-  )
 }
 
 function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: string, date: string) => void }) {
@@ -1102,7 +1072,7 @@ function OverloadTrackerDialog({
                             <Label>Select Exercise to Track</Label>
                              <Select onValueChange={setSelectedExerciseId} value={selectedExerciseId || ""}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Choose today's exercise..." />
+                                    <SelectValue placeholder="Choose an exercise..." />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {todaysExercises.length > 0 ? (
@@ -1387,10 +1357,6 @@ export default function HabitsPage() {
 
 
   // --- Handlers ---
-  const handleUpdateHabit = (updatedHabit: Habit) => {
-    setHabits(habits.map(h => h.id === updatedHabit.id ? updatedHabit : h));
-  };
-
   const handleToggleCompletion = (habitId: string, date: string) => {
     setHabits(habits.map(h => {
         if (h.id === habitId && !SPECIAL_HABIT_ICONS.includes(h.icon)) {
@@ -1574,14 +1540,7 @@ export default function HabitsPage() {
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    {isWaterHabit ? (
-                                        <>
-                                            <WaterIntakeManager habit={habit} onUpdate={handleUpdateHabit} />
-                                            <HabitGrid habit={habit} onToggle={handleToggleCompletion} />
-                                        </>
-                                    ) : (
-                                        <HabitGrid habit={habit} onToggle={handleToggleCompletion} />
-                                    )}
+                                    <HabitGrid habit={habit} onToggle={handleToggleCompletion} />
                                 </AccordionContent>
                             </AccordionItem>
                         </Card>
