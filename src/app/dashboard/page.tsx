@@ -3,7 +3,7 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus, GlassWater } from 'lucide-react';
+import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus, GlassWater, Settings } from 'lucide-react';
 import { P_TODO_ITEMS, P_HABITS, P_TRANSACTIONS } from '@/lib/placeholder-data';
 import type { PlannerItem, TodoItem, Habit, Transaction } from '@/types';
 import { useState, useEffect, useRef } from 'react';
@@ -23,6 +23,17 @@ import { Label } from '@/components/ui/label';
 
 function WaterIntakeWidget() {
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  const waterHabit = habits.find(h => h.icon === 'GlassWater');
+  
+  const [newTargetInput, setNewTargetInput] = useState(String(waterHabit?.target || 8));
+
+  useEffect(() => {
+    if (waterHabit) {
+      setNewTargetInput(String(waterHabit.target || 8));
+    }
+  }, [waterHabit]);
 
   useEffect(() => {
     const loadHabits = () => {
@@ -86,7 +97,6 @@ function WaterIntakeWidget() {
     };
   }, []);
 
-  const waterHabit = habits.find(h => h.icon === 'GlassWater');
   const ML_PER_GLASS = 250;
   const TARGET_GLASSES = waterHabit?.target || 8;
   const WATER_TARGET_ML = TARGET_GLASSES * ML_PER_GLASS;
@@ -110,6 +120,22 @@ function WaterIntakeWidget() {
     localStorage.setItem('lifeos_habits', JSON.stringify(updatedHabits));
   };
   
+  const handleTargetSave = () => {
+    if (!waterHabit) return;
+    const newTarget = parseInt(newTargetInput, 10);
+    if (!isNaN(newTarget) && newTarget > 0) {
+        const updatedHabits = habits.map(h => {
+            if (h.id === waterHabit.id) {
+                return { ...h, target: newTarget };
+            }
+            return h;
+        });
+        setHabits(updatedHabits);
+        localStorage.setItem('lifeos_habits', JSON.stringify(updatedHabits));
+        setIsSettingsOpen(false);
+    }
+  };
+
   if (!waterHabit) return null;
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
@@ -132,9 +158,45 @@ function WaterIntakeWidget() {
                 <p className="text-xl font-bold">{mlToday}ml <span className="text-base font-normal text-muted-foreground">/ {WATER_TARGET_ML}ml</span></p>
             </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-            {glassesToday} of {TARGET_GLASSES} glasses
-        </p>
+        <div className="flex items-center gap-1">
+            <p className="text-sm text-muted-foreground">
+                {glassesToday} of {TARGET_GLASSES} glasses
+            </p>
+             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                <DialogTrigger asChild>
+                     <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <Settings className="h-4 w-4" />
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Set Water Intake Goal</DialogTitle>
+                        <DialogDescription>
+                            How many glasses of water (250ml each) do you aim to drink daily?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                             <Label htmlFor="water-target">Daily Glasses Target</Label>
+                             <Input
+                                id="water-target"
+                                type="number"
+                                value={newTargetInput}
+                                onChange={(e) => setNewTargetInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleTargetSave();
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleTargetSave}>Save Goal</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     </div>
   );
 }
