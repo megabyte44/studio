@@ -45,7 +45,7 @@ const augmentWorkoutSplit = (split: CyclicalWorkoutSplit): CyclicalWorkoutSplit 
         newSplit[dayKey] = {
             ...dayData,
             exercises: dayData.exercises.map(ex => ({
-                id: ex.id || `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                id: ex.id || crypto.randomUUID(),
                 ...ex,
                 kValue: ex.kValue || 0.5,
                 baselineWeight: ex.baselineWeight || 0,
@@ -95,13 +95,13 @@ function GymTracker({
     loggedFoodItems, setLoggedFoodItems,
     proteinTarget, setProteinTarget,
     customFoodItems, setCustomFoodItems,
-    onManageCustomFoodItems,
     cyclicalWorkoutSplit, setCyclicalWorkoutSplit,
     cycleConfig, setCycleConfig,
+    onManageCustomFoodItems,
+    onManagePlan,
     onToggleWorkoutCompletion,
     isTodayCompleted,
     todaysWorkoutInfo,
-    onManagePlan,
     onOpenOverloadTracker,
 }: GymTrackerProps & { 
     onManageCustomFoodItems: () => void,
@@ -697,10 +697,10 @@ function GymSettingsDialog({
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-medium text-xs">Exercises</h4>
-                           <ScrollArea className="max-h-64 pr-2">
-                            <div className="space-y-1">
+                           <ScrollArea className="h-64 rounded-md border p-1.5">
+                            <div className="space-y-2 pr-2">
                               {dayData.exercises.map((ex, exIndex) => (
-                                <div key={ex.id || exIndex} className="border-t pt-2">
+                                <div key={ex.id || crypto.randomUUID()} className="border-t pt-2 first:border-t-0 first:pt-0">
                                   <div className="flex items-center gap-1">
                                     <Input
                                       placeholder="Name"
@@ -757,7 +757,7 @@ function GymSettingsDialog({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-7 px-2 text-xs mt-2"
                             onClick={() => handleAddExercise(dayKey)}
                           >
                             Add Exercise
@@ -1717,7 +1717,5 @@ function AddHabitDialog({
         </Dialog>
     );
 }
-
-
 
     
