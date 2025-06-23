@@ -45,7 +45,7 @@ const augmentWorkoutSplit = (split: CyclicalWorkoutSplit): CyclicalWorkoutSplit 
         newSplit[dayKey] = {
             ...dayData,
             exercises: dayData.exercises.map(ex => ({
-                id: `ex-${Math.random().toString(36).substr(2, 9)}`,
+                id: ex.id || `ex-${Math.random().toString(36).substr(2, 9)}`,
                 ...ex,
                 kValue: ex.kValue || 0.5,
                 baselineWeight: ex.baselineWeight || 0,
@@ -61,9 +61,9 @@ const augmentWorkoutSplit = (split: CyclicalWorkoutSplit): CyclicalWorkoutSplit 
 
 // --- Initial Data for Gym Tracker ---
 const initialWorkoutSplitRaw: CyclicalWorkoutSplit = {
-  "Day 1": { title: "Push Day (Chest, Shoulders, Triceps)", exercises: [{ name: "Bench Press", sets: "3-4" }, { name: "Overhead Press", sets: "3" }, { name: "Incline Dumbbell Press", sets: "3" }, { name: "Tricep Dips/Pushdowns", sets: "3" }, { name: "Lateral Raises", sets: "3" }] },
-  "Day 2": { title: "Pull Day (Back, Biceps)", exercises: [{ name: "Pull-ups/Lat Pulldowns", sets: "3-4" }, { name: "Bent-over Rows", sets: "3" }, { name: "Seated Cable Rows", sets: "3" }, { name: "Barbell Curls", sets: "3" }, { name: "Face Pulls", sets: "3" }] },
-  "Day 3": { title: "Leg Day (Quads, Hamstrings, Calves)", exercises: [{ name: "Squats", sets: "3-4" }, { name: "Romanian Deadlifts", sets: "3" }, { name: "Leg Press", sets: "3" }, { name: "Leg Curls", sets: "3" }, { name: "Calf Raises", sets: "3" }] },
+  "Day 1": { title: "Push Day (Chest, Shoulders, Triceps)", exercises: [{ id: 'ex-1', name: "Bench Press", sets: "3-4" }, { id: 'ex-2', name: "Overhead Press", sets: "3" }, { id: 'ex-3', name: "Incline Dumbbell Press", sets: "3" }, { id: 'ex-4', name: "Tricep Dips/Pushdowns", sets: "3" }, { id: 'ex-5', name: "Lateral Raises", sets: "3" }] },
+  "Day 2": { title: "Pull Day (Back, Biceps)", exercises: [{ id: 'ex-6', name: "Pull-ups/Lat Pulldowns", sets: "3-4" }, { id: 'ex-7', name: "Bent-over Rows", sets: "3" }, { id: 'ex-8', name: "Seated Cable Rows", sets: "3" }, { id: 'ex-9', name: "Barbell Curls", sets: "3" }, { id: 'ex-10', name: "Face Pulls", sets: "3" }] },
+  "Day 3": { title: "Leg Day (Quads, Hamstrings, Calves)", exercises: [{ id: 'ex-11', name: "Squats", sets: "3-4" }, { id: 'ex-12', name: "Romanian Deadlifts", sets: "3" }, { id: 'ex-13', name: "Leg Press", sets: "3" }, { id: 'ex-14', name: "Leg Curls", sets: "3" }, { id: 'ex-15', name: "Calf Raises", sets: "3" }] },
   "Day 4 (Rest)": { title: "Rest or Active Recovery", exercises: [] },
 };
 const initialWorkoutSplit = augmentWorkoutSplit(initialWorkoutSplitRaw);
@@ -584,7 +584,7 @@ function GymSettingsDialog({
       const newExercise: Exercise = {
         id: `ex-${Date.now()}`,
         name: 'New Exercise',
-        sets: '3',
+        sets: '',
         kValue: 0.5,
         baselineWeight: 0,
         baselineReps: 0,
@@ -663,6 +663,7 @@ function GymSettingsDialog({
                             {dayKey}: {dayData.title}
                           </span>
                           <Button
+                            asChild
                             variant="ghost"
                             size="icon"
                             className="mr-2 h-6 w-6"
@@ -671,7 +672,9 @@ function GymSettingsDialog({
                               handleDeleteDay(dayKey);
                             }}
                           >
-                            <Trash2 className="h-3 w-3 text-destructive" />
+                            <span>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </span>
                           </Button>
                         </div>
                       </AccordionTrigger>
