@@ -489,7 +489,7 @@ const useWorkoutDayInfo = (cyclicalWorkoutSplit: CyclicalWorkoutSplit, cycleConf
         const currentDayIndexInCycle = (startIndexInCycle + daysSinceStart) % cycleLength;
         const workoutKey = cycleWorkoutKeys[currentDayIndexInCycle];
         const workoutData = cyclicalWorkoutSplit[workoutKey] || { title: "Undefined Workout", exercises: [] };
-        const isRestDay = workoutData.exercises.length === 0 || workoutData.title.toLowerCase().includes("rest");
+        const isRestDay = workoutData.exercises.length === 0;
 
         return { key: workoutKey, ...workoutData, isRestDay };
     }, [cyclicalWorkoutSplit, cycleConfig]);
@@ -500,7 +500,7 @@ function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onE
     return (
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="overload-setup" className="border-none">
-                <AccordionTrigger className="py-1 hover:no-underline justify-end text-xs font-semibold">
+                <AccordionTrigger className="py-1 hover:no-underline justify-end text-xs font-semibold text-black dark:text-white">
                     <Settings className="h-4 w-4 text-muted-foreground" />
                 </AccordionTrigger>
                 <AccordionContent className="space-y-1.5 pt-1">
@@ -672,7 +672,7 @@ function GymSettingsDialog({
                                   handleDeleteDay(dayKey);
                                 }}
                               >
-                                <span>
+                                <span role="button" aria-label={`Delete ${dayKey}`}>
                                   <Trash2 className="h-3 w-3 text-destructive" />
                                 </span>
                             </Button>
@@ -693,6 +693,7 @@ function GymSettingsDialog({
                               handleDayTitleChange(dayKey, e.target.value)
                             }
                             className="h-7 text-xs"
+                            disabled={!dayData.exercises || dayData.exercises.length === 0}
                           />
                         </div>
                         <div className="space-y-1">
@@ -1081,11 +1082,11 @@ function OverloadTrackerDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
-                <DialogHeader className="p-4 border-b">
+            <DialogContent className="w-[95vw] sm:max-w-2xl h-[85vh] flex flex-col p-0">
+                <DialogHeader className="p-2 sm:p-4 border-b">
                     <DialogTitle>Progressive Overload Tracker</DialogTitle>
                 </DialogHeader>
-                <div className="flex-grow grid md:grid-cols-2 gap-4 p-4 overflow-y-auto">
+                <div className="flex-grow grid md:grid-cols-2 gap-2 sm:gap-4 p-2 sm:p-4 overflow-y-auto">
                     {/* Left Column: Controls & Feedback */}
                     <div className="space-y-4">
                         <div className="space-y-2">
@@ -1112,10 +1113,10 @@ function OverloadTrackerDialog({
                         {selectedExercise && (
                             <>
                                 <Card>
-                                    <CardHeader className="p-4">
+                                    <CardHeader className="p-2 sm:p-4">
                                         <CardTitle className="text-lg">Log New Session for {selectedExercise.name}</CardTitle>
                                     </CardHeader>
-                                    <CardContent className="p-4 pt-0 space-y-2">
+                                    <CardContent className="p-2 sm:p-4 pt-0 space-y-2">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div><Label htmlFor="session-weight">Weight (kg)</Label><Input id="session-weight" type="number" placeholder="e.g., 65" value={sessionWeight} onChange={e => setSessionWeight(e.target.value)} /></div>
                                             <div><Label htmlFor="session-reps">Reps</Label><Input id="session-reps" type="number" placeholder="e.g., 8" value={sessionReps} onChange={e => setSessionReps(e.target.value)} /></div>
@@ -1125,10 +1126,10 @@ function OverloadTrackerDialog({
                                 </Card>
 
                                 <Card>
-                                    <CardHeader className="p-4">
+                                    <CardHeader className="p-2 sm:p-4">
                                         <CardTitle className="text-lg">Latest Session Feedback</CardTitle>
                                     </CardHeader>
-                                    <CardContent className="p-4 pt-0 text-center">
+                                    <CardContent className="p-2 sm:p-4 pt-0 text-center">
                                        {latestResult && latestResult.session > 1 ? (
                                            <>
                                             <div className="text-3xl font-bold text-primary">{latestResult.weight}kg x {latestResult.reps}</div>
@@ -1145,8 +1146,8 @@ function OverloadTrackerDialog({
                        {selectedExercise && overloadResults.length > 0 && (
                         <>
                              <Card>
-                                <CardHeader className="p-4"><CardTitle className="text-lg">Progress Trend</CardTitle></CardHeader>
-                                <CardContent className="p-4 pt-0 h-64">
+                                <CardHeader className="p-2 sm:p-4"><CardTitle className="text-lg">Progress Trend</CardTitle></CardHeader>
+                                <CardContent className="p-2 sm:p-4 pt-0 h-64">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <LineChart data={overloadResults} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray="3 3" />
@@ -1159,8 +1160,8 @@ function OverloadTrackerDialog({
                                 </CardContent>
                             </Card>
                              <Card>
-                                <CardHeader className="p-4"><CardTitle className="text-lg">Session History</CardTitle></CardHeader>
-                                <CardContent className="p-4 pt-0">
+                                <CardHeader className="p-2 sm:p-4"><CardTitle className="text-lg">Session History</CardTitle></CardHeader>
+                                <CardContent className="p-2 sm:p-4 pt-0">
                                     <ScrollArea className="h-64">
                                         <Table>
                                             <TableHeader>
@@ -1192,7 +1193,7 @@ function OverloadTrackerDialog({
                        {!selectedExercise && <div className="flex items-center justify-center h-full text-muted-foreground">Please select an exercise to view its data.</div>}
                     </div>
                 </div>
-                <DialogFooter className="p-4 border-t">
+                <DialogFooter className="p-2 sm:p-4 border-t">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
                 </DialogFooter>
             </DialogContent>
@@ -1216,7 +1217,7 @@ export default function HabitsPage() {
   const [loggedFoodItems, setLoggedFoodItems] = useState<LoggedFoodItem[]>([]);
   const [proteinTarget, setProteinTarget] = useState(150);
   const [customFoodItems, setCustomFoodItems] = useState<string[]>(initialCustomFoodItems);
-  const [cyclicalWorkoutSplit, setCyclicalWorkoutSplit] = useState<CyclicalWorkoutSplit>(initialWorkoutSplit);
+  const [cyclicalWorkoutSplit, setCyclicalWorkoutSplit] = useState<CyclicalWorkoutSplit>({});
   const [cycleConfig, setCycleConfig] = useState<CycleConfig>({ startDate: format(new Date(), 'yyyy-MM-dd'), startDayKey: "Day 1" });
 
   // Dialog states for GymTracker
