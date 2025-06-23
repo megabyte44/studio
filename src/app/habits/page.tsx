@@ -618,6 +618,93 @@ function GymSettingsDialog({
     )
 }
 
+function FoodManagerDialog({
+    isOpen,
+    onOpenChange,
+    customItems,
+    setCustomItems,
+}: {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    customItems: string[];
+    setCustomItems: (items: string[]) => void;
+}) {
+    const { toast } = useToast();
+    const [newItem, setNewItem] = useState('');
+
+    const handleAddItem = () => {
+        if (!newItem.trim()) {
+            toast({ title: 'Item name cannot be empty', variant: 'destructive' });
+            return;
+        }
+        if (customItems.map(i => i.toLowerCase()).includes(newItem.trim().toLowerCase())) {
+            toast({ title: 'Item already exists', variant: 'destructive' });
+            return;
+        }
+        setCustomItems([...customItems, newItem.trim()]);
+        setNewItem('');
+        toast({ title: 'Item Added', description: `"${newItem.trim()}" has been added.` });
+    };
+
+    const handleDeleteItem = (itemToDelete: string) => {
+        setCustomItems(customItems.filter(item => item !== itemToDelete));
+        toast({ title: 'Item Removed', description: `"${itemToDelete}" has been removed.` });
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Manage Quick-Log Items</DialogTitle>
+                    <DialogDescription>
+                        Add or remove food and supplement items for quick logging.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="flex gap-2">
+                        <Input
+                            placeholder="e.g., Creatine"
+                            value={newItem}
+                            onChange={(e) => setNewItem(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddItem();
+                            }}
+                        />
+                        <Button onClick={handleAddItem}><Plus className="h-4 w-4" /> Add</Button>
+                    </div>
+                    <Separator />
+                    <ScrollArea className="h-64">
+                        <div className="space-y-2 pr-4">
+                            {customItems.length > 0 ? (
+                                customItems.map(item => (
+                                    <div key={item} className="flex items-center justify-between rounded-md bg-muted p-2">
+                                        <span className="text-sm font-medium">{item}</span>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-destructive"
+                                            onClick={() => handleDeleteItem(item)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-center text-sm text-muted-foreground pt-8">
+                                    No custom items yet.
+                                </p>
+                            )}
+                        </div>
+                    </ScrollArea>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 export default function HabitsPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -736,7 +823,7 @@ export default function HabitsPage() {
         const newHabits = currentHabits.map(habit => {
             if (!habit) return habit;
             let newCompletions = { ...habit.completions };
-            let changedInThisHabit = false;
+            let changedInThisHabit = changedInThisHabit || false;
 
             // Sync Protein Streak
             if (habit.icon === 'Beef') {
@@ -873,7 +960,7 @@ export default function HabitsPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <header className="flex items-center justify-between">
+        <header>
           <h1 className="text-xl font-bold font-headline">Habit Tracker</h1>
         </header>
         
@@ -1006,6 +1093,12 @@ export default function HabitsPage() {
             toast({ title: 'Gym settings saved!' });
         }}
       />
+       <FoodManagerDialog
+        isOpen={isFoodManagerOpen}
+        onOpenChange={setIsFoodManagerOpen}
+        customItems={customFoodItems}
+        setCustomItems={setCustomFoodItems}
+       />
        <AlertDialog open={!!habitToDelete} onOpenChange={() => setHabitToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -1119,3 +1212,6 @@ function AddHabitDialog({
 
     
 
+
+
+    
