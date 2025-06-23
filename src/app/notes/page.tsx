@@ -171,7 +171,6 @@ function EditNoteCard({
 }) {
   const { toast } = useToast();
   const [title, setTitle] = useState(note.title);
-  const [type, setType] = useState(note.type);
   const [textContent, setTextContent] = useState(typeof note.content === 'string' ? note.content : '');
   const [checklistItems, setChecklistItems] = useState(Array.isArray(note.content) ? [...note.content] : [{ text: '', completed: false }]);
 
@@ -203,11 +202,11 @@ function EditNoteCard({
       toast({ title: "Title is required", variant: "destructive" });
       return;
     }
-    const content = type === 'text' 
+    const content = note.type === 'text' 
       ? textContent 
       : checklistItems.filter(item => item.text.trim() !== '');
 
-    if ((type === 'text' && (content as string).trim() === '') || (type === 'checklist' && (content as any[]).length === 0)) {
+    if ((note.type === 'text' && (content as string).trim() === '') || (note.type === 'checklist' && (content as any[]).length === 0)) {
         toast({ title: "Note content cannot be empty", variant: "destructive" });
         return;
     }
@@ -216,7 +215,7 @@ function EditNoteCard({
       ...note,
       title,
       content,
-      type,
+      type: note.type,
     };
     onSave(updatedNote);
   };
@@ -232,24 +231,18 @@ function EditNoteCard({
             className="text-lg font-headline font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto" 
           />
         </div>
-        <Select value={type} onValueChange={(v) => setType(v as 'text' | 'checklist')}>
-            <SelectTrigger className="w-[180px] h-8 text-xs">
-                <SelectValue placeholder="Note Type" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="text">Text Note</SelectItem>
-                <SelectItem value="checklist">Checklist</SelectItem>
-            </SelectContent>
-        </Select>
+        <Badge variant="outline" className="capitalize w-fit">{note.type} Note</Badge>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col">
-        {type === 'text' ? (
-          <Textarea
-            placeholder="Type your note here..."
-            className="flex-grow resize-none border-0 focus-visible:ring-0 p-0"
-            value={textContent}
-            onChange={(e) => setTextContent(e.target.value)}
-          />
+      <CardContent className="flex-grow flex flex-col min-h-0">
+        {note.type === 'text' ? (
+           <ScrollArea className="flex-grow pr-4">
+            <Textarea
+              placeholder="Type your note here..."
+              className="flex-grow resize-none w-full min-h-[200px] rounded-md border border-input bg-transparent px-3 py-2 text-base md:text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              value={textContent}
+              onChange={(e) => setTextContent(e.target.value)}
+            />
+          </ScrollArea>
         ) : (
           <ScrollArea className="flex-grow h-48 pr-4">
             <div className="space-y-2">
@@ -260,9 +253,8 @@ function EditNoteCard({
                     value={item.text}
                     onChange={(e) => handleItemTextChange(index, e.target.value)}
                     placeholder={`List item ${index + 1}`}
-                    className="h-8"
                   />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive flex-shrink-0" onClick={() => handleRemoveItem(index)} disabled={checklistItems.length <= 1}>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive flex-shrink-0" onClick={() => handleRemoveItem(index)} disabled={checklistItems.length <= 1}>
                       <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
