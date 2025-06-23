@@ -710,10 +710,6 @@ export default function HabitsPage() {
       <div className="space-y-6">
         <header className="flex items-center justify-between">
           <h1 className="text-2xl font-bold font-headline">Habit & Gym Tracker</h1>
-          <Button onClick={() => setIsAddHabitDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Habit
-          </Button>
         </header>
         
         <Separator />
