@@ -96,7 +96,8 @@ function GymTracker({
     proteinTarget, setProteinTarget,
     customFoodItems, setCustomFoodItems,
     onManageCustomFoodItems,
-    cyclicalWorkoutSplit, cycleConfig,
+    cyclicalWorkoutSplit, setCyclicalWorkoutSplit,
+    cycleConfig, setCycleConfig,
     onToggleWorkoutCompletion,
     isTodayCompleted,
     todaysWorkoutInfo,
@@ -524,192 +525,343 @@ function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onE
     )
 }
 
-function GymSettingsDialog({ 
-    isOpen, 
-    onOpenChange, 
-    workoutSplit, 
-    cycleConfig, 
-    onSave 
+function GymSettingsDialog({
+  isOpen,
+  onOpenChange,
+  workoutSplit,
+  cycleConfig,
+  onSave,
 }: {
-    isOpen: boolean;
-    onOpenChange: (isOpen: boolean) => void;
-    workoutSplit: CyclicalWorkoutSplit;
-    cycleConfig: CycleConfig;
-    onSave: (newSplit: CyclicalWorkoutSplit, newConfig: CycleConfig) => void;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  workoutSplit: CyclicalWorkoutSplit;
+  cycleConfig: CycleConfig;
+  onSave: (newSplit: CyclicalWorkoutSplit, newConfig: CycleConfig) => void;
 }) {
-    const [editedSplit, setEditedSplit] = useState<CyclicalWorkoutSplit>({});
-    const [editedConfig, setEditedConfig] = useState<CycleConfig>({ startDate: '', startDayKey: '' });
+  const [editedSplit, setEditedSplit] = useState<CyclicalWorkoutSplit>({});
+  const [editedConfig, setEditedConfig] = useState<CycleConfig>({
+    startDate: '',
+    startDayKey: '',
+  });
 
-    useEffect(() => {
-        if (isOpen) {
-            setEditedSplit(JSON.parse(JSON.stringify(workoutSplit)));
-            setEditedConfig(JSON.parse(JSON.stringify(cycleConfig)));
-        }
-    }, [isOpen, workoutSplit, cycleConfig]);
-    
-    const handleDayTitleChange = (dayKey: string, newTitle: string) => {
-        setEditedSplit(prev => ({ ...prev, [dayKey]: { ...prev[dayKey], title: newTitle }}));
-    };
+  useEffect(() => {
+    if (isOpen) {
+      setEditedSplit(JSON.parse(JSON.stringify(workoutSplit)));
+      setEditedConfig(JSON.parse(JSON.stringify(cycleConfig)));
+    }
+  }, [isOpen, workoutSplit, cycleConfig]);
 
-    const handleExerciseChange = (dayKey: string, exIndex: number, field: keyof Exercise, value: any) => {
-        setEditedSplit(prev => {
-            const newSplit = JSON.parse(JSON.stringify(prev));
-            const exercise = newSplit[dayKey].exercises[exIndex];
-            if (typeof value === 'number' && isNaN(value)) {
-                exercise[field] = undefined;
-            } else {
-                exercise[field] = value;
-            }
-            return newSplit;
-        });
-    };
+  const handleDayTitleChange = (dayKey: string, newTitle: string) => {
+    setEditedSplit((prev) => ({
+      ...prev,
+      [dayKey]: { ...prev[dayKey], title: newTitle },
+    }));
+  };
 
-    const handleAddExercise = (dayKey: string) => {
-        setEditedSplit(prev => {
-            const newSplit = { ...prev };
-            const newExercise: Exercise = { 
-                id: `ex-${Date.now()}`,
-                name: 'New Exercise', 
-                sets: '3', 
-                reps: '10',
-                kValue: 0.5,
-                baselineWeight: 0,
-                baselineReps: 0,
-                targetWeight: 0,
-                targetReps: 0,
-                sessionHistory: [],
-            };
-            newSplit[dayKey].exercises.push(newExercise);
-            return newSplit;
-        });
-    };
-    
-    const handleDeleteExercise = (dayKey: string, exIndex: number) => {
-        setEditedSplit(prev => {
-            const newSplit = { ...prev };
-            newSplit[dayKey].exercises.splice(exIndex, 1);
-            return newSplit;
-        });
-    };
-    
-    const handleAddDay = () => {
-        setEditedSplit(prev => {
-            const newDayKey = `Day ${Object.keys(prev).length + 1}`;
-            return { ...prev, [newDayKey]: { title: 'New Workout Day', exercises: [] }};
-        });
-    };
-    
-    const handleDeleteDay = (dayKey: string) => {
-        setEditedSplit(prev => {
-            const newSplit = { ...prev };
-            delete newSplit[dayKey];
-            // Also unset startDayKey if it was the deleted day
-            if (editedConfig.startDayKey === dayKey) {
-                setEditedConfig(c => ({...c, startDayKey: ''}));
-            }
-            return newSplit;
-        });
-    };
-    
-    const handleSaveChanges = () => {
-        onSave(editedSplit, editedConfig);
-    };
+  const handleExerciseChange = (
+    dayKey: string,
+    exIndex: number,
+    field: keyof Exercise,
+    value: any
+  ) => {
+    setEditedSplit((prev) => {
+      const newSplit = JSON.parse(JSON.stringify(prev));
+      const exercise = newSplit[dayKey].exercises[exIndex];
+      if (typeof value === 'number' && isNaN(value)) {
+        exercise[field] = undefined;
+      } else {
+        exercise[field] = value;
+      }
+      return newSplit;
+    });
+  };
 
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[95vw] max-w-lg rounded-lg p-1">
-                <DialogHeader className="p-2 pb-0">
-                    <DialogTitle className="text-base">Manage Gym Plan</DialogTitle>
-                    <DialogDescription className="text-xs">
-                        Edit your workout plan and cycle configuration.
-                    </DialogDescription>
-                </DialogHeader>
+  const handleAddExercise = (dayKey: string) => {
+    setEditedSplit((prev) => {
+      const newSplit = { ...prev };
+      const newExercise: Exercise = {
+        id: `ex-${Date.now()}`,
+        name: 'New Exercise',
+        sets: '3',
+        reps: '10',
+        kValue: 0.5,
+        baselineWeight: 0,
+        baselineReps: 0,
+        targetWeight: 0,
+        targetReps: 0,
+        sessionHistory: [],
+      };
+      newSplit[dayKey].exercises.push(newExercise);
+      return newSplit;
+    });
+  };
 
-                <div className="p-1">
-                    <ScrollArea className="max-h-[60vh] pr-2 -mr-2">
-                        <Tabs defaultValue="plan" className="w-full">
-                            <TabsList className="h-8">
-                                <TabsTrigger value="plan" className="text-xs px-2 py-1">Workout Plan</TabsTrigger>
-                                <TabsTrigger value="cycle" className="text-xs px-2 py-1">Cycle Configuration</TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="plan" className="mt-2">
-                                    <Accordion type="multiple" className="w-full space-y-1">
-                                        {Object.entries(editedSplit).map(([dayKey, dayData]) => (
-                                            <AccordionItem value={dayKey} key={dayKey} className="border rounded-md px-2">
-                                                <AccordionTrigger className="py-1.5 hover:no-underline">
-                                                    <div className="flex justify-between items-center w-full">
-                                                        <span className="text-xs font-medium">{dayKey}: {dayData.title}</span>
-                                                        <Button variant="ghost" size="icon" className="mr-2 h-6 w-6" onClick={(e) => { e.stopPropagation(); handleDeleteDay(dayKey); }}>
-                                                            <Trash2 className="h-3 w-3 text-destructive" />
-                                                        </Button>
-                                                    </div>
-                                                </AccordionTrigger>
-                                                <AccordionContent className="space-y-2 pb-2">
-                                                    <div>
-                                                        <Label htmlFor={`title-${dayKey}`} className="text-xs">Day Title</Label>
-                                                        <Input id={`title-${dayKey}`} value={dayData.title} onChange={(e) => handleDayTitleChange(dayKey, e.target.value)} className="h-7 text-xs" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <h4 className="font-medium text-xs">Exercises</h4>
-                                                        {dayData.exercises.map((ex, exIndex) => (
-                                                            <div key={ex.id} className="border-t pt-2">
-                                                                <div className="flex items-center gap-1">
-                                                                    <Input placeholder="Name" value={ex.name} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'name', e.target.value)} className="flex-grow h-7 text-xs"/>
-                                                                    <Input placeholder="Sets" value={ex.sets} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'sets', e.target.value)} className="w-14 h-7 text-xs"/>
-                                                                    <Input placeholder="Reps" value={ex.reps} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'reps', e.target.value)} className="w-14 h-7 text-xs"/>
-                                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteExercise(dayKey, exIndex)}>
-                                                                        <Trash2 className="h-3 w-3 text-destructive"/>
-                                                                    </Button>
-                                                                </div>
-                                                                <OverloadSetup exercise={ex} onExerciseChange={(field, value) => handleExerciseChange(dayKey, exIndex, field, value)} />
-                                                            </div>
-                                                        ))}
-                                                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddExercise(dayKey)}>Add Exercise</Button>
-                                                    </div>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        ))}
-                                    </Accordion>
-                                    <Button variant="secondary" size="sm" className="mt-2 h-7 px-2 text-xs" onClick={handleAddDay}>Add Workout Day</Button>
-                            </TabsContent>
-                            <TabsContent value="cycle" className="mt-2">
-                                 <div className="space-y-2">
-                                    <div>
-                                        <Label className="text-xs">Cycle Start Date</Label>
-                                        <p className="text-xs text-muted-foreground">Select the date your cycle begins.</p>
-                                        <Calendar
-                                            mode="single"
-                                            selected={editedConfig.startDate ? parseISO(editedConfig.startDate) : new Date()}
-                                            onSelect={(date) => date && setEditedConfig(prev => ({...prev, startDate: format(date, 'yyyy-MM-dd')}))}
-                                            className="rounded-md border p-0"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs">Starting Day of Cycle</Label>
-                                        <p className="text-xs text-muted-foreground">Select which workout corresponds to the start date.</p>
-                                        <Select value={editedConfig.startDayKey} onValueChange={(value) => setEditedConfig(prev => ({...prev, startDayKey: value}))}>
-                                            <SelectTrigger className="h-7 text-xs">
-                                                <SelectValue placeholder="Select a day" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.keys(editedSplit).map(dayKey => (
-                                                    <SelectItem key={dayKey} value={dayKey} className="text-xs">{dayKey}: {editedSplit[dayKey].title}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            </TabsContent>
-                        </Tabs>
-                    </ScrollArea>
+  const handleDeleteExercise = (dayKey: string, exIndex: number) => {
+    setEditedSplit((prev) => {
+      const newSplit = { ...prev };
+      newSplit[dayKey].exercises.splice(exIndex, 1);
+      return newSplit;
+    });
+  };
+
+  const handleAddDay = () => {
+    setEditedSplit((prev) => {
+      const newDayKey = `Day ${Object.keys(prev).length + 1}`;
+      return { ...prev, [newDayKey]: { title: 'New Workout Day', exercises: [] } };
+    });
+  };
+
+  const handleDeleteDay = (dayKey: string) => {
+    setEditedSplit((prev) => {
+      const newSplit = { ...prev };
+      delete newSplit[dayKey];
+      // Also unset startDayKey if it was the deleted day
+      if (editedConfig.startDayKey === dayKey) {
+        setEditedConfig((c) => ({ ...c, startDayKey: '' }));
+      }
+      return newSplit;
+    });
+  };
+
+  const handleSaveChanges = () => {
+    onSave(editedSplit, editedConfig);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[95vw] max-w-lg rounded-lg flex flex-col h-[80vh] p-0">
+        <DialogHeader className="p-2 border-b flex-shrink-0">
+          <DialogTitle className="text-base">Manage Gym Plan</DialogTitle>
+          <DialogDescription className="text-xs">
+            Edit your workout plan and cycle configuration.
+          </DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="flex-grow">
+          <div className="p-2">
+            <Tabs defaultValue="plan" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 h-8">
+                <TabsTrigger value="plan" className="text-xs px-2 py-1">
+                  Workout Plan
+                </TabsTrigger>
+                <TabsTrigger value="cycle" className="text-xs px-2 py-1">
+                  Cycle Configuration
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="plan" className="mt-2">
+                <Accordion type="multiple" className="w-full space-y-1">
+                  {Object.entries(editedSplit).map(([dayKey, dayData]) => (
+                    <AccordionItem
+                      value={dayKey}
+                      key={dayKey}
+                      className="border rounded-md px-2"
+                    >
+                      <AccordionTrigger className="py-1.5 hover:no-underline">
+                        <div className="flex justify-between items-center w-full">
+                          <span className="text-xs font-medium">
+                            {dayKey}: {dayData.title}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="mr-2 h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteDay(dayKey);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-2 pb-2">
+                        <div>
+                          <Label
+                            htmlFor={`title-${dayKey}`}
+                            className="text-xs"
+                          >
+                            Day Title
+                          </Label>
+                          <Input
+                            id={`title-${dayKey}`}
+                            value={dayData.title}
+                            onChange={(e) =>
+                              handleDayTitleChange(dayKey, e.target.value)
+                            }
+                            className="h-7 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="font-medium text-xs">Exercises</h4>
+                          {dayData.exercises.map((ex, exIndex) => (
+                            <div key={ex.id} className="border-t pt-2">
+                              <div className="flex items-center gap-1">
+                                <Input
+                                  placeholder="Name"
+                                  value={ex.name}
+                                  onChange={(e) =>
+                                    handleExerciseChange(
+                                      dayKey,
+                                      exIndex,
+                                      'name',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="flex-grow h-7 text-xs"
+                                />
+                                <Input
+                                  placeholder="Sets"
+                                  value={ex.sets}
+                                  onChange={(e) =>
+                                    handleExerciseChange(
+                                      dayKey,
+                                      exIndex,
+                                      'sets',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-14 h-7 text-xs"
+                                />
+                                <Input
+                                  placeholder="Reps"
+                                  value={ex.reps}
+                                  onChange={(e) =>
+                                    handleExerciseChange(
+                                      dayKey,
+                                      exIndex,
+                                      'reps',
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-14 h-7 text-xs"
+                                />
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() =>
+                                    handleDeleteExercise(dayKey, exIndex)
+                                  }
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </div>
+                              <OverloadSetup
+                                exercise={ex}
+                                onExerciseChange={(field, value) =>
+                                  handleExerciseChange(
+                                    dayKey,
+                                    exIndex,
+                                    field,
+                                    value
+                                  )
+                                }
+                              />
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => handleAddExercise(dayKey)}
+                          >
+                            Add Exercise
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-2 h-7 px-2 text-xs"
+                  onClick={handleAddDay}
+                >
+                  Add Workout Day
+                </Button>
+              </TabsContent>
+              <TabsContent value="cycle" className="mt-2">
+                <div className="space-y-2">
+                  <div>
+                    <Label className="text-xs">Cycle Start Date</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Select the date your cycle begins.
+                    </p>
+                    <Calendar
+                      mode="single"
+                      selected={
+                        editedConfig.startDate
+                          ? parseISO(editedConfig.startDate)
+                          : new Date()
+                      }
+                      onSelect={(date) =>
+                        date &&
+                        setEditedConfig((prev) => ({
+                          ...prev,
+                          startDate: format(date, 'yyyy-MM-dd'),
+                        }))
+                      }
+                      className="rounded-md border p-0"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">
+                      Starting Day of Cycle
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Select which workout corresponds to the start date.
+                    </p>
+                    <Select
+                      value={editedConfig.startDayKey}
+                      onValueChange={(value) =>
+                        setEditedConfig((prev) => ({
+                          ...prev,
+                          startDayKey: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="h-7 text-xs">
+                        <SelectValue placeholder="Select a day" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.keys(editedSplit).map((dayKey) => (
+                          <SelectItem
+                            key={dayKey}
+                            value={dayKey}
+                            className="text-xs"
+                          >
+                            {dayKey}: {editedSplit[dayKey].title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <DialogFooter className="p-1 pt-0">
-                    <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button size="sm" className="h-7 px-2 text-xs" onClick={handleSaveChanges}>Save Changes</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
+              </TabsContent>
+            </Tabs>
+          </div>
+        </ScrollArea>
+        <DialogFooter className="p-2 border-t flex-shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={handleSaveChanges}
+          >
+            Save Changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function FoodManagerDialog({
