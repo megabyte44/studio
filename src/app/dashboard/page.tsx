@@ -172,7 +172,7 @@ function WaterIntakeWidget() {
                     <DialogHeader>
                         <DialogTitle>Set Water Intake Goal</DialogTitle>
                         <DialogDescription>
-                            How many glasses of water (250ml each) do you aim to drink daily?
+                            1 glass 250ml ,drink minimum 8glasses
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2">
