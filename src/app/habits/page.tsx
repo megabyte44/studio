@@ -64,7 +64,7 @@ const initialWorkoutSplitRaw: CyclicalWorkoutSplit = {
   "Day 1": { title: "Push Day (Chest, Shoulders, Triceps)", exercises: [{ id: 'ex-1', name: "Bench Press", sets: "3-4" }, { id: 'ex-2', name: "Overhead Press", sets: "3" }, { id: 'ex-3', name: "Incline Dumbbell Press", sets: "3" }, { id: 'ex-4', name: "Tricep Dips/Pushdowns", sets: "3" }, { id: 'ex-5', name: "Lateral Raises", sets: "3" }] },
   "Day 2": { title: "Pull Day (Back, Biceps)", exercises: [{ id: 'ex-6', name: "Pull-ups/Lat Pulldowns", sets: "3-4" }, { id: 'ex-7', name: "Bent-over Rows", sets: "3" }, { id: 'ex-8', name: "Seated Cable Rows", sets: "3" }, { id: 'ex-9', name: "Barbell Curls", sets: "3" }, { id: 'ex-10', name: "Face Pulls", sets: "3" }] },
   "Day 3": { title: "Leg Day (Quads, Hamstrings, Calves)", exercises: [{ id: 'ex-11', name: "Squats", sets: "3-4" }, { id: 'ex-12', name: "Romanian Deadlifts", sets: "3" }, { id: 'ex-13', name: "Leg Press", sets: "3" }, { id: 'ex-14', name: "Leg Curls", sets: "3" }, { id: 'ex-15', name: "Calf Raises", sets: "3" }] },
-  "Day 4": { title: "Rest or Active Recovery", exercises: [] },
+  "Day 4": { title: "Rest Day", exercises: [] },
 };
 const initialWorkoutSplit = augmentWorkoutSplit(initialWorkoutSplitRaw);
 const initialCustomFoodItems = ["Protein Powder", "Creatine", "Oatmeal", "Eggs", "Chicken Breast", "Greek Yogurt"];
@@ -693,12 +693,11 @@ function GymSettingsDialog({
                               handleDayTitleChange(dayKey, e.target.value)
                             }
                             className="h-7 text-xs"
-                            disabled={!dayData.exercises || dayData.exercises.length === 0}
                           />
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-medium text-xs">Exercises</h4>
-                           <ScrollArea className="h-40 rounded-md border p-1.5">
+                           <ScrollArea className="h-48 rounded-md border p-1.5">
                             <div className="space-y-2 pr-2">
                               {dayData.exercises.map((ex, exIndex) => (
                                 <div key={ex.id || crypto.randomUUID()} className="border-t pt-2 first:border-t-0 first:pt-0">
@@ -960,12 +959,13 @@ function FoodManagerDialog({
 }
 
 function OverloadTrackerDialog({
-    isOpen, onOpenChange, workoutSplit, setWorkoutSplit
+    isOpen, onOpenChange, workoutSplit, setWorkoutSplit, todaysExercises
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     workoutSplit: CyclicalWorkoutSplit;
     setWorkoutSplit: (split: CyclicalWorkoutSplit) => void;
+    todaysExercises: Exercise[];
 }) {
     const { toast } = useToast();
     const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
@@ -977,8 +977,17 @@ function OverloadTrackerDialog({
     }, [workoutSplit]);
 
     const selectedExercise = useMemo(() => {
+        if (!selectedExerciseId) return null;
         return allExercises.find(ex => ex.id === selectedExerciseId) || null;
     }, [selectedExerciseId, allExercises]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setSelectedExerciseId(null);
+            setSessionWeight('');
+            setSessionReps('');
+        }
+    }, [isOpen]);
 
     // --- Core Logic Engine ---
     const calculateE1RM = (weight: number, reps: number) => weight * (1 + reps / 30);
@@ -1082,7 +1091,7 @@ function OverloadTrackerDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[95vw] sm:max-w-2xl h-[85vh] flex flex-col p-0">
+            <DialogContent className="w-[95vw] sm:max-w-2xl h-[90vh] md:h-[85vh] flex flex-col p-0">
                 <DialogHeader className="p-2 sm:p-4 border-b">
                     <DialogTitle>Progressive Overload Tracker</DialogTitle>
                 </DialogHeader>
@@ -1093,19 +1102,16 @@ function OverloadTrackerDialog({
                             <Label>Select Exercise to Track</Label>
                              <Select onValueChange={setSelectedExerciseId} value={selectedExerciseId || ""}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Choose an exercise..." />
+                                    <SelectValue placeholder="Choose today's exercise..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Object.entries(workoutSplit).map(([dayKey, day]) => (
-                                       day.exercises.length > 0 && (
-                                        <React.Fragment key={dayKey}>
-                                            <Label className="px-2 text-xs text-muted-foreground">{day.title}</Label>
-                                            {day.exercises.map(ex => (
-                                                <SelectItem key={ex.id} value={ex.id}>{ex.name}</SelectItem>
-                                            ))}
-                                        </React.Fragment>
-                                       )
-                                    ))}
+                                    {todaysExercises.length > 0 ? (
+                                        todaysExercises.map(ex => (
+                                            <SelectItem key={ex.id} value={ex.id}>{ex.name}</SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className="p-2 text-sm text-center text-muted-foreground">No exercises scheduled for today.</div>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -1142,55 +1148,67 @@ function OverloadTrackerDialog({
                         )}
                     </div>
                     {/* Right Column: Chart & History */}
-                    <div className="space-y-4">
-                       {selectedExercise && overloadResults.length > 0 && (
-                        <>
-                             <Card>
-                                <CardHeader className="p-2 sm:p-4"><CardTitle className="text-lg">Progress Trend</CardTitle></CardHeader>
-                                <CardContent className="p-2 sm:p-4 pt-0 h-64">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={overloadResults} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="session" tickFormatter={(val) => `S${val}`} />
-                                            <YAxis domain={[0, 'dataMax + 0.1']} />
-                                            <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}/>
-                                            <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-                             <Card>
-                                <CardHeader className="p-2 sm:p-4"><CardTitle className="text-lg">Session History</CardTitle></CardHeader>
-                                <CardContent className="p-2 sm:p-4 pt-0">
-                                    <ScrollArea className="h-64">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Session</TableHead>
-                                                    <TableHead>Weight</TableHead>
-                                                    <TableHead>Reps</TableHead>
-                                                    <TableHead>Trend</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {overloadResults.map((r, i) => (
-                                                    <TableRow key={i}>
-                                                        <TableCell>{r.session}</TableCell>
-                                                        <TableCell>{r.weight}kg</TableCell>
-                                                        <TableCell>{r.reps}</TableCell>
-                                                        <TableCell className={cn(r.scoreDelta > 0 && 'text-green-500', r.scoreDelta < 0 && 'text-red-500')}>
-                                                            {i > 0 ? (r.scoreDelta > 0 ? '▲' : r.scoreDelta < 0 ? '▼' : '–') : '–'}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </ScrollArea>
-                                </CardContent>
-                            </Card>
-                        </>
+                     <div className="space-y-4">
+                       {selectedExercise ? (
+                            overloadResults.length > 0 ? (
+                                <>
+                                     <Card>
+                                        <CardHeader className="p-2 sm:p-4"><CardTitle className="text-lg">Progress Trend</CardTitle></CardHeader>
+                                        <CardContent className="p-2 sm:p-4 pt-0 h-64">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <LineChart data={overloadResults} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="session" tickFormatter={(val) => `S${val}`} />
+                                                    <YAxis domain={[0, 'dataMax + 0.1']} />
+                                                    <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}/>
+                                                    <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </CardContent>
+                                    </Card>
+                                     <Card>
+                                        <CardHeader className="p-2 sm:p-4"><CardTitle className="text-lg">Session History</CardTitle></CardHeader>
+                                        <CardContent className="p-2 sm:p-4 pt-0">
+                                            <ScrollArea className="h-64">
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead>Session</TableHead>
+                                                            <TableHead>Weight</TableHead>
+                                                            <TableHead>Reps</TableHead>
+                                                            <TableHead>Trend</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {overloadResults.map((r, i) => (
+                                                            <TableRow key={i}>
+                                                                <TableCell>{r.session}</TableCell>
+                                                                <TableCell>{r.weight}kg</TableCell>
+                                                                <TableCell>{r.reps}</TableCell>
+                                                                <TableCell className={cn(r.scoreDelta > 0 && 'text-green-500', r.scoreDelta < 0 && 'text-red-500')}>
+                                                                    {i > 0 ? (r.scoreDelta > 0 ? '▲' : r.scoreDelta < 0 ? '▼' : '–') : '–'}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </ScrollArea>
+                                        </CardContent>
+                                    </Card>
+                                </>
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-muted-foreground text-center p-4">
+                                    Log a session to see your progress for {selectedExercise.name}.
+                                </div>
+                            )
+                       ) : (
+                            <div className="flex items-center justify-center h-full text-muted-foreground text-center p-4">
+                                {todaysExercises.length > 0
+                                    ? "Please select an exercise to view its data."
+                                    : "No exercises scheduled for today to track."
+                                }
+                            </div>
                        )}
-                       {!selectedExercise && <div className="flex items-center justify-center h-full text-muted-foreground">Please select an exercise to view its data.</div>}
                     </div>
                 </div>
                 <DialogFooter className="p-2 sm:p-4 border-t">
@@ -1609,6 +1627,7 @@ export default function HabitsPage() {
          onOpenChange={setIsOverloadTrackerOpen}
          workoutSplit={cyclicalWorkoutSplit}
          setWorkoutSplit={setCyclicalWorkoutSplit}
+         todaysExercises={todaysWorkoutInfo.exercises}
        />
        <AlertDialog open={!!habitToDelete} onOpenChange={() => setHabitToDelete(null)}>
             <AlertDialogContent>
