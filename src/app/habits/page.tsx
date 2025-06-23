@@ -107,7 +107,7 @@ function GymTracker({
                                 {todaysWorkoutInfo.exercises.map((ex, i) => (
                                     <li key={i} className="flex justify-between items-center p-3 rounded-md bg-muted/30">
                                         <span className="font-semibold">{ex.name}</span>
-                                        <span className="text-sm text-muted-foreground">Sets: {ex.sets}, Reps: {ex.reps}</span>
+                                        <span className="text-sm text-muted-foreground">Sets: {ex.sets}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -607,7 +607,7 @@ export default function HabitsPage() {
         return currentHabits;
     });
 
-  }, [proteinIntakes, proteinTarget, loggedFoodItems, customFoodItems, isLoading, habits]);
+  }, [proteinIntakes, proteinTarget, loggedFoodItems, customFoodItems, isLoading]);
 
 
   // --- Handlers ---
