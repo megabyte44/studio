@@ -582,7 +582,7 @@ function GymSettingsDialog({
     setEditedSplit((prev) => {
       const newSplit = { ...prev };
       const newExercise: Exercise = {
-        id: `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        id: crypto.randomUUID(),
         name: 'New Exercise',
         sets: '3-4',
         kValue: 0.5,
@@ -662,20 +662,20 @@ function GymSettingsDialog({
                           <span className="text-xs font-medium">
                             {dayKey}: {dayData.title}
                           </span>
-                          <Button
-                            asChild
-                            variant="ghost"
-                            size="icon"
-                            className="mr-2 h-6 w-6"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteDay(dayKey);
-                            }}
-                          >
-                            <span>
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </span>
-                          </Button>
+                           <Button
+                                asChild
+                                variant="ghost"
+                                size="icon"
+                                className="mr-2 h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteDay(dayKey);
+                                }}
+                              >
+                                <span>
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </span>
+                            </Button>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-2 pb-2">
