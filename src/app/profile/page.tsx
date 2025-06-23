@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -116,7 +115,7 @@ export default function ProfilePage() {
                     <Label>Your Avatar</Label>
                     <div className="flex items-center gap-4">
                         <Avatar className="h-20 w-20">
-                            <AvatarImage src="https://placehold.co/100x100.png" alt={usernameInput} data-ai-hint="avatar user" />
+                            <AvatarImage src="https://placehold.co/100x100.png" alt={usernameInput} data-ai-hint="profile silhouette" />
                             <AvatarFallback>{usernameInput ? usernameInput.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         <p className="text-sm text-muted-foreground">This is your display picture.</p>
