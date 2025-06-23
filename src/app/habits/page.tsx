@@ -505,6 +505,15 @@ export default function HabitsPage() {
           habitsToSet = P_HABITS;
       }
       
+      // Ensure all special habits from placeholder data are present
+      P_HABITS.forEach(ph => {
+          if (SPECIAL_HABIT_ICONS.includes(ph.icon)) {
+              if (!habitsToSet.some(h => h.icon === ph.icon)) {
+                  habitsToSet.push(ph);
+              }
+          }
+      });
+      
       setHabits(habitsToSet);
       
       const storedCycleConfig = localStorage.getItem('gym_cycle_config');
@@ -580,7 +589,8 @@ export default function HabitsPage() {
             // Sync Supplement Streak
             if (habit.icon === 'Pill') {
                 const todaysLogs = loggedFoodItems.filter(i => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
-                const isCompleted = todaysLogs.some(log => customFoodItems.includes(log.name));
+                const todaysLoggedNames = new Set(todaysLogs.map(log => log.name));
+                const isCompleted = customFoodItems.length > 0 && customFoodItems.every(item => todaysLoggedNames.has(item));
 
                 if (!!newCompletions[todayKey] !== isCompleted) {
                     if (isCompleted) newCompletions[todayKey] = true;
