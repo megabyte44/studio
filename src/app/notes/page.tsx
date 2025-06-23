@@ -17,10 +17,45 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
 
 const LOCAL_STORAGE_KEY_NOTES = 'lifeos_notes';
 
 type Layout = 'grid' | 'list';
+
+function ViewNoteDialog({ note, isOpen, onOpenChange }: { note: Note | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+    if (!note) return null;
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl font-headline">{note.title}</DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="max-h-[70vh] pr-6">
+                    <div className="py-4 text-base leading-relaxed">
+                        {note.type === 'text' && (
+                            <p className="whitespace-pre-wrap">{String(note.content)}</p>
+                        )}
+                        {note.type === 'checklist' && Array.isArray(note.content) && (
+                            <ul className="space-y-3">
+                                {note.content.map((item, index) => (
+                                    <li key={index} className="flex items-start gap-3">
+                                        <Checkbox checked={item.completed} disabled className="mt-1" />
+                                        <span className={cn("flex-1", item.completed && 'line-through text-muted-foreground')}>
+                                            {item.text}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 function NewNoteCard({ onSave, onCancel }: { onSave: (note: Omit<Note, 'id' | 'createdAt'>) => void; onCancel: () => void; }) {
   const { toast } = useToast();
@@ -255,33 +290,35 @@ function EditNoteCard({
 }
 
 
-function NoteCard({ note, onEdit }: { note: Note; onEdit: () => void }) {
+function NoteCard({ note, onEdit, onView }: { note: Note; onEdit: () => void; onView: () => void }) {
   return (
     <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
-      <CardHeader>
-        <CardTitle className="font-headline text-lg">{note.title}</CardTitle>
-        <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2">
-            <span>{format(parseISO(note.createdAt), 'MMM d, yyyy')}</span>
-            <Badge variant="outline" className="capitalize">{note.type}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col min-h-0">
-        <ScrollArea className="flex-grow pr-4">
-            {note.type === 'text' && (
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{String(note.content)}</p>
-            )}
-            {note.type === 'checklist' && Array.isArray(note.content) && (
-              <ul className="space-y-2">
-                {note.content.map((item, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Checkbox checked={item.completed} disabled />
-                    <span className={cn(item.completed && 'line-through text-muted-foreground')}>{item.text}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-        </ScrollArea>
-      </CardContent>
+      <div onClick={onView} className="cursor-pointer flex-grow flex flex-col min-h-0">
+          <CardHeader>
+            <CardTitle className="font-headline text-lg">{note.title}</CardTitle>
+            <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2">
+                <span>{format(parseISO(note.createdAt), 'MMM d, yyyy')}</span>
+                <Badge variant="outline" className="capitalize">{note.type}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow flex flex-col min-h-0">
+            <ScrollArea className="flex-grow pr-4">
+                {note.type === 'text' && (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{String(note.content)}</p>
+                )}
+                {note.type === 'checklist' && Array.isArray(note.content) && (
+                  <ul className="space-y-2">
+                    {note.content.map((item, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <Checkbox checked={item.completed} disabled />
+                        <span className={cn(item.completed && 'line-through text-muted-foreground')}>{item.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+            </ScrollArea>
+          </CardContent>
+      </div>
       <CardFooter className="pt-4 flex-shrink-0">
           <Button variant="outline" size="sm" className="w-full" onClick={onEdit}>
             <Edit className="mr-2 h-4 w-4" />
@@ -300,6 +337,7 @@ export default function NotesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
 
   useEffect(() => {
     try {
@@ -411,6 +449,10 @@ export default function NotesPage() {
               <NoteCard
                 key={note.id}
                 note={note}
+                onView={() => {
+                    if (isAddingNote || editingNoteId) return;
+                    setViewingNote(note)
+                }}
                 onEdit={() => {
                   if (isAddingNote) setIsAddingNote(false);
                   setEditingNoteId(note.id);
@@ -426,6 +468,11 @@ export default function NotesPage() {
             </div>
         )}
       </div>
+      <ViewNoteDialog
+        note={viewingNote}
+        isOpen={!!viewingNote}
+        onOpenChange={(open) => !open && setViewingNote(null)}
+       />
     </AppLayout>
   );
 }
