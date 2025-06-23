@@ -527,11 +527,11 @@ function GymSettingsDialog({
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
-                <DialogHeader className="p-6 pb-2">
+                <DialogHeader className="p-4 border-b">
                     <DialogTitle>Manage Gym Plan</DialogTitle>
                     <DialogDescription>Edit your workout plan and cycle configuration.</DialogDescription>
                 </DialogHeader>
-                <div className="flex-1 overflow-y-auto px-6 py-4">
+                <div className="flex-1 overflow-y-auto p-4">
                     <Tabs defaultValue="plan">
                         <TabsList>
                             <TabsTrigger value="plan">Workout Plan</TabsTrigger>
@@ -604,7 +604,7 @@ function GymSettingsDialog({
                         </TabsContent>
                     </Tabs>
                 </div>
-                <DialogFooter className="p-6 pt-2 border-t">
+                <DialogFooter className="p-4 border-t">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                     <Button onClick={handleSaveChanges}>Save Changes</Button>
                 </DialogFooter>
@@ -1110,3 +1110,4 @@ function AddHabitDialog({
     );
 }
 
+    
