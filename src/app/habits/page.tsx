@@ -527,9 +527,9 @@ function GymSettingsDialog({
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
-                <DialogHeader className="p-4 border-b">
-                    <DialogTitle>Manage Gym Plan</DialogTitle>
-                    <DialogDescription>Edit your workout plan and cycle configuration.</DialogDescription>
+                <DialogHeader className="p-2 border-b">
+                    <DialogTitle className="text-base">Manage Gym Plan</DialogTitle>
+                    <DialogDescription className="text-xs">Edit your workout plan and cycle configuration.</DialogDescription>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto p-4">
                     <Tabs defaultValue="plan">
