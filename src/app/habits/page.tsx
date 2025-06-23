@@ -823,7 +823,7 @@ export default function HabitsPage() {
         const newHabits = currentHabits.map(habit => {
             if (!habit) return habit;
             let newCompletions = { ...habit.completions };
-            let changedInThisHabit = changedInThisHabit || false;
+            let changedInThisHabit = false;
 
             // Sync Protein Streak
             if (habit.icon === 'Beef') {
@@ -1213,5 +1213,7 @@ function AddHabitDialog({
     
 
 
+
+    
 
     
