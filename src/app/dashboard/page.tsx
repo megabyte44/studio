@@ -313,15 +313,15 @@ function TodaysPlan() {
             <DialogTrigger asChild>
                 <Button variant="outline" className="w-full">View Full Planner</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
+            <DialogContent className="w-[95vw] max-w-sm rounded-xl p-0">
+                <DialogHeader className="p-4 pb-2">
                     <DialogTitle>Full Plan for {format(new Date(), 'EEEE')}</DialogTitle>
                     <DialogDescription>
                         Here is your complete schedule for today.
                     </DialogDescription>
                 </DialogHeader>
-                <ScrollArea className="max-h-[60vh] pr-6">
-                    <div className="py-4 space-y-3">
+                <ScrollArea className="max-h-[60vh]">
+                    <div className="space-y-3 p-4">
                     {routineItems.length > 0 ? (
                         routineItems.map((item) => (
                             <div key={item.id} className="p-3 rounded-lg bg-muted">
@@ -604,6 +604,8 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
+
+    
 
     
 
