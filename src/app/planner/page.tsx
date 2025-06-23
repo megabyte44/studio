@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -131,18 +132,18 @@ export default function PlannerPage() {
     return (
         <AppLayout>
             <TooltipProvider>
-                <div className="max-w-4xl mx-auto space-y-2">
-                    <header className="space-y-1">
+                <div className="space-y-4">
+                    <header>
                         <h1 className="text-xl font-bold font-headline">Daily Planner</h1>
                     </header>
 
                     <Card>
-                        <CardHeader className="p-3">
+                        <CardHeader className="p-4">
                             <CardTitle className="flex items-center justify-between">
-                                <span>Schedule for {selectedDay}</span>
+                                <span className="text-base font-semibold">Schedule for {selectedDay}</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-2 pt-0">
+                        <CardContent className="p-4 pt-0">
                             <div className="space-y-4">
                                 <div>
                                     <Label htmlFor="day-select">Select a day to view/add to:</Label>
@@ -156,7 +157,7 @@ export default function PlannerPage() {
                                     </Select>
                                 </div>
                                 
-                                <ScrollArea className="h-72 pr-4 border rounded-md p-2">
+                                <ScrollArea className="h-96 pr-4 border rounded-md p-2">
                                     {daySchedule.length > 0 ? (
                                         <div className="space-y-2">
                                             {daySchedule.map(item => (
