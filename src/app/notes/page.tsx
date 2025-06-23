@@ -1,19 +1,127 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import type { Note } from '@/types';
 import { P_NOTES } from '@/lib/placeholder-data';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Search, LayoutGrid, List } from 'lucide-react';
+import { PlusCircle, Search, LayoutGrid, List, Trash2, X, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { format, parseISO } from 'date-fns';
+import { format, formatISO, parseISO } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+const LOCAL_STORAGE_KEY_NOTES = 'lifeos_notes';
 
 type Layout = 'grid' | 'list';
+
+function NewNoteCard({ onSave, onCancel }: { onSave: (note: Omit<Note, 'id' | 'createdAt'>) => void; onCancel: () => void; }) {
+  const { toast } = useToast();
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState<'text' | 'checklist'>('text');
+  const [textContent, setTextContent] = useState('');
+  const [checklistItems, setChecklistItems] = useState<{ text: string; completed: boolean }[]>([{ text: '', completed: false }]);
+
+  const handleAddItem = () => {
+    setChecklistItems([...checklistItems, { text: '', completed: false }]);
+  };
+
+  const handleItemChange = (index: number, newText: string) => {
+    const newItems = [...checklistItems];
+    newItems[index].text = newText;
+    setChecklistItems(newItems);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    if (checklistItems.length > 1) {
+      const newItems = checklistItems.filter((_, i) => i !== index);
+      setChecklistItems(newItems);
+    }
+  };
+
+  const handleSaveClick = () => {
+    if (!title.trim()) {
+      toast({ title: "Title is required", variant: "destructive" });
+      return;
+    }
+    const content = type === 'text' 
+      ? textContent 
+      : checklistItems.filter(item => item.text.trim() !== '');
+
+    if ((type === 'text' && (content as string).trim() === '') || (type === 'checklist' && (content as any[]).length === 0)) {
+        toast({ title: "Note content cannot be empty", variant: "destructive" });
+        return;
+    }
+    onSave({ title, content, type });
+  };
+
+  return (
+    <Card className="flex flex-col h-full border-primary border-2 shadow-lg">
+      <CardHeader>
+        <div className="flex justify-between items-center gap-2">
+            <Input 
+              placeholder="Note Title..." 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              className="text-lg font-headline font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto" 
+            />
+            <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8"><X className="h-4 w-4" /></Button>
+        </div>
+        <Select value={type} onValueChange={(v) => setType(v as 'text' | 'checklist')}>
+            <SelectTrigger className="w-[180px] h-8 text-xs">
+                <SelectValue placeholder="Note Type" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="text">Text Note</SelectItem>
+                <SelectItem value="checklist">Checklist</SelectItem>
+            </SelectContent>
+        </Select>
+      </CardHeader>
+      <CardContent className="flex-grow flex flex-col">
+        {type === 'text' ? (
+          <Textarea
+            placeholder="Type your note here..."
+            className="flex-grow resize-none border-0 focus-visible:ring-0 p-0"
+            value={textContent}
+            onChange={(e) => setTextContent(e.target.value)}
+          />
+        ) : (
+          <ScrollArea className="flex-grow h-48 pr-4">
+            <div className="space-y-2">
+              {checklistItems.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Checkbox disabled />
+                  <Input
+                    value={item.text}
+                    onChange={(e) => handleItemChange(index, e.target.value)}
+                    placeholder={`List item ${index + 1}`}
+                    className="h-8"
+                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive flex-shrink-0" onClick={() => handleRemoveItem(index)} disabled={checklistItems.length <= 1}>
+                      <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={handleAddItem} className="mt-2">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Item
+              </Button>
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+      <CardFooter>
+        <Button onClick={handleSaveClick} className="w-full"><Save className="mr-2 h-4 w-4"/>Save Note</Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
 
 function NoteCard({ note, layout }: { note: Note; layout: Layout }) {
   return (
@@ -48,9 +156,45 @@ function NoteCard({ note, layout }: { note: Note; layout: Layout }) {
 }
 
 export default function NotesPage() {
-  const [notes, setNotes] = useState<Note[]>(P_NOTES);
+  const { toast } = useToast();
+  const [notes, setNotes] = useState<Note[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [layout, setLayout] = useState<Layout>('grid');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddingNote, setIsAddingNote] = useState(false);
+
+  useEffect(() => {
+    try {
+      const storedNotes = localStorage.getItem(LOCAL_STORAGE_KEY_NOTES);
+      setNotes(storedNotes ? JSON.parse(storedNotes) : P_NOTES);
+    } catch (e) {
+      console.error("Failed to load notes", e);
+      setNotes(P_NOTES);
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem(LOCAL_STORAGE_KEY_NOTES, JSON.stringify(notes));
+    }
+  }, [notes, isLoading]);
+
+
+  const handleSaveNote = (newNoteData: Omit<Note, 'id' | 'createdAt'>) => {
+    const newNote: Note = {
+      id: `note-${Date.now()}`,
+      createdAt: formatISO(new Date()),
+      ...newNoteData,
+    };
+    setNotes(prev => [newNote, ...prev]);
+    setIsAddingNote(false);
+    toast({ title: "Note Saved!", description: `"${newNote.title}" has been added.` });
+  };
+  
+  const handleCancelNewNote = () => {
+    setIsAddingNote(false);
+  };
 
   const filteredNotes = notes.filter(note => {
     const titleMatch = note.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -72,7 +216,7 @@ export default function NotesPage() {
               <h1 className="text-2xl font-bold font-headline">Personal Notes</h1>
               <p className="text-muted-foreground">Your digital canvas for thoughts and ideas.</p>
             </div>
-            <Button>
+            <Button onClick={() => setIsAddingNote(true)} disabled={isAddingNote}>
               <PlusCircle className="mr-2 h-4 w-4" />
               New Note
             </Button>
@@ -100,13 +244,18 @@ export default function NotesPage() {
             'grid gap-6',
             layout === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
         )}>
+          {isAddingNote && (
+            <NewNoteCard onSave={handleSaveNote} onCancel={handleCancelNewNote} />
+          )}
+
           {filteredNotes.map((note) => (
             <NoteCard key={note.id} note={note} layout={layout} />
           ))}
         </div>
-        {filteredNotes.length === 0 && (
+        {!isAddingNote && filteredNotes.length === 0 && (
             <div className="text-center py-16 text-muted-foreground">
                 <p>No notes found.</p>
+                <p className="text-sm">Click "New Note" to get started.</p>
             </div>
         )}
       </div>
