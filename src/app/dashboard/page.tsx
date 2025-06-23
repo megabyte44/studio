@@ -168,14 +168,14 @@ function WaterIntakeWidget() {
                         <Settings className="h-4 w-4" />
                     </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="p-4 sm:max-w-sm">
                     <DialogHeader>
                         <DialogTitle>Set Water Intake Goal</DialogTitle>
                         <DialogDescription>
                             How many glasses of water (250ml each) do you aim to drink daily?
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-4">
                         <div className="space-y-2">
                              <Label htmlFor="water-target">Daily Glasses Target</Label>
                              <Input
