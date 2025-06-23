@@ -526,7 +526,7 @@ function GymSettingsDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="w-[95vw] max-w-lg rounded-lg p-1">
                 <DialogHeader className="p-1 pb-0">
                     <DialogTitle className="text-base">Manage Gym Plan</DialogTitle>
                     <DialogDescription className="text-xs">
@@ -1118,3 +1118,4 @@ function AddHabitDialog({
     
 
     
+
