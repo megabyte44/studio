@@ -25,6 +25,9 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Calendar } from '@/components/ui/calendar';
 
 const iconMap: Record<string, React.ElementType> = {
     PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, 
@@ -71,8 +74,10 @@ function GymTracker({
     onToggleWorkoutCompletion,
     isTodayCompleted,
     todaysWorkoutInfo,
+    onManagePlan,
 }: GymTrackerProps & { 
     onManageCustomFoodItems: () => void,
+    onManagePlan: () => void,
     onToggleWorkoutCompletion: () => void,
     isTodayCompleted: boolean,
     todaysWorkoutInfo: ReturnType<typeof useWorkoutDayInfo>
@@ -80,17 +85,20 @@ function GymTracker({
     
     return (
         <div className="space-y-6">
-            <header className="space-y-1">
+            <header className="flex items-center justify-between">
                 <h2 className="text-xl font-bold font-headline flex items-center gap-2">
                     <Dumbbell className="h-6 w-6 text-primary" />
                     <span>Gym Tracker</span>
                 </h2>
+                <Button variant="ghost" size="icon" onClick={onManagePlan}>
+                    <Settings className="h-5 w-5" />
+                </Button>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                  {/* Workout Plan Card */}
                 <Card className={cn("lg:col-span-3", isTodayCompleted && "bg-muted/50")}>
-                    <CardHeader className="flex flex-row items-start justify-between">
+                    <CardHeader>
                         <div>
                             <CardTitle className="font-headline flex items-center gap-3 text-lg">
                                 <List className="h-6 w-6 text-primary" />
@@ -435,7 +443,7 @@ const useWorkoutDayInfo = (cyclicalWorkoutSplit: CyclicalWorkoutSplit, cycleConf
 
         let startIndexInCycle = cycleWorkoutKeys.indexOf(cycleConfig.startDayKey);
         if (startIndexInCycle === -1) {
-            return { key: "Error", title: "Invalid Start Day Key", exercises: [], isRestDay: true };
+             startIndexInCycle = 0;
         }
         const currentDayIndexInCycle = (startIndexInCycle + daysSinceStart) % cycleLength;
         const workoutKey = cycleWorkoutKeys[currentDayIndexInCycle];
@@ -446,6 +454,165 @@ const useWorkoutDayInfo = (cyclicalWorkoutSplit: CyclicalWorkoutSplit, cycleConf
     }, [cyclicalWorkoutSplit, cycleConfig]);
 };
 
+
+function GymSettingsDialog({ 
+    isOpen, 
+    onOpenChange, 
+    workoutSplit, 
+    cycleConfig, 
+    onSave 
+}: {
+    isOpen: boolean;
+    onOpenChange: (isOpen: boolean) => void;
+    workoutSplit: CyclicalWorkoutSplit;
+    cycleConfig: CycleConfig;
+    onSave: (newSplit: CyclicalWorkoutSplit, newConfig: CycleConfig) => void;
+}) {
+    const [editedSplit, setEditedSplit] = useState<CyclicalWorkoutSplit>({});
+    const [editedConfig, setEditedConfig] = useState<CycleConfig>({ startDate: '', startDayKey: '' });
+
+    useEffect(() => {
+        if (isOpen) {
+            setEditedSplit(JSON.parse(JSON.stringify(workoutSplit)));
+            setEditedConfig(JSON.parse(JSON.stringify(cycleConfig)));
+        }
+    }, [isOpen, workoutSplit, cycleConfig]);
+    
+    const handleDayTitleChange = (dayKey: string, newTitle: string) => {
+        setEditedSplit(prev => ({ ...prev, [dayKey]: { ...prev[dayKey], title: newTitle }}));
+    };
+
+    const handleExerciseChange = (dayKey: string, exIndex: number, field: keyof Exercise, value: string) => {
+        setEditedSplit(prev => {
+            const newSplit = { ...prev };
+            newSplit[dayKey].exercises[exIndex] = { ...newSplit[dayKey].exercises[exIndex], [field]: value };
+            return newSplit;
+        });
+    };
+
+    const handleAddExercise = (dayKey: string) => {
+        setEditedSplit(prev => {
+            const newSplit = { ...prev };
+            newSplit[dayKey].exercises.push({ name: 'New Exercise', sets: '3', reps: '10' });
+            return newSplit;
+        });
+    };
+    
+    const handleDeleteExercise = (dayKey: string, exIndex: number) => {
+        setEditedSplit(prev => {
+            const newSplit = { ...prev };
+            newSplit[dayKey].exercises.splice(exIndex, 1);
+            return newSplit;
+        });
+    };
+    
+    const handleAddDay = () => {
+        setEditedSplit(prev => {
+            const newDayKey = `Day ${Object.keys(prev).length + 1}`;
+            return { ...prev, [newDayKey]: { title: 'New Workout Day', exercises: [] }};
+        });
+    };
+    
+    const handleDeleteDay = (dayKey: string) => {
+        setEditedSplit(prev => {
+            const newSplit = { ...prev };
+            delete newSplit[dayKey];
+            return newSplit;
+        });
+    };
+    
+    const handleSaveChanges = () => {
+        onSave(editedSplit, editedConfig);
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-3xl h-[90vh]">
+                <DialogHeader>
+                    <DialogTitle>Manage Gym Plan</DialogTitle>
+                    <DialogDescription>Edit your workout plan and cycle configuration.</DialogDescription>
+                </DialogHeader>
+                <Tabs defaultValue="plan" className="flex flex-col h-full">
+                    <TabsList>
+                        <TabsTrigger value="plan">Workout Plan</TabsTrigger>
+                        <TabsTrigger value="cycle">Cycle Configuration</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="plan" className="mt-4 flex-grow overflow-hidden">
+                        <ScrollArea className="h-full pr-4">
+                            <Accordion type="multiple" className="w-full">
+                                {Object.entries(editedSplit).map(([dayKey, dayData]) => (
+                                    <AccordionItem value={dayKey} key={dayKey}>
+                                        <AccordionTrigger>
+                                            <div className="flex justify-between items-center w-full">
+                                                <span>{dayKey}: {dayData.title}</span>
+                                                <Button variant="ghost" size="icon" className="mr-4 h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDeleteDay(dayKey); }}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="space-y-4">
+                                            <div>
+                                                <Label htmlFor={`title-${dayKey}`} className="text-xs">Day Title</Label>
+                                                <Input id={`title-${dayKey}`} value={dayData.title} onChange={(e) => handleDayTitleChange(dayKey, e.target.value)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h4 className="font-semibold">Exercises</h4>
+                                                {dayData.exercises.map((ex, exIndex) => (
+                                                    <div key={exIndex} className="flex items-center gap-2">
+                                                        <Input placeholder="Name" value={ex.name} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'name', e.target.value)} className="flex-grow"/>
+                                                        <Input placeholder="Sets" value={ex.sets} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'sets', e.target.value)} className="w-20"/>
+                                                        <Input placeholder="Reps" value={ex.reps} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'reps', e.target.value)} className="w-20"/>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteExercise(dayKey, exIndex)}>
+                                                            <Trash2 className="h-4 w-4 text-destructive"/>
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                                <Button variant="outline" size="sm" onClick={() => handleAddExercise(dayKey)}>Add Exercise</Button>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                            <Button variant="secondary" className="mt-4" onClick={handleAddDay}>Add Workout Day</Button>
+                        </ScrollArea>
+                    </TabsContent>
+                    <TabsContent value="cycle" className="mt-4">
+                         <div className="space-y-4">
+                            <div>
+                                <Label>Cycle Start Date</Label>
+                                <p className="text-sm text-muted-foreground">Select the date your current workout cycle begins or began.</p>
+                                <Calendar
+                                    mode="single"
+                                    selected={parseISO(editedConfig.startDate)}
+                                    onSelect={(date) => date && setEditedConfig(prev => ({...prev, startDate: format(date, 'yyyy-MM-dd')}))}
+                                    className="rounded-md border"
+                                />
+                            </div>
+                            <div>
+                                <Label>Starting Day of Cycle</Label>
+                                <p className="text-sm text-muted-foreground">Select which workout corresponds to the start date.</p>
+                                <Select value={editedConfig.startDayKey} onValueChange={(value) => setEditedConfig(prev => ({...prev, startDayKey: value}))}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a day" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.keys(editedSplit).map(dayKey => (
+                                            <SelectItem key={dayKey} value={dayKey}>{dayKey}: {editedSplit[dayKey].title}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+                <DialogFooter className="pt-4">
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={handleSaveChanges}>Save Changes</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function HabitsPage() {
   const { toast } = useToast();
@@ -467,8 +634,7 @@ export default function HabitsPage() {
   const [cycleConfig, setCycleConfig] = useState<CycleConfig>({ startDate: format(new Date(), 'yyyy-MM-dd'), startDayKey: "Day 1" });
 
   // Dialog states for GymTracker
-  const [isCycleConfigOpen, setIsCycleConfigOpen] = useState(false);
-  const [isWorkoutPlanOpen, setIsWorkoutPlanOpen] = useState(false);
+  const [isGymSettingsOpen, setIsGymSettingsOpen] = useState(false);
   const [isFoodManagerOpen, setIsFoodManagerOpen] = useState(false);
 
   // --- Effects for Loading Data ---
@@ -725,6 +891,7 @@ export default function HabitsPage() {
             cycleConfig={cycleConfig}
             setCycleConfig={setCycleConfig}
             onManageCustomFoodItems={() => setIsFoodManagerOpen(true)}
+            onManagePlan={() => setIsGymSettingsOpen(true)}
             onToggleWorkoutCompletion={handleToggleWorkoutCompletion}
             isTodayCompleted={isTodayWorkoutCompleted}
             todaysWorkoutInfo={todaysWorkoutInfo}
@@ -818,6 +985,18 @@ export default function HabitsPage() {
         onOpenChange={setIsAddHabitDialogOpen}
         onSave={handleAddHabit}
        />
+      <GymSettingsDialog
+        isOpen={isGymSettingsOpen}
+        onOpenChange={setIsGymSettingsOpen}
+        workoutSplit={cyclicalWorkoutSplit}
+        cycleConfig={cycleConfig}
+        onSave={(newSplit, newConfig) => {
+            setCyclicalWorkoutSplit(newSplit);
+            setCycleConfig(newConfig);
+            setIsGymSettingsOpen(false);
+            toast({ title: 'Gym settings saved!' });
+        }}
+      />
        <AlertDialog open={!!habitToDelete} onOpenChange={() => setHabitToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
