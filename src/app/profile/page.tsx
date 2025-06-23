@@ -115,8 +115,8 @@ export default function ProfilePage() {
                     <Label>Your Avatar</Label>
                     <div className="flex items-center gap-4">
                         <Avatar className="h-20 w-20">
-                            <AvatarImage src="https://placehold.co/100x100.png" alt={usernameInput} data-ai-hint="profile silhouette" />
-                            <AvatarFallback>{usernameInput ? usernameInput.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                            <AvatarImage src="https://placehold.co/100x100.png" alt="User Avatar" data-ai-hint="profile silhouette" />
+                            <AvatarFallback>U</AvatarFallback>
                         </Avatar>
                         <p className="text-sm text-muted-foreground">This is your display picture.</p>
                     </div>
