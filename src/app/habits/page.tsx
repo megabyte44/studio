@@ -709,7 +709,7 @@ export default function HabitsPage() {
     <AppLayout>
       <div className="space-y-6">
         <header className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold font-headline">Habit & Gym Tracker</h1>
+          <h1 className="text-xl font-bold font-headline">Habit Tracker</h1>
         </header>
         
         <Separator />
