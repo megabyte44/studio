@@ -500,7 +500,7 @@ function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onE
     return (
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="overload-setup" className="border-none">
-                <AccordionTrigger className="text-xs font-semibold hover:no-underline py-1">Overload Setup</AccordionTrigger>
+                <AccordionTrigger className="hover:no-underline py-1 !justify-end text-foreground"></AccordionTrigger>
                 <AccordionContent className="space-y-1.5 pt-1">
                     <div>
                         <Label htmlFor={`k-value-${exercise.id}`} className="text-xs">Exercise Type (k-Value)</Label>
