@@ -709,10 +709,7 @@ export default function HabitsPage() {
     <AppLayout>
       <div className="space-y-6">
         <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold font-headline">Habit & Gym Tracker</h1>
-            <p className="text-muted-foreground">Cultivate good habits and track your gym progress.</p>
-          </div>
+          <h1 className="text-2xl font-bold font-headline">Habit & Gym Tracker</h1>
           <Button onClick={() => setIsAddHabitDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             New Habit
