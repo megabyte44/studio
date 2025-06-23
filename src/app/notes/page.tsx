@@ -122,10 +122,141 @@ function NewNoteCard({ onSave, onCancel }: { onSave: (note: Omit<Note, 'id' | 'c
   );
 }
 
+function EditNoteCard({
+  note,
+  onSave,
+  onCancel,
+  onDelete,
+}: {
+  note: Note;
+  onSave: (note: Note) => void;
+  onCancel: () => void;
+  onDelete: (noteId: string) => void;
+}) {
+  const { toast } = useToast();
+  const [title, setTitle] = useState(note.title);
+  const [type, setType] = useState(note.type);
+  const [textContent, setTextContent] = useState(typeof note.content === 'string' ? note.content : '');
+  const [checklistItems, setChecklistItems] = useState(Array.isArray(note.content) ? [...note.content] : [{ text: '', completed: false }]);
 
-function NoteCard({ note, layout }: { note: Note; layout: Layout }) {
+  const handleAddItem = () => {
+    setChecklistItems([...checklistItems, { text: '', completed: false }]);
+  };
+
+  const handleItemTextChange = (index: number, newText: string) => {
+    const newItems = [...checklistItems];
+    newItems[index].text = newText;
+    setChecklistItems(newItems);
+  };
+  
+  const handleItemCompletionChange = (index: number, isChecked: boolean) => {
+    const newItems = [...checklistItems];
+    newItems[index].completed = isChecked;
+    setChecklistItems(newItems);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    if (checklistItems.length > 1) {
+      const newItems = checklistItems.filter((_, i) => i !== index);
+      setChecklistItems(newItems);
+    }
+  };
+
+  const handleSaveClick = () => {
+    if (!title.trim()) {
+      toast({ title: "Title is required", variant: "destructive" });
+      return;
+    }
+    const content = type === 'text' 
+      ? textContent 
+      : checklistItems.filter(item => item.text.trim() !== '');
+
+    if ((type === 'text' && (content as string).trim() === '') || (type === 'checklist' && (content as any[]).length === 0)) {
+        toast({ title: "Note content cannot be empty", variant: "destructive" });
+        return;
+    }
+    
+    const updatedNote: Note = {
+      ...note,
+      title,
+      content,
+      type,
+    };
+    onSave(updatedNote);
+  };
+
   return (
-    <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
+    <Card className="flex flex-col h-full border-primary border-2 shadow-lg">
+      <CardHeader>
+        <div className="flex justify-between items-center gap-2">
+          <Input 
+            placeholder="Note Title..." 
+            value={title} 
+            onChange={(e) => setTitle(e.target.value)} 
+            className="text-lg font-headline font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto" 
+          />
+        </div>
+        <Select value={type} onValueChange={(v) => setType(v as 'text' | 'checklist')}>
+            <SelectTrigger className="w-[180px] h-8 text-xs">
+                <SelectValue placeholder="Note Type" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="text">Text Note</SelectItem>
+                <SelectItem value="checklist">Checklist</SelectItem>
+            </SelectContent>
+        </Select>
+      </CardHeader>
+      <CardContent className="flex-grow flex flex-col">
+        {type === 'text' ? (
+          <Textarea
+            placeholder="Type your note here..."
+            className="flex-grow resize-none border-0 focus-visible:ring-0 p-0"
+            value={textContent}
+            onChange={(e) => setTextContent(e.target.value)}
+          />
+        ) : (
+          <ScrollArea className="flex-grow h-48 pr-4">
+            <div className="space-y-2">
+              {checklistItems.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Checkbox checked={item.completed} onCheckedChange={(checked) => handleItemCompletionChange(index, !!checked)} />
+                  <Input
+                    value={item.text}
+                    onChange={(e) => handleItemTextChange(index, e.target.value)}
+                    placeholder={`List item ${index + 1}`}
+                    className="h-8"
+                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive flex-shrink-0" onClick={() => handleRemoveItem(index)} disabled={checklistItems.length <= 1}>
+                      <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={handleAddItem} className="mt-2">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Item
+              </Button>
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <div>
+            <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onDelete(note.id)}>
+                <Trash2 className="mr-2 h-4 w-4"/> Delete
+            </Button>
+        </div>
+        <div className="flex gap-2">
+            <Button variant="outline" onClick={onCancel}>Cancel</Button>
+            <Button onClick={handleSaveClick}><Save className="mr-2 h-4 w-4"/>Save</Button>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
+
+
+function NoteCard({ note, layout, onClick }: { note: Note; layout: Layout; onClick: () => void }) {
+  return (
+    <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={onClick}>
       <CardHeader>
         <CardTitle className="font-headline text-lg">{note.title}</CardTitle>
         <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2">
@@ -162,6 +293,7 @@ export default function NotesPage() {
   const [layout, setLayout] = useState<Layout>('grid');
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -192,6 +324,18 @@ export default function NotesPage() {
     toast({ title: "Note Saved!", description: `"${newNote.title}" has been added.` });
   };
   
+  const handleUpdateNote = (updatedNote: Note) => {
+    setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+    setEditingNoteId(null);
+    toast({ title: "Note Updated!", description: `"${updatedNote.title}" has been saved.` });
+  };
+
+  const handleDeleteNote = (noteId: string) => {
+    setNotes(prev => prev.filter(note => note.id !== noteId));
+    setEditingNoteId(null);
+    toast({ title: "Note Deleted", variant: "destructive" });
+  };
+  
   const handleCancelNewNote = () => {
     setIsAddingNote(false);
   };
@@ -216,7 +360,7 @@ export default function NotesPage() {
               <h1 className="text-2xl font-bold font-headline">Personal Notes</h1>
               <p className="text-muted-foreground">Your digital canvas for thoughts and ideas.</p>
             </div>
-            <Button onClick={() => setIsAddingNote(true)} disabled={isAddingNote}>
+            <Button onClick={() => { setIsAddingNote(true); setEditingNoteId(null); }} disabled={isAddingNote || !!editingNoteId}>
               <PlusCircle className="mr-2 h-4 w-4" />
               New Note
             </Button>
@@ -249,10 +393,28 @@ export default function NotesPage() {
           )}
 
           {filteredNotes.map((note) => (
-            <NoteCard key={note.id} note={note} layout={layout} />
+            editingNoteId === note.id ? (
+              <EditNoteCard
+                key={note.id}
+                note={note}
+                onSave={handleUpdateNote}
+                onCancel={() => setEditingNoteId(null)}
+                onDelete={handleDeleteNote}
+              />
+            ) : (
+              <NoteCard
+                key={note.id}
+                note={note}
+                layout={layout}
+                onClick={() => {
+                  if (isAddingNote) setIsAddingNote(false);
+                  setEditingNoteId(note.id);
+                }}
+              />
+            )
           ))}
         </div>
-        {!isAddingNote && filteredNotes.length === 0 && (
+        {!isAddingNote && !editingNoteId && filteredNotes.length === 0 && (
             <div className="text-center py-16 text-muted-foreground">
                 <p>No notes found.</p>
                 <p className="text-sm">Click "New Note" to get started.</p>
