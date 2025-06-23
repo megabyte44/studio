@@ -73,7 +73,7 @@ export type Exercise = {
   id: string;
   name: string;
   sets: string;
-  reps: string;
+  reps?: string;
   // For progressive overload tracker
   kValue?: number;
   baselineWeight?: number;

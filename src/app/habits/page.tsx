@@ -61,9 +61,9 @@ const augmentWorkoutSplit = (split: CyclicalWorkoutSplit): CyclicalWorkoutSplit 
 
 // --- Initial Data for Gym Tracker ---
 const initialWorkoutSplitRaw: CyclicalWorkoutSplit = {
-  "Day 1": { title: "Push Day (Chest, Shoulders, Triceps)", exercises: [{ name: "Bench Press", sets: "3-4", reps: "8-12" }, { name: "Overhead Press", sets: "3", reps: "8-12" }, { name: "Incline Dumbbell Press", sets: "3", reps: "10-15" }, { name: "Tricep Dips/Pushdowns", sets: "3", reps: "10-15" }, { name: "Lateral Raises", sets: "3", reps: "12-15" }] },
-  "Day 2": { title: "Pull Day (Back, Biceps)", exercises: [{ name: "Pull-ups/Lat Pulldowns", sets: "3-4", reps: "6-12" }, { name: "Bent-over Rows", sets: "3", reps: "8-12" }, { name: "Seated Cable Rows", sets: "3", reps: "10-15" }, { name: "Barbell Curls", sets: "3", reps: "8-12" }, { name: "Face Pulls", sets: "3", reps: "15-20" }] },
-  "Day 3": { title: "Leg Day (Quads, Hamstrings, Calves)", exercises: [{ name: "Squats", sets: "3-4", reps: "8-12" }, { name: "Romanian Deadlifts", sets: "3", reps: "10-12" }, { name: "Leg Press", sets: "3", reps: "10-15" }, { name: "Leg Curls", sets: "3", reps: "10-15" }, { name: "Calf Raises", sets: "3", reps: "15-20" }] },
+  "Day 1": { title: "Push Day (Chest, Shoulders, Triceps)", exercises: [{ name: "Bench Press", sets: "3-4" }, { name: "Overhead Press", sets: "3" }, { name: "Incline Dumbbell Press", sets: "3" }, { name: "Tricep Dips/Pushdowns", sets: "3" }, { name: "Lateral Raises", sets: "3" }] },
+  "Day 2": { title: "Pull Day (Back, Biceps)", exercises: [{ name: "Pull-ups/Lat Pulldowns", sets: "3-4" }, { name: "Bent-over Rows", sets: "3" }, { name: "Seated Cable Rows", sets: "3" }, { name: "Barbell Curls", sets: "3" }, { name: "Face Pulls", sets: "3" }] },
+  "Day 3": { title: "Leg Day (Quads, Hamstrings, Calves)", exercises: [{ name: "Squats", sets: "3-4" }, { name: "Romanian Deadlifts", sets: "3" }, { name: "Leg Press", sets: "3" }, { name: "Leg Curls", sets: "3" }, { name: "Calf Raises", sets: "3" }] },
   "Day 4 (Rest)": { title: "Rest or Active Recovery", exercises: [] },
 };
 const initialWorkoutSplit = augmentWorkoutSplit(initialWorkoutSplitRaw);
@@ -583,7 +583,6 @@ function GymSettingsDialog({
         id: `ex-${Date.now()}`,
         name: 'New Exercise',
         sets: '3',
-        reps: '10',
         kValue: 0.5,
         baselineWeight: 0,
         baselineReps: 0,
@@ -674,7 +673,7 @@ function GymSettingsDialog({
                           </Button>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="space-y-2 pb-2 max-h-64 overflow-y-auto pr-2">
+                      <AccordionContent className="space-y-2 pb-2">
                         <div>
                           <Label
                             htmlFor={`title-${dayKey}`}
@@ -693,72 +692,63 @@ function GymSettingsDialog({
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-medium text-xs">Exercises</h4>
-                          {dayData.exercises.map((ex, exIndex) => (
-                            <div key={ex.id} className="border-t pt-2">
-                              <div className="flex items-center gap-1">
-                                <Input
-                                  placeholder="Name"
-                                  value={ex.name}
-                                  onChange={(e) =>
-                                    handleExerciseChange(
-                                      dayKey,
-                                      exIndex,
-                                      'name',
-                                      e.target.value
-                                    )
-                                  }
-                                  className="flex-grow h-7 text-xs"
-                                />
-                                <Input
-                                  placeholder="Sets"
-                                  value={ex.sets}
-                                  onChange={(e) =>
-                                    handleExerciseChange(
-                                      dayKey,
-                                      exIndex,
-                                      'sets',
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-14 h-7 text-xs"
-                                />
-                                <Input
-                                  placeholder="Reps"
-                                  value={ex.reps}
-                                  onChange={(e) =>
-                                    handleExerciseChange(
-                                      dayKey,
-                                      exIndex,
-                                      'reps',
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-14 h-7 text-xs"
-                                />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  onClick={() =>
-                                    handleDeleteExercise(dayKey, exIndex)
-                                  }
-                                >
-                                  <Trash2 className="h-3 w-3 text-destructive" />
-                                </Button>
-                              </div>
-                              <OverloadSetup
-                                exercise={ex}
-                                onExerciseChange={(field, value) =>
-                                  handleExerciseChange(
-                                    dayKey,
-                                    exIndex,
-                                    field,
-                                    value
-                                  )
-                                }
-                              />
+                           <ScrollArea className="max-h-64 pr-2">
+                            <div className="space-y-1">
+                              {dayData.exercises.map((ex, exIndex) => (
+                                <div key={ex.id} className="border-t pt-2">
+                                  <div className="flex items-center gap-1">
+                                    <Input
+                                      placeholder="Name"
+                                      value={ex.name}
+                                      onChange={(e) =>
+                                        handleExerciseChange(
+                                          dayKey,
+                                          exIndex,
+                                          'name',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="flex-grow h-7 text-xs"
+                                    />
+                                    <Input
+                                      placeholder="Sets"
+                                      value={ex.sets}
+                                      onChange={(e) =>
+                                        handleExerciseChange(
+                                          dayKey,
+                                          exIndex,
+                                          'sets',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-14 h-7 text-xs"
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() =>
+                                        handleDeleteExercise(dayKey, exIndex)
+                                      }
+                                    >
+                                      <Trash2 className="h-3 w-3 text-destructive" />
+                                    </Button>
+                                  </div>
+                                  <OverloadSetup
+                                    exercise={ex}
+                                    onExerciseChange={(field, value) =>
+                                      handleExerciseChange(
+                                        dayKey,
+                                        exIndex,
+                                        field,
+                                        value
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                           </ScrollArea>
                           <Button
                             variant="outline"
                             size="sm"
