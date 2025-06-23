@@ -180,14 +180,14 @@ function GymTracker({
                 <div className="lg:col-span-3 grid md:grid-cols-2 gap-6">
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
-                      setIntakes={setProteinIntakes}
+                      setIntakes={setIntakes}
                       target={proteinTarget}
-                      setTarget={setProteinTarget}
+                      setTarget={setTarget}
                     />
 
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
-                      setLoggedItems={setLoggedFoodItems}
+                      setLoggedItems={setLoggedItems}
                       customItems={customFoodItems}
                       onManageItems={onManageCustomFoodItems}
                     />
@@ -582,7 +582,7 @@ function GymSettingsDialog({
     setEditedSplit((prev) => {
       const newSplit = { ...prev };
       const newExercise: Exercise = {
-        id: `ex-${Date.now()}`,
+        id: `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: 'New Exercise',
         sets: '',
         kValue: 0.5,
