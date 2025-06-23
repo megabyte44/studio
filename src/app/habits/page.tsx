@@ -180,14 +180,14 @@ function GymTracker({
                 <div className="lg:col-span-3 grid md:grid-cols-2 gap-6">
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
-                      setIntakes={setIntakes}
+                      setIntakes={setProteinIntakes}
                       target={proteinTarget}
-                      setTarget={setTarget}
+                      setTarget={setProteinTarget}
                     />
 
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
-                      setLoggedItems={setLoggedItems}
+                      setLoggedItems={setLoggedFoodItems}
                       customItems={customFoodItems}
                       onManageItems={onManageCustomFoodItems}
                     />
@@ -1717,3 +1717,4 @@ function AddHabitDialog({
         </Dialog>
     );
 }
+
