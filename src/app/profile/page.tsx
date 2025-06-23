@@ -109,7 +109,7 @@ export default function ProfilePage() {
         <Card>
             <CardHeader>
                 <CardTitle>Your Information</CardTitle>
-                <CardDescription>Update your username and date of birth. This will update your avatar.</CardDescription>
+                <CardDescription>Update your username and date of birth.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="flex items-center gap-4">
