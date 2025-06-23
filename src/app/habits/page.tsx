@@ -139,7 +139,7 @@ function GymTracker({
                         {todaysWorkoutInfo.exercises.length > 0 ? (
                             <ul className="space-y-3">
                                 {todaysWorkoutInfo.exercises.map((ex, i) => (
-                                    <li key={i} className="flex justify-between items-center p-3 rounded-md bg-muted/30">
+                                    <li key={ex.id || i} className="flex justify-between items-center p-3 rounded-md bg-muted/30">
                                         <span className="font-semibold">{ex.name}</span>
                                         <span className="text-sm text-muted-foreground">Sets: {ex.sets}</span>
                                     </li>
@@ -500,9 +500,7 @@ function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onE
     return (
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="overload-setup" className="border-none">
-                <AccordionTrigger className="py-1 hover:no-underline justify-end text-foreground [&>svg]:text-black">
-                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                </AccordionTrigger>
+                <AccordionTrigger className="py-1 hover:no-underline justify-end"></AccordionTrigger>
                 <AccordionContent className="space-y-1.5 pt-1">
                     <div>
                         <Label htmlFor={`k-value-${exercise.id}`} className="text-xs">Exercise Type (k-Value)</Label>
@@ -638,7 +636,7 @@ function GymSettingsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-grow">
+        <div className="flex-grow overflow-y-auto">
           <div className="p-2">
             <Tabs defaultValue="plan" className="w-full">
               <TabsList className="grid w-full grid-cols-2 h-8">
@@ -836,7 +834,7 @@ function GymSettingsDialog({
               </TabsContent>
             </Tabs>
           </div>
-        </ScrollArea>
+        </div>
         <DialogFooter className="p-2 border-t flex-shrink-0">
           <Button
             variant="outline"
@@ -1717,5 +1715,3 @@ function AddHabitDialog({
         </Dialog>
     );
 }
-
-    
