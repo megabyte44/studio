@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { 
     PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, 
     AlertTriangle, Droplets, Plus, Minus, BookOpenCheck, Pill, Bed, Footprints, 
-    Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater, CalendarIcon, TrendingUp, BarChart2
+    Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater, CalendarIcon, TrendingUp, BarChart2, ChevronDown
 } from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
@@ -500,7 +500,9 @@ function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onE
     return (
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="overload-setup" className="border-none">
-                <AccordionTrigger className="hover:no-underline py-1 !justify-end text-foreground"></AccordionTrigger>
+                <AccordionTrigger className="py-1 hover:no-underline justify-end text-foreground [&>svg]:text-black">
+                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                </AccordionTrigger>
                 <AccordionContent className="space-y-1.5 pt-1">
                     <div>
                         <Label htmlFor={`k-value-${exercise.id}`} className="text-xs">Exercise Type (k-Value)</Label>
@@ -692,10 +694,10 @@ function GymSettingsDialog({
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-medium text-xs">Exercises</h4>
-                           <ScrollArea className="max-h-64 pr-2">
+                           <ScrollArea className="max-h-48 pr-2">
                             <div className="space-y-1">
                               {dayData.exercises.map((ex, exIndex) => (
-                                <div key={ex.id} className="border-t pt-2">
+                                <div key={ex.id || exIndex} className="border-t pt-2">
                                   <div className="flex items-center gap-1">
                                     <Input
                                       placeholder="Name"
@@ -858,33 +860,44 @@ function FoodManagerDialog({
     isOpen,
     onOpenChange,
     customItems,
-    setCustomItems,
+    onSave,
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     customItems: string[];
-    setCustomItems: (items: string[]) => void;
+    onSave: (items: string[]) => void;
 }) {
     const { toast } = useToast();
+    const [editedItems, setEditedItems] = useState(customItems);
     const [newItem, setNewItem] = useState('');
+
+    useEffect(() => {
+        if(isOpen) {
+            setEditedItems(customItems);
+        }
+    }, [isOpen, customItems]);
 
     const handleAddItem = () => {
         if (!newItem.trim()) {
             toast({ title: 'Item name cannot be empty', variant: 'destructive' });
             return;
         }
-        if (customItems.map(i => i.toLowerCase()).includes(newItem.trim().toLowerCase())) {
+        if (editedItems.map(i => i.toLowerCase()).includes(newItem.trim().toLowerCase())) {
             toast({ title: 'Item already exists', variant: 'destructive' });
             return;
         }
-        setCustomItems([...customItems, newItem.trim()]);
+        setEditedItems([...editedItems, newItem.trim()]);
         setNewItem('');
-        toast({ title: 'Item Added', description: `"${newItem.trim()}" has been added.` });
     };
 
     const handleDeleteItem = (itemToDelete: string) => {
-        setCustomItems(customItems.filter(item => item !== itemToDelete));
-        toast({ title: 'Item Removed', description: `"${itemToDelete}" has been removed.` });
+        setEditedItems(editedItems.filter(item => item !== itemToDelete));
+    };
+
+    const handleSave = () => {
+        onSave(editedItems);
+        onOpenChange(false);
+        toast({ title: 'Quick-Log Items Updated!' });
     };
 
     return (
@@ -911,8 +924,8 @@ function FoodManagerDialog({
                     <Separator />
                     <ScrollArea className="h-64">
                         <div className="space-y-2 pr-4">
-                            {customItems.length > 0 ? (
-                                customItems.map(item => (
+                            {editedItems.length > 0 ? (
+                                editedItems.map(item => (
                                     <div key={item} className="flex items-center justify-between rounded-md bg-muted p-2">
                                         <span className="text-sm font-medium">{item}</span>
                                         <Button
@@ -934,7 +947,8 @@ function FoodManagerDialog({
                     </ScrollArea>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={handleSave}>Save Changes</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -1581,7 +1595,10 @@ export default function HabitsPage() {
         isOpen={isFoodManagerOpen}
         onOpenChange={setIsFoodManagerOpen}
         customItems={customFoodItems}
-        setCustomItems={setCustomFoodItems}
+        onSave={(newItems) => {
+          setCustomFoodItems(newItems);
+          setIsFoodManagerOpen(false);
+        }}
        />
        <OverloadTrackerDialog
          isOpen={isOverloadTrackerOpen}
