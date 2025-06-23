@@ -168,7 +168,7 @@ function WaterIntakeWidget() {
                         <Settings className="h-4 w-4" />
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="p-4 sm:max-w-sm">
+                <DialogContent className="p-4 w-[270px] h-[200px] flex flex-col justify-between">
                     <DialogHeader>
                         <DialogTitle>Set Water Intake Goal</DialogTitle>
                         <DialogDescription>
@@ -577,3 +577,5 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
+
+    
