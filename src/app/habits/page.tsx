@@ -103,9 +103,6 @@ function GymTracker({
                             <CardTitle className="font-headline flex items-center gap-3 text-lg">
                                 <span>{todaysWorkoutInfo.key}: {todaysWorkoutInfo.title}</span>
                             </CardTitle>
-                            <CardDescription>
-                                Today ({format(new Date(), 'eeee, MMM d')})
-                            </CardDescription>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -526,87 +523,92 @@ function GymSettingsDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
-                <DialogHeader className="p-2 border-b">
-                    <DialogTitle className="text-base">Manage Gym Plan</DialogTitle>
-                    <DialogDescription className="text-xs">Edit your workout plan and cycle configuration.</DialogDescription>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Manage Gym Plan</DialogTitle>
+                    <DialogDescription>
+                        Edit your workout plan and cycle configuration.
+                    </DialogDescription>
                 </DialogHeader>
-                <div className="flex-1 overflow-y-auto p-4">
-                    <Tabs defaultValue="plan">
-                        <TabsList>
-                            <TabsTrigger value="plan">Workout Plan</TabsTrigger>
-                            <TabsTrigger value="cycle">Cycle Configuration</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="plan" className="mt-4">
-                                <Accordion type="multiple" className="w-full">
-                                    {Object.entries(editedSplit).map(([dayKey, dayData]) => (
-                                        <AccordionItem value={dayKey} key={dayKey}>
-                                            <AccordionTrigger>
-                                                <div className="flex justify-between items-center w-full">
-                                                    <span>{dayKey}: {dayData.title}</span>
-                                                    <Button variant="ghost" size="icon" className="mr-4 h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDeleteDay(dayKey); }}>
-                                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                                    </Button>
-                                                </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent className="space-y-4">
-                                                <div>
-                                                    <Label htmlFor={`title-${dayKey}`} className="text-xs">Day Title</Label>
-                                                    <Input id={`title-${dayKey}`} value={dayData.title} onChange={(e) => handleDayTitleChange(dayKey, e.target.value)} />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <h4 className="font-semibold">Exercises</h4>
-                                                    {dayData.exercises.map((ex, exIndex) => (
-                                                        <div key={exIndex} className="flex items-center gap-2">
-                                                            <Input placeholder="Name" value={ex.name} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'name', e.target.value)} className="flex-grow"/>
-                                                            <Input placeholder="Sets" value={ex.sets} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'sets', e.target.value)} className="w-20"/>
-                                                            <Input placeholder="Reps" value={ex.reps} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'reps', e.target.value)} className="w-20"/>
-                                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteExercise(dayKey, exIndex)}>
-                                                                <Trash2 className="h-4 w-4 text-destructive"/>
-                                                            </Button>
-                                                        </div>
-                                                    ))}
-                                                    <Button variant="outline" size="sm" onClick={() => handleAddExercise(dayKey)}>Add Exercise</Button>
-                                                </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    ))}
-                                </Accordion>
-                                <Button variant="secondary" className="mt-4" onClick={handleAddDay}>Add Workout Day</Button>
-                        </TabsContent>
-                        <TabsContent value="cycle" className="mt-4">
-                             <div className="space-y-4">
-                                <div>
-                                    <Label>Cycle Start Date</Label>
-                                    <p className="text-sm text-muted-foreground">Select the date your current workout cycle begins or began.</p>
-                                    <Calendar
-                                        mode="single"
-                                        selected={editedConfig.startDate ? parseISO(editedConfig.startDate) : new Date()}
-                                        onSelect={(date) => date && setEditedConfig(prev => ({...prev, startDate: format(date, 'yyyy-MM-dd')}))}
-                                        className="rounded-md border"
-                                    />
+
+                <ScrollArea className="max-h-[60vh] pr-4 -mr-4">
+                    <div className="py-4 space-y-4">
+                        <Tabs defaultValue="plan" className="w-full">
+                            <TabsList>
+                                <TabsTrigger value="plan">Workout Plan</TabsTrigger>
+                                <TabsTrigger value="cycle">Cycle Configuration</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="plan" className="mt-4">
+                                    <Accordion type="multiple" className="w-full space-y-2">
+                                        {Object.entries(editedSplit).map(([dayKey, dayData]) => (
+                                            <AccordionItem value={dayKey} key={dayKey} className="border rounded-md px-2">
+                                                <AccordionTrigger className="py-2 hover:no-underline">
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <span className="text-sm font-medium">{dayKey}: {dayData.title}</span>
+                                                        <Button variant="ghost" size="icon" className="mr-2 h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDeleteDay(dayKey); }}>
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </div>
+                                                </AccordionTrigger>
+                                                <AccordionContent className="space-y-3 pb-3">
+                                                    <div>
+                                                        <Label htmlFor={`title-${dayKey}`} className="text-xs">Day Title</Label>
+                                                        <Input id={`title-${dayKey}`} value={dayData.title} onChange={(e) => handleDayTitleChange(dayKey, e.target.value)} className="h-8 text-sm" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <h4 className="font-medium text-sm">Exercises</h4>
+                                                        {dayData.exercises.map((ex, exIndex) => (
+                                                            <div key={exIndex} className="flex items-center gap-1.5">
+                                                                <Input placeholder="Name" value={ex.name} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'name', e.target.value)} className="flex-grow h-8 text-sm"/>
+                                                                <Input placeholder="Sets" value={ex.sets} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'sets', e.target.value)} className="w-16 h-8 text-sm"/>
+                                                                <Input placeholder="Reps" value={ex.reps} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'reps', e.target.value)} className="w-16 h-8 text-sm"/>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteExercise(dayKey, exIndex)}>
+                                                                    <Trash2 className="h-4 w-4 text-destructive"/>
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+                                                        <Button variant="outline" size="sm" onClick={() => handleAddExercise(dayKey)}>Add Exercise</Button>
+                                                    </div>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                    <Button variant="secondary" size="sm" className="mt-4" onClick={handleAddDay}>Add Workout Day</Button>
+                            </TabsContent>
+                            <TabsContent value="cycle" className="mt-4">
+                                 <div className="space-y-4">
+                                    <div>
+                                        <Label>Cycle Start Date</Label>
+                                        <p className="text-xs text-muted-foreground">Select the date your cycle begins.</p>
+                                        <Calendar
+                                            mode="single"
+                                            selected={editedConfig.startDate ? parseISO(editedConfig.startDate) : new Date()}
+                                            onSelect={(date) => date && setEditedConfig(prev => ({...prev, startDate: format(date, 'yyyy-MM-dd')}))}
+                                            className="rounded-md border"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Starting Day of Cycle</Label>
+                                        <p className="text-xs text-muted-foreground">Select which workout corresponds to the start date.</p>
+                                        <Select value={editedConfig.startDayKey} onValueChange={(value) => setEditedConfig(prev => ({...prev, startDayKey: value}))}>
+                                            <SelectTrigger className="h-8 text-sm">
+                                                <SelectValue placeholder="Select a day" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.keys(editedSplit).map(dayKey => (
+                                                    <SelectItem key={dayKey} value={dayKey} className="text-sm">{dayKey}: {editedSplit[dayKey].title}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
-                                <div>
-                                    <Label>Starting Day of Cycle</Label>
-                                    <p className="text-sm text-muted-foreground">Select which workout corresponds to the start date.</p>
-                                    <Select value={editedConfig.startDayKey} onValueChange={(value) => setEditedConfig(prev => ({...prev, startDayKey: value}))}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select a day" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.keys(editedSplit).map(dayKey => (
-                                                <SelectItem key={dayKey} value={dayKey}>{dayKey}: {editedSplit[dayKey].title}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                        </TabsContent>
-                    </Tabs>
-                </div>
-                <DialogFooter className="p-4 border-t">
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button onClick={handleSaveChanges}>Save Changes</Button>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+                </ScrollArea>
+                <DialogFooter>
+                    <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button size="sm" onClick={handleSaveChanges}>Save Changes</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -1109,5 +1111,7 @@ function AddHabitDialog({
         </Dialog>
     );
 }
+
+    
 
     
