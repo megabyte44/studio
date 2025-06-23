@@ -3,14 +3,14 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, ProteinIntake, LoggedFoodItem, CompletedWorkouts } from '@/types';
+import type { Habit, Exercise, WorkoutDay, CyclicalWorkoutSplit, CycleConfig, ProteinIntake, LoggedFoodItem, CompletedWorkouts, ExerciseSession } from '@/types';
 import { P_HABITS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
     PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, 
     AlertTriangle, Droplets, Plus, Minus, BookOpenCheck, Pill, Bed, Footprints, 
-    Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater, CalendarIcon 
+    Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater, CalendarIcon, TrendingUp, BarChart2
 } from 'lucide-react';
 import { subDays, format, isSameDay, parseISO, startOfMonth, differenceInCalendarDays } from 'date-fns';
 import { calculateStreak, cn } from '@/lib/utils';
@@ -28,20 +28,45 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar } from '@/components/ui/calendar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+
 
 const iconMap: Record<string, React.ElementType> = {
     PlusCircle, Flame, List, Dumbbell, CalendarDays, Edit, Beef, Apple, Settings, Trash2, Check, 
     AlertTriangle, Droplets, Plus, Minus, BookOpenCheck, Pill, Bed, Footprints, 
-    Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater
+    Sunrise, Guitar, Code, Leaf, CheckCircle2, GlassWater, TrendingUp
+};
+
+// --- Augment initial data with IDs and overload properties ---
+const augmentWorkoutSplit = (split: CyclicalWorkoutSplit): CyclicalWorkoutSplit => {
+    const newSplit: CyclicalWorkoutSplit = {};
+    Object.entries(split).forEach(([dayKey, dayData]) => {
+        newSplit[dayKey] = {
+            ...dayData,
+            exercises: dayData.exercises.map(ex => ({
+                id: `ex-${Math.random().toString(36).substr(2, 9)}`,
+                ...ex,
+                kValue: ex.kValue || 0.5,
+                baselineWeight: ex.baselineWeight || 0,
+                baselineReps: ex.baselineReps || 0,
+                targetWeight: ex.targetWeight || 0,
+                targetReps: ex.targetReps || 0,
+                sessionHistory: ex.sessionHistory || [],
+            }))
+        };
+    });
+    return newSplit;
 };
 
 // --- Initial Data for Gym Tracker ---
-const initialWorkoutSplit: CyclicalWorkoutSplit = {
+const initialWorkoutSplitRaw: CyclicalWorkoutSplit = {
   "Day 1": { title: "Push Day (Chest, Shoulders, Triceps)", exercises: [{ name: "Bench Press", sets: "3-4", reps: "8-12" }, { name: "Overhead Press", sets: "3", reps: "8-12" }, { name: "Incline Dumbbell Press", sets: "3", reps: "10-15" }, { name: "Tricep Dips/Pushdowns", sets: "3", reps: "10-15" }, { name: "Lateral Raises", sets: "3", reps: "12-15" }] },
   "Day 2": { title: "Pull Day (Back, Biceps)", exercises: [{ name: "Pull-ups/Lat Pulldowns", sets: "3-4", reps: "6-12" }, { name: "Bent-over Rows", sets: "3", reps: "8-12" }, { name: "Seated Cable Rows", sets: "3", reps: "10-15" }, { name: "Barbell Curls", sets: "3", reps: "8-12" }, { name: "Face Pulls", sets: "3", reps: "15-20" }] },
   "Day 3": { title: "Leg Day (Quads, Hamstrings, Calves)", exercises: [{ name: "Squats", sets: "3-4", reps: "8-12" }, { name: "Romanian Deadlifts", sets: "3", reps: "10-12" }, { name: "Leg Press", sets: "3", reps: "10-15" }, { name: "Leg Curls", sets: "3", reps: "10-15" }, { name: "Calf Raises", sets: "3", reps: "15-20" }] },
   "Day 4 (Rest)": { title: "Rest or Active Recovery", exercises: [] },
 };
+const initialWorkoutSplit = augmentWorkoutSplit(initialWorkoutSplitRaw);
 const initialCustomFoodItems = ["Protein Powder", "Creatine", "Oatmeal", "Eggs", "Chicken Breast", "Greek Yogurt"];
 const SPECIAL_HABIT_ICONS = ['GlassWater', 'Dumbbell', 'Beef', 'Pill'];
 
@@ -60,6 +85,7 @@ type GymTrackerProps = {
   setCyclicalWorkoutSplit: (split: CyclicalWorkoutSplit) => void;
   cycleConfig: CycleConfig;
   setCycleConfig: (config: CycleConfig) => void;
+  onOpenOverloadTracker: () => void;
 };
 
 
@@ -75,6 +101,7 @@ function GymTracker({
     isTodayCompleted,
     todaysWorkoutInfo,
     onManagePlan,
+    onOpenOverloadTracker,
 }: GymTrackerProps & { 
     onManageCustomFoodItems: () => void,
     onManagePlan: () => void,
@@ -96,7 +123,6 @@ function GymTracker({
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                 {/* Workout Plan Card */}
                 <Card className={cn("lg:col-span-3", isTodayCompleted && "bg-muted/50")}>
                     <CardHeader>
                         <div className="flex items-center justify-between">
@@ -131,10 +157,26 @@ function GymTracker({
                         </CardFooter>
                     )}
                 </Card>
+
+                <Card className="lg:col-span-3">
+                    <CardHeader>
+                        <CardTitle className="font-headline flex items-center gap-3 text-lg">
+                            <TrendingUp className="h-6 w-6 text-primary" />
+                            <span>Overload Tracker</span>
+                        </CardTitle>
+                        <CardDescription>
+                            Analyze and visualize your strength progression for key exercises.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button onClick={onOpenOverloadTracker}>
+                            <BarChart2 className="mr-2 h-4 w-4" />
+                            Track Progress
+                        </Button>
+                    </CardContent>
+                </Card>
                  
-                {/* Nutrition Section */}
                 <div className="lg:col-span-3 grid md:grid-cols-2 gap-6">
-                    {/* Protein Intake Card */}
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
                       setIntakes={setProteinIntakes}
@@ -142,7 +184,6 @@ function GymTracker({
                       setTarget={setProteinTarget}
                     />
 
-                    {/* Food & Supplement Log Card */}
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
                       setLoggedItems={setLoggedFoodItems}
@@ -278,10 +319,10 @@ function WaterIntakeManager({ habit, onUpdate }: { habit: Habit; onUpdate: (habi
   if (!habit || habit.icon !== 'GlassWater') return null;
 
   const ML_PER_GLASS = 250;
-  const currentTargetInGlasses = habit.target || 8; // Default to 8 glasses
+  const currentTargetInGlasses = habit.target || 8; 
 
   const handleTargetChange = (increment: number) => {
-    const newTarget = Math.max(1, currentTargetInGlasses + increment); // Minimum 1 glass
+    const newTarget = Math.max(1, currentTargetInGlasses + increment); 
     onUpdate({ ...habit, target: newTarget });
   };
   
@@ -454,6 +495,35 @@ const useWorkoutDayInfo = (cyclicalWorkoutSplit: CyclicalWorkoutSplit, cycleConf
 };
 
 
+function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onExerciseChange: (field: keyof Exercise, value: any) => void }) {
+    return (
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="overload-setup" className="border-none">
+                <AccordionTrigger className="text-xs font-semibold hover:no-underline py-1">Overload Setup</AccordionTrigger>
+                <AccordionContent className="space-y-1.5 pt-1">
+                    <div>
+                        <Label htmlFor={`k-value-${exercise.id}`} className="text-xs">Exercise Type (k-Value)</Label>
+                        <Select value={String(exercise.kValue || 0.5)} onValueChange={(v) => onExerciseChange('kValue', parseFloat(v))}>
+                            <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="0.3" className="text-xs">Isolation (e.g., Curl)</SelectItem>
+                                <SelectItem value="0.5" className="text-xs">Compound (e.g., Bench Press)</SelectItem>
+                                <SelectItem value="0.6" className="text-xs">Heavy Compound (e.g., Squat)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <div><Label htmlFor={`base-weight-${exercise.id}`} className="text-xs">Baseline Weight (kg)</Label><Input id={`base-weight-${exercise.id}`} type="number" value={exercise.baselineWeight || ''} onChange={(e) => onExerciseChange('baselineWeight', parseFloat(e.target.value))} className="h-7 text-xs" /></div>
+                        <div><Label htmlFor={`base-reps-${exercise.id}`} className="text-xs">Baseline Reps</Label><Input id={`base-reps-${exercise.id}`} type="number" value={exercise.baselineReps || ''} onChange={(e) => onExerciseChange('baselineReps', parseFloat(e.target.value))} className="h-7 text-xs" /></div>
+                        <div><Label htmlFor={`target-weight-${exercise.id}`} className="text-xs">Target Weight (kg)</Label><Input id={`target-weight-${exercise.id}`} type="number" value={exercise.targetWeight || ''} onChange={(e) => onExerciseChange('targetWeight', parseFloat(e.target.value))} className="h-7 text-xs" /></div>
+                        <div><Label htmlFor={`target-reps-${exercise.id}`} className="text-xs">Target Reps</Label><Input id={`target-reps-${exercise.id}`} type="number" value={exercise.targetReps || ''} onChange={(e) => onExerciseChange('targetReps', parseFloat(e.target.value))} className="h-7 text-xs" /></div>
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+    )
+}
+
 function GymSettingsDialog({ 
     isOpen, 
     onOpenChange, 
@@ -481,10 +551,15 @@ function GymSettingsDialog({
         setEditedSplit(prev => ({ ...prev, [dayKey]: { ...prev[dayKey], title: newTitle }}));
     };
 
-    const handleExerciseChange = (dayKey: string, exIndex: number, field: keyof Exercise, value: string) => {
+    const handleExerciseChange = (dayKey: string, exIndex: number, field: keyof Exercise, value: any) => {
         setEditedSplit(prev => {
-            const newSplit = { ...prev };
-            newSplit[dayKey].exercises[exIndex] = { ...newSplit[dayKey].exercises[exIndex], [field]: value };
+            const newSplit = JSON.parse(JSON.stringify(prev));
+            const exercise = newSplit[dayKey].exercises[exIndex];
+            if (typeof value === 'number' && isNaN(value)) {
+                exercise[field] = undefined;
+            } else {
+                exercise[field] = value;
+            }
             return newSplit;
         });
     };
@@ -492,7 +567,19 @@ function GymSettingsDialog({
     const handleAddExercise = (dayKey: string) => {
         setEditedSplit(prev => {
             const newSplit = { ...prev };
-            newSplit[dayKey].exercises.push({ name: 'New Exercise', sets: '3', reps: '10' });
+            const newExercise: Exercise = { 
+                id: `ex-${Date.now()}`,
+                name: 'New Exercise', 
+                sets: '3', 
+                reps: '10',
+                kValue: 0.5,
+                baselineWeight: 0,
+                baselineReps: 0,
+                targetWeight: 0,
+                targetReps: 0,
+                sessionHistory: [],
+            };
+            newSplit[dayKey].exercises.push(newExercise);
             return newSplit;
         });
     };
@@ -516,6 +603,10 @@ function GymSettingsDialog({
         setEditedSplit(prev => {
             const newSplit = { ...prev };
             delete newSplit[dayKey];
+            // Also unset startDayKey if it was the deleted day
+            if (editedConfig.startDayKey === dayKey) {
+                setEditedConfig(c => ({...c, startDayKey: ''}));
+            }
             return newSplit;
         });
     };
@@ -527,7 +618,7 @@ function GymSettingsDialog({
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="w-[95vw] max-w-lg rounded-lg p-1">
-                <DialogHeader className="p-1 pb-0">
+                <DialogHeader className="p-2 pb-0">
                     <DialogTitle className="text-base">Manage Gym Plan</DialogTitle>
                     <DialogDescription className="text-xs">
                         Edit your workout plan and cycle configuration.
@@ -561,13 +652,16 @@ function GymSettingsDialog({
                                                     <div className="space-y-1">
                                                         <h4 className="font-medium text-xs">Exercises</h4>
                                                         {dayData.exercises.map((ex, exIndex) => (
-                                                            <div key={exIndex} className="flex items-center gap-1">
-                                                                <Input placeholder="Name" value={ex.name} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'name', e.target.value)} className="flex-grow h-7 text-xs"/>
-                                                                <Input placeholder="Sets" value={ex.sets} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'sets', e.target.value)} className="w-14 h-7 text-xs"/>
-                                                                <Input placeholder="Reps" value={ex.reps} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'reps', e.target.value)} className="w-14 h-7 text-xs"/>
-                                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteExercise(dayKey, exIndex)}>
-                                                                    <Trash2 className="h-3 w-3 text-destructive"/>
-                                                                </Button>
+                                                            <div key={ex.id} className="border-t pt-2">
+                                                                <div className="flex items-center gap-1">
+                                                                    <Input placeholder="Name" value={ex.name} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'name', e.target.value)} className="flex-grow h-7 text-xs"/>
+                                                                    <Input placeholder="Sets" value={ex.sets} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'sets', e.target.value)} className="w-14 h-7 text-xs"/>
+                                                                    <Input placeholder="Reps" value={ex.reps} onChange={(e) => handleExerciseChange(dayKey, exIndex, 'reps', e.target.value)} className="w-14 h-7 text-xs"/>
+                                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteExercise(dayKey, exIndex)}>
+                                                                        <Trash2 className="h-3 w-3 text-destructive"/>
+                                                                    </Button>
+                                                                </div>
+                                                                <OverloadSetup exercise={ex} onExerciseChange={(field, value) => handleExerciseChange(dayKey, exIndex, field, value)} />
                                                             </div>
                                                         ))}
                                                         <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddExercise(dayKey)}>Add Exercise</Button>
@@ -705,6 +799,248 @@ function FoodManagerDialog({
     );
 }
 
+function OverloadTrackerDialog({
+    isOpen, onOpenChange, workoutSplit, setWorkoutSplit
+}: {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    workoutSplit: CyclicalWorkoutSplit;
+    setWorkoutSplit: (split: CyclicalWorkoutSplit) => void;
+}) {
+    const { toast } = useToast();
+    const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
+    const [sessionWeight, setSessionWeight] = useState('');
+    const [sessionReps, setSessionReps] = useState('');
+
+    const allExercises = useMemo(() => {
+        return Object.values(workoutSplit).flatMap(day => day.exercises);
+    }, [workoutSplit]);
+
+    const selectedExercise = useMemo(() => {
+        return allExercises.find(ex => ex.id === selectedExerciseId) || null;
+    }, [selectedExerciseId, allExercises]);
+
+    // --- Core Logic Engine ---
+    const calculateE1RM = (weight: number, reps: number) => weight * (1 + reps / 30);
+
+    const calculateProgressiveOverload = useCallback((
+        sessionHistory: ExerciseSession[], 
+        baseline: { weight: number; reps: number }, 
+        target: { weight: number; reps: number }, 
+        k: number
+    ) => {
+        const { weight: WL, reps: RL } = baseline;
+        const { weight: WT, reps: RT } = target;
+        const e1RM_L = calculateE1RM(WL, RL);
+        const e1RM_T = calculateE1RM(WT, RT);
+        const intensityRange = e1RM_T - e1RM_L;
+        const weightRange = WT - WL;
+        const repRange = RT - RL;
+        let lastScore = 0;
+        
+        const results = [{ session: 1, weight: WL, reps: RL, score: 0, scoreDelta: 0 }];
+        
+        sessionHistory.forEach((session, index) => {
+            const { weight: Wi, reps: Ri } = session;
+            const e1RM_i = calculateE1RM(Wi, Ri);
+            
+            let intensityScore = (intensityRange > 0) ? (e1RM_i - e1RM_L) / intensityRange : (e1RM_i >= e1RM_L ? 1 : 0);
+            intensityScore = Math.max(0, intensityScore);
+            
+            let weightProgress = (weightRange !== 0) ? (Wi - WL) / weightRange : (Wi >= WL ? 1 : 0);
+            let repProgress = (repRange !== 0) ? (Ri - RL) / repRange : (Ri >= RL ? 1 : 0);
+            
+            weightProgress = Math.max(0, weightProgress);
+            repProgress = Math.max(0, repProgress);
+            
+            const synergyScore = Math.sqrt(weightProgress * repProgress);
+            const currentScore = (k * intensityScore) + ((1 - k) * synergyScore);
+            const scoreDelta = currentScore - lastScore;
+            
+            results.push({ session: index + 2, weight: Wi, reps: Ri, score: currentScore, scoreDelta: scoreDelta });
+            lastScore = currentScore;
+        });
+        
+        return results;
+    }, []);
+
+    const overloadResults = useMemo(() => {
+        if (!selectedExercise || !selectedExercise.sessionHistory) return [];
+        const settings = {
+            baseline: { weight: selectedExercise.baselineWeight || 0, reps: selectedExercise.baselineReps || 0 },
+            target: { weight: selectedExercise.targetWeight || 0, reps: selectedExercise.targetReps || 0 },
+            k: selectedExercise.kValue || 0.5
+        };
+        if (!settings.baseline.weight) return [];
+        return calculateProgressiveOverload(selectedExercise.sessionHistory, settings.baseline, settings.target, settings.k);
+    }, [selectedExercise, calculateProgressiveOverload]);
+
+    const handleAddSession = () => {
+        const weight = parseFloat(sessionWeight);
+        const reps = parseInt(sessionReps);
+
+        if (!selectedExerciseId || isNaN(weight) || isNaN(reps) || weight <= 0 || reps <= 0) {
+            toast({ title: "Invalid Input", description: "Please enter valid, positive numbers for weight and reps.", variant: "destructive" });
+            return;
+        }
+
+        const newSession: ExerciseSession = { weight, reps };
+        const newSplit = JSON.parse(JSON.stringify(workoutSplit));
+        
+        let exerciseFound = false;
+        for (const dayKey in newSplit) {
+            const day = newSplit[dayKey];
+            const exIndex = day.exercises.findIndex((ex: Exercise) => ex.id === selectedExerciseId);
+            if (exIndex !== -1) {
+                if (!day.exercises[exIndex].sessionHistory) {
+                    day.exercises[exIndex].sessionHistory = [];
+                }
+                day.exercises[exIndex].sessionHistory.push(newSession);
+                exerciseFound = true;
+                break;
+            }
+        }
+
+        if (exerciseFound) {
+            setWorkoutSplit(newSplit);
+            setSessionWeight('');
+            setSessionReps('');
+            toast({ title: "Session Logged!", description: `Added ${weight}kg x ${reps} reps for ${selectedExercise?.name}.` });
+        }
+    };
+    
+    const latestResult = overloadResults[overloadResults.length - 1];
+    let feedbackText = "Log a session to see feedback.";
+    let feedbackClass = "";
+    if (latestResult && latestResult.session > 1) {
+        if (latestResult.scoreDelta > 0.02) { feedbackText = "Great Progress! ▲"; feedbackClass = 'text-green-600'; } 
+        else if (latestResult.scoreDelta > 0) { feedbackText = "Solid Improvement ▲"; feedbackClass = 'text-green-500'; } 
+        else if (latestResult.scoreDelta === 0) { feedbackText = "Stable Performance –"; } 
+        else { feedbackText = "Slight Dip ▼"; feedbackClass = 'text-red-500'; }
+    }
+
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
+                <DialogHeader className="p-4 border-b">
+                    <DialogTitle>Progressive Overload Tracker</DialogTitle>
+                </DialogHeader>
+                <div className="flex-grow grid md:grid-cols-2 gap-4 p-4 overflow-y-auto">
+                    {/* Left Column: Controls & Feedback */}
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label>Select Exercise to Track</Label>
+                             <Select onValueChange={setSelectedExerciseId} value={selectedExerciseId || ""}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Choose an exercise..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(workoutSplit).map(([dayKey, day]) => (
+                                       day.exercises.length > 0 && (
+                                        <React.Fragment key={dayKey}>
+                                            <Label className="px-2 text-xs text-muted-foreground">{day.title}</Label>
+                                            {day.exercises.map(ex => (
+                                                <SelectItem key={ex.id} value={ex.id}>{ex.name}</SelectItem>
+                                            ))}
+                                        </React.Fragment>
+                                       )
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        
+                        {selectedExercise && (
+                            <>
+                                <Card>
+                                    <CardHeader className="p-4">
+                                        <CardTitle className="text-lg">Log New Session for {selectedExercise.name}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0 space-y-2">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><Label htmlFor="session-weight">Weight (kg)</Label><Input id="session-weight" type="number" placeholder="e.g., 65" value={sessionWeight} onChange={e => setSessionWeight(e.target.value)} /></div>
+                                            <div><Label htmlFor="session-reps">Reps</Label><Input id="session-reps" type="number" placeholder="e.g., 8" value={sessionReps} onChange={e => setSessionReps(e.target.value)} /></div>
+                                        </div>
+                                        <Button onClick={handleAddSession} className="w-full"><PlusCircle className="mr-2 h-4 w-4"/> Add Session</Button>
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader className="p-4">
+                                        <CardTitle className="text-lg">Latest Session Feedback</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0 text-center">
+                                       {latestResult && latestResult.session > 1 ? (
+                                           <>
+                                            <div className="text-3xl font-bold text-primary">{latestResult.weight}kg x {latestResult.reps}</div>
+                                            <div className={`text-lg font-semibold ${feedbackClass}`}>{feedbackText}</div>
+                                           </>
+                                       ) : <p className="text-muted-foreground">Log a session to see feedback, or check setup.</p>}
+                                    </CardContent>
+                                </Card>
+                            </>
+                        )}
+                    </div>
+                    {/* Right Column: Chart & History */}
+                    <div className="space-y-4">
+                       {selectedExercise && overloadResults.length > 0 && (
+                        <>
+                             <Card>
+                                <CardHeader className="p-4"><CardTitle className="text-lg">Progress Trend</CardTitle></CardHeader>
+                                <CardContent className="p-4 pt-0 h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={overloadResults} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="session" tickFormatter={(val) => `S${val}`} />
+                                            <YAxis domain={[0, 'dataMax + 0.1']} />
+                                            <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}/>
+                                            <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader className="p-4"><CardTitle className="text-lg">Session History</CardTitle></CardHeader>
+                                <CardContent className="p-4 pt-0">
+                                    <ScrollArea className="h-64">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Session</TableHead>
+                                                    <TableHead>Weight</TableHead>
+                                                    <TableHead>Reps</TableHead>
+                                                    <TableHead>Trend</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {overloadResults.map((r, i) => (
+                                                    <TableRow key={i}>
+                                                        <TableCell>{r.session}</TableCell>
+                                                        <TableCell>{r.weight}kg</TableCell>
+                                                        <TableCell>{r.reps}</TableCell>
+                                                        <TableCell className={cn(r.scoreDelta > 0 && 'text-green-500', r.scoreDelta < 0 && 'text-red-500')}>
+                                                            {i > 0 ? (r.scoreDelta > 0 ? '▲' : r.scoreDelta < 0 ? '▼' : '–') : '–'}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </ScrollArea>
+                                </CardContent>
+                            </Card>
+                        </>
+                       )}
+                       {!selectedExercise && <div className="flex items-center justify-center h-full text-muted-foreground">Please select an exercise to view its data.</div>}
+                    </div>
+                </div>
+                <DialogFooter className="p-4 border-t">
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 export default function HabitsPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -727,6 +1063,7 @@ export default function HabitsPage() {
   // Dialog states for GymTracker
   const [isGymSettingsOpen, setIsGymSettingsOpen] = useState(false);
   const [isFoodManagerOpen, setIsFoodManagerOpen] = useState(false);
+  const [isOverloadTrackerOpen, setIsOverloadTrackerOpen] = useState(false);
 
   // --- Effects for Loading Data ---
   useEffect(() => {
@@ -757,7 +1094,6 @@ export default function HabitsPage() {
           habitsToSet = P_HABITS;
       }
       
-      // Ensure all special habits from placeholder data are present
       P_HABITS.forEach(ph => {
           if (SPECIAL_HABIT_ICONS.includes(ph.icon)) {
               if (!habitsToSet.some(h => h.icon === ph.icon)) {
@@ -772,7 +1108,13 @@ export default function HabitsPage() {
       if(storedCycleConfig) setCycleConfig(JSON.parse(storedCycleConfig));
       
       const storedSplit = localStorage.getItem('gym_workout_split');
-      if(storedSplit) setCyclicalWorkoutSplit(JSON.parse(storedSplit));
+      if(storedSplit) {
+          // Augment loaded data with new fields if they don't exist
+          const loadedSplit = JSON.parse(storedSplit);
+          setCyclicalWorkoutSplit(augmentWorkoutSplit(loadedSplit));
+      } else {
+          setCyclicalWorkoutSplit(initialWorkoutSplit);
+      }
 
       const storedProteinIntakes = localStorage.getItem('gym_protein_intakes');
       if(storedProteinIntakes) setProteinIntakes(JSON.parse(storedProteinIntakes));
@@ -790,6 +1132,7 @@ export default function HabitsPage() {
       console.error("Failed to load data from localStorage", error);
       toast({ variant: 'destructive', title: "Error", description: "Could not load saved data." });
       setHabits(P_HABITS);
+      setCyclicalWorkoutSplit(initialWorkoutSplit);
     }
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
@@ -825,7 +1168,6 @@ export default function HabitsPage() {
             let newCompletions = { ...habit.completions };
             let changedInThisHabit = false;
 
-            // Sync Protein Streak
             if (habit.icon === 'Beef') {
                 const todaysIntakes = proteinIntakes.filter(intake => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === todayKey);
                 const totalProtein = todaysIntakes.reduce((sum, intake) => sum + intake.amount, 0);
@@ -838,7 +1180,6 @@ export default function HabitsPage() {
                 }
             }
 
-            // Sync Supplement Streak
             if (habit.icon === 'Pill') {
                 const todaysLogs = loggedFoodItems.filter(i => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
                 const todaysLoggedNames = new Set(todaysLogs.map(log => log.name));
@@ -914,7 +1255,7 @@ export default function HabitsPage() {
     };
 
   const getWorkoutDayInfo = useWorkoutDayInfo(cyclicalWorkoutSplit, cycleConfig);
-  const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfo(new Date()), [getWorkoutDayInfo]);
+  const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfo(new Date()), [getWorkoutDayInfo, cyclicalWorkoutSplit, cycleConfig]);
   
   const workoutHabit = habits.find(h => h.icon === 'Dumbbell');
   const todayKey = format(new Date(), 'yyyy-MM-dd');
@@ -986,6 +1327,7 @@ export default function HabitsPage() {
             onToggleWorkoutCompletion={handleToggleWorkoutCompletion}
             isTodayCompleted={isTodayWorkoutCompleted}
             todaysWorkoutInfo={todaysWorkoutInfo}
+            onOpenOverloadTracker={() => setIsOverloadTrackerOpen(true)}
         />
 
         <Separator />
@@ -1099,6 +1441,12 @@ export default function HabitsPage() {
         customItems={customFoodItems}
         setCustomItems={setCustomFoodItems}
        />
+       <OverloadTrackerDialog
+         isOpen={isOverloadTrackerOpen}
+         onOpenChange={setIsOverloadTrackerOpen}
+         workoutSplit={cyclicalWorkoutSplit}
+         setWorkoutSplit={setCyclicalWorkoutSplit}
+       />
        <AlertDialog open={!!habitToDelete} onOpenChange={() => setHabitToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -1207,13 +1555,3 @@ function AddHabitDialog({
         </Dialog>
     );
 }
-
-    
-
-    
-
-
-
-    
-
-    

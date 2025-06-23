@@ -61,11 +61,28 @@ export type Credential = {
 
 
 // New types for Gym Tracker
+export type ExerciseSession = {
+  weight: number;
+  reps: number;
+  // Calculated fields for internal use
+  score?: number;
+  scoreDelta?: number;
+};
+
 export type Exercise = {
+  id: string;
   name: string;
   sets: string;
   reps: string;
+  // For progressive overload tracker
+  kValue?: number;
+  baselineWeight?: number;
+  baselineReps?: number;
+  targetWeight?: number;
+  targetReps?: number;
+  sessionHistory?: ExerciseSession[];
 };
+
 
 export type WorkoutDay = {
   title: string;
