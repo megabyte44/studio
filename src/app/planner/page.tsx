@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -128,7 +127,7 @@ export default function PlannerPage() {
                         <CardHeader className="p-1 flex-row items-center justify-between">
                             <CardTitle className="text-base font-semibold">Schedule for {selectedDay}</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-2 pt-0 h-full flex flex-col">
+                        <CardContent className="p-2 pt-0 flex-grow flex flex-col min-h-0">
                             <div className="space-y-2 flex-grow flex flex-col min-h-0">
                                 <div className="space-y-1">
                                     <Label htmlFor="day-select" className="text-xs">Select a day to view/add to:</Label>
@@ -166,24 +165,26 @@ export default function PlannerPage() {
 
                                 <div className="pt-1 border-t">
                                     <h3 className="font-semibold text-base mb-1">Add Ad-hoc Item</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                                        <div className="sm:col-span-2 space-y-1">
+                                    <div className="space-y-1">
+                                        <div className="space-y-1">
                                             <Label htmlFor="new-item-title" className="text-xs">Title</Label>
                                             <Input id="new-item-title" value={newItemTitle} onChange={e => setNewItemTitle(e.target.value)} placeholder="e.g., Study Session, Meeting" />
                                         </div>
-                                        <div className="space-y-1">
-                                            <Label htmlFor="new-item-start-time" className="text-xs">Start Time</Label>
-                                            <Input id="new-item-start-time" type="time" value={newItemStartTime} onChange={e => setNewItemStartTime(e.target.value)} />
+                                        <div className="flex gap-1">
+                                            <div className="space-y-1 flex-1">
+                                                <Label htmlFor="new-item-start-time" className="text-xs">Start Time</Label>
+                                                <Input id="new-item-start-time" type="time" value={newItemStartTime} onChange={e => setNewItemStartTime(e.target.value)} />
+                                            </div>
+                                            <div className="space-y-1 flex-1">
+                                                <Label htmlFor="new-item-end-time" className="text-xs">End Time</Label>
+                                                <Input id="new-item-end-time" type="time" value={newItemEndTime} onChange={e => setNewItemEndTime(e.target.value)} />
+                                            </div>
                                         </div>
                                         <div className="space-y-1">
-                                            <Label htmlFor="new-item-end-time" className="text-xs">End Time</Label>
-                                            <Input id="new-item-end-time" type="time" value={newItemEndTime} onChange={e => setNewItemEndTime(e.target.value)} />
-                                        </div>
-                                        <div className="sm:col-span-2 space-y-1">
                                             <Label htmlFor="new-item-tag" className="text-xs">Tag (Optional)</Label>
                                             <Input id="new-item-tag" value={newItemTag} onChange={e => setNewItemTag(e.target.value)} placeholder="e.g., Work, Personal, College" />
                                         </div>
-                                        <div className="sm:col-span-2 flex items-center space-x-2">
+                                        <div className="flex items-center space-x-2">
                                             <Checkbox id="new-item-add-to-all-week" checked={newItemAddToAllWeek} onCheckedChange={(checked) => setNewItemAddToAllWeek(!!checked)} />
                                             <Label htmlFor="new-item-add-to-all-week" className="flex items-center gap-1.5 text-xs">
                                                 Add to all days this week
@@ -197,7 +198,7 @@ export default function PlannerPage() {
                                                 </Tooltip>
                                             </Label>
                                         </div>
-                                        <div className="sm:col-span-2">
+                                        <div>
                                             <Button onClick={handleAddAdhocItem} className="w-full sm:w-auto">
                                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Item
                                             </Button>
