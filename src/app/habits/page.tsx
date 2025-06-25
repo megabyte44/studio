@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -111,46 +112,46 @@ function GymTracker({
 }) {
     
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <header className="flex items-center justify-between">
-                <h2 className="text-xl font-bold font-headline flex items-center gap-2">
-                    <Dumbbell className="h-6 w-6 text-primary" />
+                <h2 className="text-lg font-bold font-headline flex items-center gap-2">
+                    <Dumbbell className="h-5 w-5 text-primary" />
                     <span>Gym Tracker</span>
                 </h2>
-                <Button variant="ghost" size="icon" onClick={onManagePlan}>
-                    <Settings className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onManagePlan}>
+                    <Settings className="h-4 w-4" />
                 </Button>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <Card className={cn("lg:col-span-3", isTodayCompleted && "bg-muted/50")}>
-                    <CardHeader>
+                    <CardHeader className="p-3">
                         <div className="flex items-center justify-between">
-                            <CardTitle className="font-headline flex items-center gap-3 text-lg">
+                            <CardTitle className="font-headline flex items-center gap-2 text-base">
                                 <span>{todaysWorkoutInfo.key}: {todaysWorkoutInfo.title}</span>
                             </CardTitle>
                         </div>
-                         <CardDescription>
+                         <CardDescription className="text-xs">
                             Today ({format(new Date(), 'EEEE, MMM d')})
                          </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-3 pt-0">
                         {todaysWorkoutInfo.exercises.length > 0 ? (
-                            <ul className="space-y-3">
+                            <ul className="space-y-2">
                                 {todaysWorkoutInfo.exercises.map((ex, i) => (
-                                    <li key={ex.id || i} className="flex justify-between items-center p-3 rounded-md bg-muted/30">
-                                        <span className="font-semibold">{ex.name}</span>
-                                        <span className="text-sm text-muted-foreground">Sets: {ex.sets}</span>
+                                    <li key={ex.id || i} className="flex justify-between items-center p-2 rounded-md bg-muted/30 text-sm">
+                                        <span className="font-medium">{ex.name}</span>
+                                        <span className="text-xs text-muted-foreground">Sets: {ex.sets}</span>
                                     </li>
                                 ))}
                             </ul>
                         ) : (
-                             <p className="text-center text-muted-foreground py-8">{todaysWorkoutInfo.title}</p>
+                             <p className="text-center text-muted-foreground py-6 text-sm">{todaysWorkoutInfo.title}</p>
                         )}
                     </CardContent>
                     {!todaysWorkoutInfo.isRestDay && (
-                        <CardFooter>
-                            <Button className="w-full" onClick={onToggleWorkoutCompletion} variant={isTodayCompleted ? 'secondary' : 'default'}>
+                        <CardFooter className="p-3">
+                            <Button size="sm" className="w-full" onClick={onToggleWorkoutCompletion} variant={isTodayCompleted ? 'secondary' : 'default'}>
                                 <Check className="mr-2 h-4 w-4"/>
                                 {isTodayCompleted ? 'Workout Completed!' : "Mark Today's Workout as Done"}
                             </Button>
@@ -159,24 +160,24 @@ function GymTracker({
                 </Card>
 
                 <Card className="lg:col-span-3">
-                    <CardHeader>
-                        <CardTitle className="font-headline flex items-center gap-3 text-lg">
-                            <TrendingUp className="h-6 w-6 text-primary" />
+                    <CardHeader className="p-3">
+                        <CardTitle className="font-headline flex items-center gap-2 text-base">
+                            <TrendingUp className="h-5 w-5 text-primary" />
                             <span>Overload Tracker</span>
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-xs">
                             Analyze and visualize your strength progression for key exercises.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <Button onClick={onOpenOverloadTracker}>
+                    <CardContent className="p-3 pt-0">
+                        <Button size="sm" onClick={onOpenOverloadTracker}>
                             <BarChart2 className="mr-2 h-4 w-4" />
                             Track Progress
                         </Button>
                     </CardContent>
                 </Card>
                  
-                <div className="lg:col-span-3 grid md:grid-cols-2 gap-6">
+                <div className="lg:col-span-3 grid md:grid-cols-2 gap-4">
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
                       setIntakes={setProteinIntakes}
@@ -187,7 +188,7 @@ function GymTracker({
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
                       setLoggedItems={setLoggedFoodItems}
-                      customItems={customFoodItems}
+                      customItems={customItems}
                       onManageItems={onManageCustomFoodItems}
                     />
                 </div>
@@ -232,27 +233,27 @@ function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-3 text-lg"><Beef className="h-6 w-6 text-primary" /> <span>Protein Intake</span></CardTitle>
-                <CardDescription>Today's Total: {totalProtein}g / {target}g</CardDescription>
+            <CardHeader className="p-3">
+                <CardTitle className="font-headline flex items-center gap-2 text-base"><Beef className="h-5 w-5 text-primary" /> <span>Protein Intake</span></CardTitle>
+                <CardDescription className="text-xs">Today's Total: {totalProtein}g / {target}g</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 p-3 pt-0">
                  <div>
-                    <Label htmlFor="proteinTarget" className="text-sm">Daily Protein Target (g)</Label>
-                    <Input id="proteinTarget" type="number" value={target} onChange={e => setTarget(Number(e.target.value))} placeholder="e.g., 150" />
+                    <Label htmlFor="proteinTarget" className="text-xs">Daily Protein Target (g)</Label>
+                    <Input id="proteinTarget" type="number" value={target} onChange={e => setTarget(Number(e.target.value))} placeholder="e.g., 150" className="h-9 text-sm" />
                 </div>
                 <Progress value={progress} />
                  <div className="flex gap-2">
-                    <Input type="number" placeholder="Log Protein (g)" value={amount} onChange={e => setAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogProtein()} />
-                    <Button onClick={handleLogProtein}><PlusCircle className="h-4 w-4" /></Button>
+                    <Input type="number" placeholder="Log Protein (g)" value={amount} onChange={e => setAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogProtein()} className="h-9 text-sm" />
+                    <Button onClick={handleLogProtein} size="sm"><PlusCircle className="h-4 w-4" /></Button>
                 </div>
-                <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
+                <div className="max-h-32 overflow-y-auto space-y-1.5 pr-2">
                     {todaysIntakes.length > 0 ? [...todaysIntakes].reverse().map((intake: ProteinIntake) => (
-                        <div key={intake.id} className="flex justify-between items-center text-sm bg-muted p-2 rounded-md">
+                        <div key={intake.id} className="flex justify-between items-center text-xs bg-muted p-1.5 rounded-md">
                            <span>{intake.amount}g at {format(parseISO(intake.timestamp), 'h:mm a')}</span>
-                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(intake.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(intake.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                         </div>
-                    )) : <p className="text-sm text-muted-foreground text-center pt-4">No protein logged today.</p>}
+                    )) : <p className="text-xs text-muted-foreground text-center pt-4">No protein logged today.</p>}
                 </div>
             </CardContent>
         </Card>
@@ -283,32 +284,32 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
 
     return (
         <Card>
-            <CardHeader className="flex flex-row justify-between items-start">
+            <CardHeader className="flex flex-row justify-between items-start p-3">
                 <div>
-                    <CardTitle className="font-headline flex items-center gap-3 text-lg"><Apple className="h-6 w-6 text-primary" /> <span>Food & Supplement Log</span></CardTitle>
-                    <CardDescription>Quick log common items for today.</CardDescription>
+                    <CardTitle className="font-headline flex items-center gap-2 text-base"><Apple className="h-5 w-5 text-primary" /> <span>Food & Supplement Log</span></CardTitle>
+                    <CardDescription className="text-xs">Quick log common items for today.</CardDescription>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onManageItems}><Settings className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onManageItems}><Settings className="h-4 w-4" /></Button>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 p-3 pt-0">
                 <div className="grid grid-cols-2 gap-2">
                     {customItems.map((item: string) => {
                         const isLogged = todaysLoggedItems.some((li: LoggedFoodItem) => li.name === item);
                         return (
-                            <Button key={item} variant="outline" onClick={() => handleLogItem(item)} disabled={isLogged} className="justify-between">
+                            <Button key={item} variant="outline" size="sm" onClick={() => handleLogItem(item)} disabled={isLogged} className="justify-between text-xs h-8">
                                 {item} {isLogged && <Check className="h-4 w-4" />}
                             </Button>
                         );
                     })}
                 </div>
                 <Separator/>
-                <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
+                <div className="max-h-32 overflow-y-auto space-y-1.5 pr-2">
                      {todaysLoggedItems.length > 0 ? [...todaysLoggedItems].reverse().map((item: LoggedFoodItem) => (
-                        <div key={item.id} className="flex justify-between items-center text-sm bg-muted p-2 rounded-md">
+                        <div key={item.id} className="flex justify-between items-center text-xs bg-muted p-1.5 rounded-md">
                            <span>{item.name} at {format(parseISO(item.timestamp), 'h:mm a')}</span>
-                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                         </div>
-                    )) : <p className="text-sm text-muted-foreground text-center pt-4">No items logged yet today.</p>}
+                    )) : <p className="text-xs text-muted-foreground text-center pt-4">No items logged yet today.</p>}
                 </div>
             </CardContent>
         </Card>
