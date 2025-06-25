@@ -179,7 +179,7 @@ function GymTracker({
                 <div className="lg:col-span-3 grid md:grid-cols-2 gap-4">
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
-                      setIntakes={setIntakes}
+                      setIntakes={setProteinIntakes}
                       target={proteinTarget}
                       setTarget={setProteinTarget}
                     />
