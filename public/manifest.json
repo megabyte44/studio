@@ -1,0 +1,17 @@
+{
+  "name": "LifeOS",
+  "short_name": "LifeOS",
+  "description": "Manage your day, expenses, habits, and notes all in one place.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#8a7ff2",
+  "background_color": "#f9fafb",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}
