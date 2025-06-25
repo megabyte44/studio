@@ -38,7 +38,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { format } from 'date-fns';
+import { format, parseISO, isSameDay } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Notification } from '@/types';
 import { P_NOTIFICATIONS } from '@/lib/placeholder-data';
@@ -206,7 +206,19 @@ function NotificationBell() {
     };
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const todaysUnreadNotifications = notifications.filter(n => {
+    if (!n.read) {
+        try {
+            return isSameDay(parseISO(n.date), new Date());
+        } catch (e) {
+            console.error("Invalid date format for notification:", n);
+            return false;
+        }
+    }
+    return false;
+  });
+
+  const unreadCount = todaysUnreadNotifications.length;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -227,20 +239,23 @@ function NotificationBell() {
             <div className="p-2 space-y-2">
                 {unreadCount > 0 ? (
                     <>
-                        {notifications.filter(n => !n.read).slice(0, 5).map(n => (
-                            <div key={n.id} className="text-sm p-2 rounded-md hover:bg-accent">
+                        {todaysUnreadNotifications.slice(0, 5).map(n => (
+                            <div key={n.id} className="text-sm p-2 rounded-md hover:bg-accent" onClick={() => {
+                                setIsOpen(false);
+                                router.push('/notifications');
+                            }}>
                                 <p className="font-semibold">{n.title}</p>
                                 <p className="text-muted-foreground truncate">{n.message}</p>
                             </div>
                         ))}
                     </>
                 ) : (
-                    <p className="text-sm text-center text-muted-foreground py-8">No unread notifications.</p>
+                    <p className="text-sm text-center text-muted-foreground py-8">No new reminders today.</p>
                 )}
             </div>
         </ScrollArea>
         <div className="p-1 border-t bg-muted/50">
-            <Button variant="ghost" className="w-full h-8 text-xs" onClick={() => {
+            <Button variant="link" className="w-full h-8 text-xs" onClick={() => {
                 setIsOpen(false);
                 router.push('/notifications');
             }}>
