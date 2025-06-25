@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,20 +12,41 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, LogIn } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
+
+const WHITELIST_KEY = 'lifeos_whitelist';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [dob, setDob] = useState<Date>();
+  const [error, setError] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    // Initialize the whitelist in localStorage if it doesn't exist.
+    if (!localStorage.getItem(WHITELIST_KEY)) {
+      localStorage.setItem(WHITELIST_KEY, JSON.stringify(['admin']));
+    }
+  }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username && dob) {
-      localStorage.setItem('user', JSON.stringify({ username, dob: dob.toISOString() }));
-      router.push('/dashboard');
-    } else {
-      console.error('Login Failed: Please provide both a username and a date of birth.');
+    setError('');
+
+    if (!username || !dob) {
+      setError('Please provide both a username and a date of birth.');
+      return;
     }
+
+    const whitelist = JSON.parse(localStorage.getItem(WHITELIST_KEY) || '[]');
+    if (!whitelist.includes(username.toLowerCase().trim())) {
+      setError('Access Denied. This user is not on the whitelist.');
+      return;
+    }
+
+    localStorage.setItem('user', JSON.stringify({ username, dob: dob.toISOString() }));
+    router.push('/dashboard');
   };
 
   return (
@@ -37,6 +59,13 @@ export default function LoginPage() {
             <CardDescription>Your all-in-one productivity partner.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {error && (
+               <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Login Failed</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
             <div className="space-y-2">
               <Label htmlFor="username" className="font-headline">Username</Label>
               <Input

@@ -3,16 +3,100 @@
 
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell, ShieldCheck, PlusCircle, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
 const LOCAL_STORAGE_KEY_FEATURES = 'lifeos_feature_settings';
+const LOCAL_STORAGE_KEY_WHITELIST = 'lifeos_whitelist';
+const LOCAL_STORAGE_KEY_USER = 'user';
+
+
+function WhitelistManager() {
+  const [whitelist, setWhitelist] = useState<string[]>([]);
+  const [newUser, setNewUser] = useState('');
+
+  useEffect(() => {
+    const storedWhitelist = localStorage.getItem(LOCAL_STORAGE_KEY_WHITELIST);
+    if (storedWhitelist) {
+      setWhitelist(JSON.parse(storedWhitelist));
+    }
+  }, []);
+
+  const handleAddUser = () => {
+    const userToAdd = newUser.toLowerCase().trim();
+    if (!userToAdd || whitelist.includes(userToAdd)) {
+      setNewUser('');
+      return;
+    }
+    const updatedWhitelist = [...whitelist, userToAdd];
+    setWhitelist(updatedWhitelist);
+    localStorage.setItem(LOCAL_STORAGE_KEY_WHITELIST, JSON.stringify(updatedWhitelist));
+    setNewUser('');
+  };
+
+  const handleRemoveUser = (userToRemove: string) => {
+    if (userToRemove === 'admin') return; // Cannot remove admin
+    const updatedWhitelist = whitelist.filter(user => user !== userToRemove);
+    setWhitelist(updatedWhitelist);
+    localStorage.setItem(LOCAL_STORAGE_KEY_WHITELIST, JSON.stringify(updatedWhitelist));
+  };
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" />
+            Whitelist Management
+        </CardTitle>
+        <CardDescription>Add or remove users who are allowed to log in. Usernames are not case-sensitive.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex w-full max-w-sm items-center space-x-2">
+          <Input 
+            type="text" 
+            placeholder="New username" 
+            value={newUser}
+            onChange={(e) => setNewUser(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddUser()}
+          />
+          <Button onClick={handleAddUser}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add User
+          </Button>
+        </div>
+        <Separator />
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium">Allowed Users</h4>
+          <div className="space-y-2 rounded-md border p-2">
+              {whitelist.map(user => (
+                <div key={user} className="flex items-center justify-between">
+                  <p className="text-sm font-mono">{user}</p>
+                   <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => handleRemoveUser(user)}
+                      disabled={user === 'admin'}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                   </Button>
+                </div>
+              ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export default function SettingsPage() {
   const [gymTrackingEnabled, setGymTrackingEnabled] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{ username: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -20,10 +104,15 @@ export default function SettingsPage() {
       const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEY_FEATURES);
       if (storedSettings) {
         const settings = JSON.parse(storedSettings);
-        setGymTrackingEnabled(settings.gymTracking !== false); // Default to true if property is missing
+        setGymTrackingEnabled(settings.gymTracking !== false);
+      }
+      
+      const storedUser = localStorage.getItem(LOCAL_STORAGE_KEY_USER);
+      if (storedUser) {
+        setCurrentUser(JSON.parse(storedUser));
       }
     } catch (e) {
-      console.error("Failed to load feature settings", e);
+      console.error("Failed to load settings", e);
     }
     setIsLoading(false);
   }, []);
@@ -36,7 +125,6 @@ export default function SettingsPage() {
       settings.gymTracking = enabled;
       localStorage.setItem(LOCAL_STORAGE_KEY_FEATURES, JSON.stringify(settings));
       
-      // Dispatch a storage event to notify other open tabs/components
       window.dispatchEvent(new StorageEvent('storage', { 
         key: LOCAL_STORAGE_KEY_FEATURES,
         newValue: JSON.stringify(settings),
@@ -49,7 +137,7 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-        <div className="space-y-4">
+        <div className="space-y-6">
             <header>
               <h1 className="text-2xl font-bold font-headline">Settings</h1>
               <p className="text-muted-foreground">Manage your application settings here.</p>
@@ -83,6 +171,12 @@ export default function SettingsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            {isLoading ? (
+              <Skeleton className="h-64 w-full" />
+            ) : (
+              currentUser?.username === 'admin' && <WhitelistManager />
+            )}
       </div>
     </AppLayout>
   );
