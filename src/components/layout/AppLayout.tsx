@@ -304,6 +304,9 @@ function HeaderCalendar() {
     }
   };
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return (
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <PopoverTrigger asChild>
@@ -317,22 +320,25 @@ function HeaderCalendar() {
           mode="single"
           selected={date}
           onSelect={setDate}
+          disabled={(d) => d < today}
           initialFocus
         />
-        <div className="p-4 border-t space-y-4">
-            <h4 className="font-medium text-sm text-center">Add a Reminder</h4>
-            <div className="space-y-2">
-                <Label htmlFor="reminder-title" className="text-xs">Title</Label>
-                <Input id="reminder-title" placeholder="e.g., Mom's Birthday" value={title} onChange={(e) => setTitle(e.target.value)} />
+        {date && (
+            <div className="p-2 border-t space-y-2">
+                <h4 className="font-semibold text-xs text-center">Add Reminder for {format(date, 'MMM d')}</h4>
+                <div className="space-y-1">
+                    <Label htmlFor="reminder-title" className="text-xs px-1">Title</Label>
+                    <Input id="reminder-title" placeholder="e.g., Mom's Birthday" value={title} onChange={(e) => setTitle(e.target.value)} className="h-8 text-xs" />
+                </div>
+                 <div className="space-y-1">
+                    <Label htmlFor="reminder-message" className="text-xs px-1">Message</Label>
+                    <Textarea id="reminder-message" placeholder="e.g., Call her in the morning" value={message} onChange={(e) => setMessage(e.target.value)} className="text-xs min-h-[60px]"/>
+                </div>
+                <Button size="sm" className="w-full h-8 text-xs" onClick={handleAddReminder}>
+                    Set Reminder
+                </Button>
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="reminder-message" className="text-xs">Message</Label>
-                <Textarea id="reminder-message" placeholder="e.g., Call her in the morning" value={message} onChange={(e) => setMessage(e.target.value)} className="text-sm"/>
-            </div>
-            <Button className="w-full" onClick={handleAddReminder} disabled={!date}>
-                Set Reminder for {date ? format(date, 'PPP') : '...'}
-            </Button>
-        </div>
+        )}
       </PopoverContent>
     </Popover>
   );
