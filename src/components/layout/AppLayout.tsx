@@ -15,7 +15,6 @@ import {
   KeyRound,
   Settings as SettingsIcon,
   UserCog,
-  Power,
   CalendarDays,
   Bell,
 } from 'lucide-react';
@@ -38,7 +37,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { format, parseISO, isSameDay } from 'date-fns';
+import { format, parseISO, isSameDay, isFuture } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Notification } from '@/types';
 import { P_NOTIFICATIONS } from '@/lib/placeholder-data';
@@ -105,20 +104,6 @@ function ThemeToggle() {
   );
 }
 
-function SyncToggle() {
-  return (
-      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-         <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
-                  <Power className="mr-2 h-4 w-4" />
-                  <span>Sync</span>
-              </div>
-              <Switch aria-label="Toggle sync" />
-         </div>
-      </DropdownMenuItem>
-  );
-}
-
 function UserNav({ user, onLogout }: { user: { username: string } | null, onLogout: () => void }) {
   const router = useRouter();
   
@@ -167,7 +152,6 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <ThemeToggle />
-        <SyncToggle />
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout}>
           <LogOut className="mr-2 h-4 w-4" />
@@ -327,7 +311,7 @@ function HeaderCalendar() {
           disabled={(d) => d < today}
           initialFocus
         />
-        {date && (
+        {date && isFuture(date) && (
             <div className="p-2 border-t space-y-2">
                 <h4 className="font-semibold text-xs text-center">Add Reminder for {format(date, 'MMM d')}</h4>
                 <div className="space-y-1">
