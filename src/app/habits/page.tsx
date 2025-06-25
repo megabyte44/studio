@@ -70,8 +70,6 @@ const initialCustomFoodItems = ["Protein Powder", "Creatine", "Oatmeal", "Eggs",
 const SPECIAL_HABIT_ICONS = ['GlassWater', 'Dumbbell', 'Beef', 'Pill'];
 
 type GymTrackerProps = {
-  habits: Habit[];
-  setHabits: (habits: Habit[]) => void;
   proteinIntakes: ProteinIntake[];
   setProteinIntakes: (intakes: ProteinIntake[]) => void;
   loggedFoodItems: LoggedFoodItem[];
@@ -79,7 +77,6 @@ type GymTrackerProps = {
   proteinTarget: number;
   setProteinTarget: (target: number) => void;
   customFoodItems: string[];
-  setCustomFoodItems: (items: string[]) => void;
   cyclicalWorkoutSplit: CyclicalWorkoutSplit;
   setCyclicalWorkoutSplit: (split: CyclicalWorkoutSplit) => void;
   cycleConfig: CycleConfig;
@@ -89,7 +86,6 @@ type GymTrackerProps = {
 
 
 function GymTracker({ 
-    habits, setHabits, 
     proteinIntakes, setProteinIntakes, 
     loggedFoodItems, setLoggedFoodItems,
     proteinTarget, setProteinTarget,
@@ -103,6 +99,7 @@ function GymTracker({
     todaysWorkoutInfo,
     onOpenOverloadTracker,
 }: GymTrackerProps & { 
+    setCustomFoodItems: (items: string[]) => void;
     onManageCustomFoodItems: () => void,
     onManagePlan: () => void,
     onToggleWorkoutCompletion: () => void,
@@ -179,7 +176,7 @@ function GymTracker({
                 <div className="lg:col-span-3 grid md:grid-cols-2 gap-4">
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
-                      setIntakes={setProteinIntakes}
+                      setProteinIntakes={setProteinIntakes}
                       target={proteinTarget}
                       setTarget={setProteinTarget}
                     />
@@ -196,9 +193,9 @@ function GymTracker({
     )
 }
 
-function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: {
+function ProteinTrackerCard({ intakes, setProteinIntakes, target, setTarget }: {
     intakes: ProteinIntake[],
-    setIntakes: (intakes: ProteinIntake[]) => void,
+    setProteinIntakes: (intakes: ProteinIntake[]) => void,
     target: number,
     setTarget: (target: number) => void
 }) {
@@ -218,12 +215,12 @@ function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: {
             return;
         }
         const newIntake: ProteinIntake = { id: `p-${Date.now()}`, amount: numAmount, timestamp: new Date().toISOString() };
-        setIntakes([...intakes, newIntake]);
+        setProteinIntakes([...intakes, newIntake]);
         setAmount('');
     };
 
     const handleDelete = (id: string) => {
-        setIntakes(intakes.filter((i: ProteinIntake) => i.id !== id));
+        setProteinIntakes(intakes.filter((i: ProteinIntake) => i.id !== id));
     };
 
     return (
@@ -1190,77 +1187,104 @@ export default function HabitsPage() {
   const [isGymSettingsOpen, setIsGymSettingsOpen] = useState(false);
   const [isFoodManagerOpen, setIsFoodManagerOpen] = useState(false);
   const [isOverloadTrackerOpen, setIsOverloadTrackerOpen] = useState(false);
+  
+  // Feature flag state
+  const [gymTrackingEnabled, setGymTrackingEnabled] = useState(true);
 
   // --- Effects for Loading Data ---
   useEffect(() => {
-    try {
-      let habitsToSet: Habit[] = [];
-      const storedHabits = localStorage.getItem('lifeos_habits');
-      
-      if (storedHabits) {
-          habitsToSet = JSON.parse(storedHabits);
-      } else {
-          habitsToSet = P_HABITS;
-      }
-      
-      if (Array.isArray(habitsToSet)) {
-          const uniqueHabitsMap = new Map<string, Habit>();
+    const loadData = () => {
+        try {
+          const storedFeatures = localStorage.getItem('lifeos_feature_settings');
+          if (storedFeatures) {
+            const settings = JSON.parse(storedFeatures);
+            setGymTrackingEnabled(settings.gymTracking !== false);
+          } else {
+            setGymTrackingEnabled(true); // Default to enabled
+          }
+
+          let habitsToSet: Habit[] = [];
+          const storedHabits = localStorage.getItem('lifeos_habits');
           
-          for (const habit of habitsToSet) {
-              if (habit && habit.name && habit.icon) {
-                  const isSpecial = SPECIAL_HABIT_ICONS.includes(habit.icon);
-                  const key = isSpecial ? habit.icon : habit.name.toLowerCase();
-                  if (!uniqueHabitsMap.has(key)) {
-                      uniqueHabitsMap.set(key, habit);
+          if (storedHabits) {
+              habitsToSet = JSON.parse(storedHabits);
+          } else {
+              habitsToSet = P_HABITS;
+          }
+          
+          if (Array.isArray(habitsToSet)) {
+              const uniqueHabitsMap = new Map<string, Habit>();
+              
+              for (const habit of habitsToSet) {
+                  if (habit && habit.name && habit.icon) {
+                      const isSpecial = SPECIAL_HABIT_ICONS.includes(habit.icon);
+                      const key = isSpecial ? habit.icon : habit.name.toLowerCase();
+                      if (!uniqueHabitsMap.has(key)) {
+                          uniqueHabitsMap.set(key, habit);
+                      }
                   }
               }
+              habitsToSet = Array.from(uniqueHabitsMap.values());
+          } else {
+              habitsToSet = P_HABITS;
           }
-          habitsToSet = Array.from(uniqueHabitsMap.values());
-      } else {
-          habitsToSet = P_HABITS;
-      }
-      
-      P_HABITS.forEach(ph => {
-          if (SPECIAL_HABIT_ICONS.includes(ph.icon)) {
-              if (!habitsToSet.some(h => h.icon === ph.icon)) {
-                  habitsToSet.push(ph);
+          
+          P_HABITS.forEach(ph => {
+              if (SPECIAL_HABIT_ICONS.includes(ph.icon)) {
+                  if (!habitsToSet.some(h => h.icon === ph.icon)) {
+                      habitsToSet.push(ph);
+                  }
               }
+          });
+          
+          setHabits(habitsToSet);
+          
+          const storedCycleConfig = localStorage.getItem('gym_cycle_config');
+          if(storedCycleConfig) setCycleConfig(JSON.parse(storedCycleConfig));
+          
+          const storedSplit = localStorage.getItem('gym_workout_split');
+          if(storedSplit) {
+              // Augment loaded data with new fields if they don't exist
+              const loadedSplit = JSON.parse(storedSplit);
+              setCyclicalWorkoutSplit(augmentWorkoutSplit(loadedSplit));
+          } else {
+              setCyclicalWorkoutSplit(initialWorkoutSplit);
           }
-      });
-      
-      setHabits(habitsToSet);
-      
-      const storedCycleConfig = localStorage.getItem('gym_cycle_config');
-      if(storedCycleConfig) setCycleConfig(JSON.parse(storedCycleConfig));
-      
-      const storedSplit = localStorage.getItem('gym_workout_split');
-      if(storedSplit) {
-          // Augment loaded data with new fields if they don't exist
-          const loadedSplit = JSON.parse(storedSplit);
-          setCyclicalWorkoutSplit(augmentWorkoutSplit(loadedSplit));
-      } else {
+
+          const storedProteinIntakes = localStorage.getItem('gym_protein_intakes');
+          if(storedProteinIntakes) setProteinIntakes(JSON.parse(storedProteinIntakes));
+          
+          const storedLoggedFoods = localStorage.getItem('gym_logged_foods');
+          if(storedLoggedFoods) setLoggedFoodItems(JSON.parse(storedLoggedFoods));
+
+          const storedProteinTarget = localStorage.getItem('gym_protein_target');
+          if(storedProteinTarget) setProteinTarget(JSON.parse(storedProteinTarget));
+
+          const storedCustomFoods = localStorage.getItem('gym_custom_foods');
+          if(storedCustomFoods) setCustomFoodItems(JSON.parse(storedCustomFoods));
+
+        } catch (error) {
+          console.error("Failed to load data from localStorage", error);
+          setHabits(P_HABITS);
           setCyclicalWorkoutSplit(initialWorkoutSplit);
-      }
+        }
+        const timer = setTimeout(() => setIsLoading(false), 500);
+        return () => clearTimeout(timer);
+    };
+    
+    loadData();
 
-      const storedProteinIntakes = localStorage.getItem('gym_protein_intakes');
-      if(storedProteinIntakes) setProteinIntakes(JSON.parse(storedProteinIntakes));
-      
-      const storedLoggedFoods = localStorage.getItem('gym_logged_foods');
-      if(storedLoggedFoods) setLoggedFoodItems(JSON.parse(storedLoggedFoods));
+    const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'lifeos_feature_settings') {
+            loadData(); // Reload all data if feature settings change
+        }
+    };
 
-      const storedProteinTarget = localStorage.getItem('gym_protein_target');
-      if(storedProteinTarget) setProteinTarget(JSON.parse(storedProteinTarget));
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
 
-      const storedCustomFoods = localStorage.getItem('gym_custom_foods');
-      if(storedCustomFoods) setCustomFoodItems(JSON.parse(storedCustomFoods));
-
-    } catch (error) {
-      console.error("Failed to load data from localStorage", error);
-      setHabits(P_HABITS);
-      setCyclicalWorkoutSplit(initialWorkoutSplit);
-    }
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
   }, []);
 
   // --- Effects for Saving Data ---
@@ -1277,7 +1301,7 @@ export default function HabitsPage() {
 
   // --- Habit Syncing Logic ---
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !gymTrackingEnabled) return;
 
     const todayKey = format(new Date(), 'yyyy-MM-dd');
     
@@ -1330,7 +1354,7 @@ export default function HabitsPage() {
         return currentHabits;
     });
 
-  }, [proteinIntakes, proteinTarget, loggedFoodItems, customFoodItems, isLoading]);
+  }, [proteinIntakes, proteinTarget, loggedFoodItems, customFoodItems, isLoading, gymTrackingEnabled]);
 
 
   // --- Handlers ---
@@ -1398,6 +1422,9 @@ export default function HabitsPage() {
     });
     setHabits(updatedHabits);
   };
+  
+  const gymHabitIcons = ['Dumbbell', 'Beef', 'Pill'];
+  const filteredHabits = gymTrackingEnabled ? habits : habits.filter(h => !gymHabitIcons.includes(h.icon));
 
 
   if (isLoading) {
@@ -1422,30 +1449,31 @@ export default function HabitsPage() {
           <h1 className="text-xl font-bold font-headline">Habit Tracker</h1>
         </header>
         
-        <Separator />
-        
-        <GymTracker 
-            habits={habits}
-            setHabits={setHabits}
-            proteinIntakes={proteinIntakes}
-            setProteinIntakes={setProteinIntakes}
-            loggedFoodItems={loggedFoodItems}
-            setLoggedFoodItems={setLoggedFoodItems}
-            proteinTarget={proteinTarget}
-            setProteinTarget={setProteinTarget}
-            customFoodItems={customFoodItems}
-            setCustomFoodItems={setCustomFoodItems}
-            cyclicalWorkoutSplit={cyclicalWorkoutSplit}
-            setCyclicalWorkoutSplit={setCyclicalWorkoutSplit}
-            cycleConfig={cycleConfig}
-            setCycleConfig={setCycleConfig}
-            onManageCustomFoodItems={() => setIsFoodManagerOpen(true)}
-            onManagePlan={() => setIsGymSettingsOpen(true)}
-            onToggleWorkoutCompletion={handleToggleWorkoutCompletion}
-            isTodayCompleted={isTodayWorkoutCompleted}
-            todaysWorkoutInfo={todaysWorkoutInfo}
-            onOpenOverloadTracker={() => setIsOverloadTrackerOpen(true)}
-        />
+        {gymTrackingEnabled && (
+            <>
+                <Separator />
+                <GymTracker 
+                    proteinIntakes={proteinIntakes}
+                    setProteinIntakes={setProteinIntakes}
+                    loggedFoodItems={loggedFoodItems}
+                    setLoggedFoodItems={setLoggedFoodItems}
+                    proteinTarget={proteinTarget}
+                    setProteinTarget={setProteinTarget}
+                    customFoodItems={customFoodItems}
+                    setCustomFoodItems={setCustomFoodItems}
+                    cyclicalWorkoutSplit={cyclicalWorkoutSplit}
+                    setCyclicalWorkoutSplit={setCyclicalWorkoutSplit}
+                    cycleConfig={cycleConfig}
+                    setCycleConfig={setCycleConfig}
+                    onManageCustomFoodItems={() => setIsFoodManagerOpen(true)}
+                    onManagePlan={() => setIsGymSettingsOpen(true)}
+                    onToggleWorkoutCompletion={handleToggleWorkoutCompletion}
+                    isTodayCompleted={isTodayWorkoutCompleted}
+                    todaysWorkoutInfo={todaysWorkoutInfo}
+                    onOpenOverloadTracker={() => setIsOverloadTrackerOpen(true)}
+                />
+            </>
+        )}
 
         <Separator />
 
@@ -1460,7 +1488,7 @@ export default function HabitsPage() {
                 </Button>
             </header>
             <Accordion type="single" collapsible className="w-full space-y-4">
-                {habits.map((habit) => {
+                {filteredHabits.map((habit) => {
                     if (!habit) return null;
                     const Icon = iconMap[habit.icon] || iconMap.CheckCircle2;
                     const isWaterHabit = habit.icon === 'GlassWater';
