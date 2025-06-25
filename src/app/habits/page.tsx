@@ -333,7 +333,7 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
 
   return (
     <TooltipProvider>
-        <div className="mx-auto grid w-fit grid-cols-6 gap-1.5 p-4 pt-2">
+        <div className="mx-auto grid w-fit grid-cols-6 gap-1 p-2">
             {days.map((day) => {
                 const dateString = format(day, 'yyyy-MM-dd');
                 const isCompleted = getIsCompleted(dateString);
@@ -344,7 +344,7 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
                                 onClick={() => onToggle(habit.id, dateString)}
                                 disabled={isSyncedHabit}
                                 className={cn(
-                                    'h-7 w-7 rounded-sm transition-colors',
+                                    'h-5 w-5 rounded-sm transition-colors',
                                     isCompleted ? 'bg-primary hover:bg-primary/90' : 'bg-secondary hover:bg-accent',
                                     isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
                                     isSyncedHabit && 'cursor-not-allowed'
@@ -1501,42 +1501,42 @@ export default function HabitsPage() {
                     return (
                         <Card key={habit.id} className="group">
                             <AccordionItem value={habit.id} className="border-b-0">
-                                <AccordionTrigger className="p-4 hover:no-underline">
+                                <AccordionTrigger className="p-2 hover:no-underline">
                                     <div className="flex items-center justify-between w-full">
-                                        <div className="flex items-center gap-3">
-                                            <Icon className="h-6 w-6 text-muted-foreground" />
-                                            <span className="font-semibold text-base">{habit.name}</span>
+                                        <div className="flex items-center gap-2">
+                                            <Icon className="h-5 w-5 text-muted-foreground" />
+                                            <span className="font-semibold text-sm">{habit.name}</span>
                                             <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <div
                                                     role="button"
                                                     aria-label="Edit habit"
-                                                    className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-accent cursor-pointer"
+                                                    className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-accent cursor-pointer"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setEditingHabit(habit);
                                                         setIsEditHabitDialogOpen(true);
                                                     }}
                                                 >
-                                                    <Edit className="h-4 w-4" />
+                                                    <Edit className="h-3 w-3" />
                                                 </div>
                                                 {!isSyncedHabit && (
                                                     <div
                                                         role="button"
                                                         aria-label="Delete habit"
-                                                        className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-destructive/10 text-destructive cursor-pointer"
+                                                        className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-destructive/10 text-destructive cursor-pointer"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setHabitToDelete(habit);
                                                         }}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash2 className="h-3 w-3" />
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 text-orange-500">
-                                            <Flame className="h-5 w-5" />
-                                            <span className="font-bold text-lg">{streak} Day{streak !== 1 ? 's' : ''}</span>
+                                        <div className="flex items-center gap-1 text-orange-500">
+                                            <Flame className="h-4 w-4" />
+                                            <span className="font-bold text-base">{streak} Day{streak !== 1 ? 's' : ''}</span>
                                         </div>
                                     </div>
                                 </AccordionTrigger>
