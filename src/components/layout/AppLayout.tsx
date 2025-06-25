@@ -16,7 +16,6 @@ import {
   Settings as SettingsIcon,
   UserCog,
   Power,
-  PlusCircle,
   CalendarDays,
   Bell,
 } from 'lucide-react';
@@ -158,10 +157,6 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
             <KeyRound className="mr-2 h-4 w-4" />
             <span>Password Manager</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => router.push('/')}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            <span>Add Account</span>
-          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
@@ -232,7 +227,6 @@ function NotificationBell() {
             <div className="p-2 space-y-2">
                 {unreadCount > 0 ? (
                     <>
-                        <h4 className="font-medium text-sm px-2">Unread</h4>
                         {notifications.filter(n => !n.read).slice(0, 5).map(n => (
                             <div key={n.id} className="text-sm p-2 rounded-md hover:bg-accent">
                                 <p className="font-semibold">{n.title}</p>
