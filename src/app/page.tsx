@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,11 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, LogIn } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { LogIn } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 
@@ -19,14 +14,13 @@ const WHITELIST_KEY = 'lifeos_whitelist';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
-  const [dob, setDob] = useState<Date>();
   const [error, setError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     // Initialize the whitelist in localStorage if it doesn't exist.
     if (!localStorage.getItem(WHITELIST_KEY)) {
-      localStorage.setItem(WHITELIST_KEY, JSON.stringify(['admin']));
+      localStorage.setItem(WHITELIST_KEY, JSON.stringify(['admin', 'punith']));
     }
   }, []);
 
@@ -34,8 +28,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    if (!username || !dob) {
-      setError('Please provide both a username and a date of birth.');
+    if (!username) {
+      setError('Please provide a username.');
       return;
     }
 
@@ -45,7 +39,7 @@ export default function LoginPage() {
       return;
     }
 
-    localStorage.setItem('user', JSON.stringify({ username, dob: dob.toISOString() }));
+    localStorage.setItem('user', JSON.stringify({ username }));
     router.push('/dashboard');
   };
 
@@ -76,34 +70,6 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dob" className="font-headline">Date of Birth</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={'outline'}
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !dob && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dob ? format(dob, 'PPP') : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dob}
-                    onSelect={setDob}
-                    initialFocus
-                    disabled={(date) =>
-                      date > new Date() || date < new Date('1900-01-01')
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
             </div>
           </CardContent>
           <CardFooter>

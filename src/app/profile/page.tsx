@@ -7,17 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Save } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Save } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<{ username: string; dob?: string; } | null>(null);
+  const [user, setUser] = useState<{ username: string; } | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
-  const [dobInput, setDobInput] = useState<Date | undefined>();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,9 +21,6 @@ export default function ProfilePage() {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       setUsernameInput(parsedUser.username || '');
-      if (parsedUser.dob) {
-        setDobInput(parseISO(parsedUser.dob));
-      }
     }
     setIsLoading(false);
   }, []);
@@ -40,7 +32,6 @@ export default function ProfilePage() {
 
     const updatedUser = {
       username: usernameInput,
-      dob: dobInput ? dobInput.toISOString() : user?.dob,
     };
 
     localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -72,10 +63,6 @@ export default function ProfilePage() {
                             <Skeleton className="h-4 w-1/6 mb-2" />
                             <Skeleton className="h-10 w-full" />
                         </div>
-                         <div className="space-y-2">
-                            <Skeleton className="h-4 w-1/6 mb-2" />
-                            <Skeleton className="h-10 w-full" />
-                        </div>
                     </CardContent>
                     <CardFooter>
                         <Skeleton className="h-10 w-24" />
@@ -96,7 +83,7 @@ export default function ProfilePage() {
         <Card>
             <CardHeader>
                 <CardTitle>Your Information</CardTitle>
-                <CardDescription>Update your username and date of birth.</CardDescription>
+                <CardDescription>Update your username.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -112,35 +99,6 @@ export default function ProfilePage() {
                 <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
                     <Input id="username" value={usernameInput} onChange={(e) => setUsernameInput(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="dob">Date of Birth</Label>
-                     <Popover>
-                        <PopoverTrigger asChild>
-                        <Button
-                            id="dob"
-                            variant={'outline'}
-                            className={cn(
-                            'w-full justify-start text-left font-normal',
-                            !dobInput && 'text-muted-foreground'
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dobInput ? format(dobInput, 'PPP') : <span>Pick a date</span>}
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                        <Calendar
-                            mode="single"
-                            selected={dobInput}
-                            onSelect={setDobInput}
-                            initialFocus
-                             disabled={(date) =>
-                                date > new Date() || date < new Date('1900-01-01')
-                            }
-                        />
-                        </PopoverContent>
-                    </Popover>
                 </div>
             </CardContent>
             <CardFooter>
