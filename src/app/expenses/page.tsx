@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
 import { format, parseISO, formatISO, startOfMonth } from 'date-fns';
 import { Label } from '@/components/ui/label';
 import { 
@@ -47,8 +46,6 @@ export default function ExpensesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [budgetInput, setBudgetInput] = useState('');
 
-  const { toast } = useToast();
-
   useEffect(() => {
     try {
       const storedTransactions = localStorage.getItem(LOCAL_STORAGE_KEY_TRANSACTIONS);
@@ -61,10 +58,9 @@ export default function ExpensesPage() {
 
     } catch (error) {
       console.error("Failed to load data from localStorage", error);
-      toast({ variant: 'destructive', title: "Error", description: "Could not load saved data." });
     }
     setIsLoading(false);
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     if (!isLoading) {
@@ -109,17 +105,14 @@ export default function ExpensesPage() {
   const handleSetBudget = () => {
     const budgetValue = parseFloat(budgetInput);
     if (isNaN(budgetValue) || budgetValue < 0) {
-      toast({ title: "Invalid Budget", description: "Please enter a valid positive number.", variant: "destructive" });
       return;
     }
     const budgetInCents = Math.round(budgetValue * 100);
     setMonthlyBudget(budgetInCents);
-    toast({ title: "Budget Updated", description: `Monthly budget set to ${formatCurrency(budgetInCents)}.` });
   };
   
   const handleDeleteTransaction = (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
-    toast({ title: "Transaction Deleted", description: "The transaction has been removed." });
   };
 
   if (isLoading) {
@@ -244,16 +237,13 @@ function TransactionDialog({ children, onSave }: { children: React.ReactNode, on
     const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [category, setCategory] = useState('Food');
     const [type, setType] = useState<'income' | 'expense'>('expense');
-    const { toast } = useToast();
 
     const handleSave = () => {
         if (!description.trim() || !amount.trim()) {
-            toast({ title: "Missing Fields", description: "Please fill in description and amount.", variant: "destructive" });
             return;
         }
         const amountInCents = Math.round(parseFloat(amount) * 100);
         if (isNaN(amountInCents)) {
-            toast({ title: "Invalid Amount", description: "Please enter a valid number.", variant: "destructive" });
             return;
         }
 
@@ -267,7 +257,6 @@ function TransactionDialog({ children, onSave }: { children: React.ReactNode, on
         };
         
         onSave(newTransaction);
-        toast({ title: "Transaction Added", description: `${newTransaction.description} has been added.` });
         
         // Reset form and close dialog
         setDescription('');

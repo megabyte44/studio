@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash, Loader2, Info } from 'lucide-react';
 import type { PlannerItem } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -24,7 +23,6 @@ const getCurrentDayName = () => {
 };
 
 export default function PlannerPage() {
-    const { toast } = useToast();
     const [weeklySchedule, setWeeklySchedule] = useState<Record<string, PlannerItem[]>>({});
     const [selectedDay, setSelectedDay] = useState(getCurrentDayName());
     const [isLoading, setIsLoading] = useState(true);
@@ -48,10 +46,9 @@ export default function PlannerPage() {
             }
         } catch (error) {
             console.error("Failed to load schedule from localStorage", error);
-            toast({ title: "Error", description: "Could not load schedule.", variant: "destructive" });
         }
         setIsLoading(false);
-    }, [toast]);
+    }, []);
     
     useEffect(() => {
         if (!isLoading) {
@@ -61,12 +58,10 @@ export default function PlannerPage() {
     
     const handleAddAdhocItem = () => {
         if (!newItemTitle.trim()) {
-            toast({ title: "Missing Info", description: "Please provide a title for the item.", variant: "destructive" });
             return;
         }
 
         if (newItemStartTime >= newItemEndTime) {
-            toast({ title: "Invalid Time", description: "End time must be after start time.", variant: "destructive" });
             return;
         }
 
@@ -86,8 +81,6 @@ export default function PlannerPage() {
 
         setWeeklySchedule(newSchedule);
         
-        toast({ title: "Item Added", description: `"${newItemTitle}" was added to ${newItemAddToAllWeek ? 'all days this week' : selectedDay}.`});
-        
         setNewItemTitle('');
         setNewItemStartTime('09:00');
         setNewItemEndTime('10:00');
@@ -99,7 +92,6 @@ export default function PlannerPage() {
         const newSchedule = { ...weeklySchedule };
         newSchedule[day] = (newSchedule[day] || []).filter(item => item.id !== itemId);
         setWeeklySchedule(newSchedule);
-        toast({ title: "Item Deleted", variant: "destructive", description: "Item removed from schedule." });
     };
 
     const daySchedule = weeklySchedule[selectedDay] || [];

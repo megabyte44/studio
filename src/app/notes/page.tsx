@@ -13,7 +13,6 @@ import { format, formatISO, parseISO } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -58,7 +57,6 @@ function ViewNoteDialog({ note, isOpen, onOpenChange }: { note: Note | null, isO
 }
 
 function NewNoteCard({ onSave, onCancel }: { onSave: (note: Omit<Note, 'id' | 'createdAt'>) => void; onCancel: () => void; }) {
-  const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [type, setType] = useState<'text' | 'checklist'>('text');
   const [textContent, setTextContent] = useState('');
@@ -83,7 +81,6 @@ function NewNoteCard({ onSave, onCancel }: { onSave: (note: Omit<Note, 'id' | 'c
 
   const handleSaveClick = () => {
     if (!title.trim()) {
-      toast({ title: "Title is required", variant: "destructive" });
       return;
     }
     const content = type === 'text' 
@@ -91,7 +88,6 @@ function NewNoteCard({ onSave, onCancel }: { onSave: (note: Omit<Note, 'id' | 'c
       : checklistItems.filter(item => item.text.trim() !== '');
 
     if ((type === 'text' && (content as string).trim() === '') || (type === 'checklist' && (content as any[]).length === 0)) {
-        toast({ title: "Note content cannot be empty", variant: "destructive" });
         return;
     }
     onSave({ title, content, type });
@@ -169,7 +165,6 @@ function EditNoteCard({
   onCancel: () => void;
   onDelete: (noteId: string) => void;
 }) {
-  const { toast } = useToast();
   const [title, setTitle] = useState(note.title);
   const [textContent, setTextContent] = useState(typeof note.content === 'string' ? note.content : '');
   const [checklistItems, setChecklistItems] = useState(Array.isArray(note.content) ? [...note.content] : [{ text: '', completed: false }]);
@@ -199,7 +194,6 @@ function EditNoteCard({
 
   const handleSaveClick = () => {
     if (!title.trim()) {
-      toast({ title: "Title is required", variant: "destructive" });
       return;
     }
     const content = note.type === 'text' 
@@ -207,7 +201,6 @@ function EditNoteCard({
       : checklistItems.filter(item => item.text.trim() !== '');
 
     if ((note.type === 'text' && (content as string).trim() === '') || (note.type === 'checklist' && (content as any[]).length === 0)) {
-        toast({ title: "Note content cannot be empty", variant: "destructive" });
         return;
     }
     
@@ -322,7 +315,6 @@ function NoteCard({ note, onEdit, onView }: { note: Note; onEdit: () => void; on
 }
 
 export default function NotesPage() {
-  const { toast } = useToast();
   const [notes, setNotes] = useState<Note[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [layout, setLayout] = useState<Layout>('grid');
@@ -357,19 +349,16 @@ export default function NotesPage() {
     };
     setNotes(prev => [newNote, ...prev]);
     setIsAddingNote(false);
-    toast({ title: "Note Saved!", description: `"${newNote.title}" has been added.` });
   };
   
   const handleUpdateNote = (updatedNote: Note) => {
     setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
     setEditingNoteId(null);
-    toast({ title: "Note Updated!", description: `"${updatedNote.title}" has been saved.` });
   };
 
   const handleDeleteNote = (noteId: string) => {
     setNotes(prev => prev.filter(note => note.id !== noteId));
     setEditingNoteId(null);
-    toast({ title: "Note Deleted", variant: "destructive" });
   };
   
   const handleCancelNewNote = () => {

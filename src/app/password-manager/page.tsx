@@ -10,7 +10,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import {
@@ -58,7 +57,6 @@ function CredentialDialog({
     onSave: (data: Omit<Credential, 'id' | 'lastUpdated'>, id?: string) => void; 
     credential: Credential | null;
 }) {
-    const { toast } = useToast();
     const [name, setName] = useState('');
     const [category, setCategory] = useState<'Website' | 'Banking' | 'Social Media' | 'Other'>('Website');
     const [username, setUsername] = useState('');
@@ -106,7 +104,6 @@ function CredentialDialog({
     
     const handleSaveClick = () => {
         if (!name) {
-            toast({ title: "Missing Field", description: "Account Name is required.", variant: "destructive" });
             return;
         }
 
@@ -184,7 +181,6 @@ function CredentialDialog({
 }
 
 export default function PasswordManagerPage() {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -213,12 +209,11 @@ export default function PasswordManagerPage() {
       }
     } catch (e) {
       console.error("Failed to load credentials", e);
-      toast({ title: "Error", description: "Could not load vault data. Resetting to defaults.", variant: "destructive" });
       setCredentials(P_PASSWORDS); // Fallback on parsing error
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   // Save data to localStorage
   useEffect(() => {
@@ -232,7 +227,6 @@ export default function PasswordManagerPage() {
       // Update existing credential
       const updatedCredential = { ...data, id, lastUpdated: new Date().toISOString().split('T')[0] };
       setCredentials(credentials.map(c => c.id === id ? { ...c, ...updatedCredential } : c));
-      toast({ title: "Credential Updated", description: `${updatedCredential.name} has been updated.` });
     } else {
       // Add new credential
       const newCredential: Credential = {
@@ -241,7 +235,6 @@ export default function PasswordManagerPage() {
         lastUpdated: new Date().toISOString().split('T')[0],
       };
       setCredentials(prev => [newCredential, ...prev]);
-      toast({ title: "Credential Added", description: `${newCredential.name} has been securely added to your vault.` });
     }
     setIsFormOpen(false);
     setEditingCredential(null);
@@ -249,7 +242,6 @@ export default function PasswordManagerPage() {
   
   const handleDeleteCredential = (id: string) => {
     setCredentials(prev => prev.filter(c => c.id !== id));
-    toast({ title: "Credential Removed", description: "The credential has been deleted." });
   };
 
   const handleToggleVisibility = (id: string, fieldName: string) => {
@@ -279,11 +271,9 @@ export default function PasswordManagerPage() {
 
   const handleCopy = (text: string | number, fieldName: string) => {
     if (text === undefined || text === null || String(text).trim() === '') {
-      toast({ title: "Nothing to Copy", description: `The ${fieldName} field is empty.`, variant: "destructive" });
       return;
     }
     navigator.clipboard.writeText(String(text));
-    toast({ title: "Copied!", description: `${fieldName} has been copied to your clipboard.` });
   };
 
   const groupedCredentials = useMemo(() => {

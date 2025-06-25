@@ -10,13 +10,11 @@ import { Button } from '@/components/ui/button';
 import { BellRing, Check, Mail } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 
 const LOCAL_STORAGE_KEY_NOTIFICATIONS = 'lifeos_notifications';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const { toast } = useToast();
 
   useEffect(() => {
     try {
@@ -40,7 +38,6 @@ export default function NotificationsPage() {
   
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({...n, read: true})));
-    toast({ title: 'All notifications marked as read.' });
   }
 
   const sortedNotifications = [...notifications].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());

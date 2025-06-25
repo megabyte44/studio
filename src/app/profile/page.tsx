@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -16,7 +15,6 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProfilePage() {
-  const { toast } = useToast();
   const [user, setUser] = useState<{ username: string; dob?: string; } | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
   const [dobInput, setDobInput] = useState<Date | undefined>();
@@ -37,11 +35,6 @@ export default function ProfilePage() {
 
   const handleSave = () => {
     if (!usernameInput.trim()) {
-      toast({
-        variant: 'destructive',
-        title: 'Validation Error',
-        description: 'Username cannot be empty.',
-      });
       return;
     }
 
@@ -52,11 +45,6 @@ export default function ProfilePage() {
 
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
-
-    toast({
-      title: 'Profile Updated',
-      description: 'Your changes have been saved successfully.',
-    });
     
     // Force a reload of the window to reflect changes in the layout (e.g., avatar)
     window.location.reload();

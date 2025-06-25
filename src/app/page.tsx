@@ -11,13 +11,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, LogIn } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [dob, setDob] = useState<Date>();
   const router = useRouter();
-  const { toast } = useToast();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,11 +23,7 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify({ username, dob: dob.toISOString() }));
       router.push('/dashboard');
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Please provide both a username and a date of birth.',
-      });
+      console.error('Login Failed: Please provide both a username and a date of birth.');
     }
   };
 

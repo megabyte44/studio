@@ -22,7 +22,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -180,7 +179,7 @@ function GymTracker({
                 <div className="lg:col-span-3 grid md:grid-cols-2 gap-4">
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
-                      setIntakes={setProteinIntakes}
+                      setIntakes={setIntakes}
                       target={proteinTarget}
                       setTarget={setProteinTarget}
                     />
@@ -203,7 +202,6 @@ function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: {
     target: number,
     setTarget: (target: number) => void
 }) {
-    const { toast } = useToast();
     const [amount, setAmount] = useState('');
     const todayKey = format(new Date(), 'yyyy-MM-dd');
 
@@ -217,18 +215,15 @@ function ProteinTrackerCard({ intakes, setIntakes, target, setTarget }: {
     const handleLogProtein = () => {
         const numAmount = parseInt(amount);
         if (isNaN(numAmount) || numAmount <= 0) {
-            toast({ title: "Invalid Amount", description: "Please enter a positive number.", variant: "destructive" });
             return;
         }
         const newIntake: ProteinIntake = { id: `p-${Date.now()}`, amount: numAmount, timestamp: new Date().toISOString() };
         setIntakes([...intakes, newIntake]);
         setAmount('');
-        toast({ title: "Protein Logged", description: `${numAmount}g of protein added.` });
     };
 
     const handleDelete = (id: string) => {
         setIntakes(intakes.filter((i: ProteinIntake) => i.id !== id));
-        toast({ title: "Entry Removed" });
     };
 
     return (
@@ -266,18 +261,15 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
     customItems: string[],
     onManageItems: () => void
 }) {
-    const { toast } = useToast();
     const todayKey = format(new Date(), 'yyyy-MM-dd');
 
     const handleLogItem = (name: string) => {
         const newItem: LoggedFoodItem = { id: `f-${Date.now()}`, name, timestamp: new Date().toISOString() };
         setLoggedItems([...loggedItems, newItem]);
-        toast({ title: `${name} logged.` });
     };
     
     const handleDelete = (id: string) => {
         setLoggedItems(loggedItems.filter((i: LoggedFoodItem) => i.id !== id));
-        toast({ title: "Food Entry Removed" });
     };
 
     const todaysLoggedItems = loggedItems.filter((i: LoggedFoodItem) => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
@@ -376,7 +368,6 @@ function EditHabitDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (habitId: string, newName: string) => void;
 }) {
-  const { toast } = useToast();
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
@@ -387,17 +378,11 @@ function EditHabitDialog({
 
   const handleSave = () => {
     if (!newName.trim()) {
-      toast({
-        title: 'Name cannot be empty',
-        description: 'Please provide a name for the habit.',
-        variant: 'destructive',
-      });
       return;
     }
     if (habit) {
       onSave(habit.id, newName.trim());
       onOpenChange(false);
-      toast({ title: 'Habit Renamed', description: `Your habit has been renamed to "${newName.trim()}".` });
     }
   };
 
@@ -841,7 +826,6 @@ function FoodManagerDialog({
     customItems: string[];
     onSave: (items: string[]) => void;
 }) {
-    const { toast } = useToast();
     const [editedItems, setEditedItems] = useState(customItems);
     const [newItem, setNewItem] = useState('');
 
@@ -853,11 +837,9 @@ function FoodManagerDialog({
 
     const handleAddItem = () => {
         if (!newItem.trim()) {
-            toast({ title: 'Item name cannot be empty', variant: 'destructive' });
             return;
         }
         if (editedItems.map(i => i.toLowerCase()).includes(newItem.trim().toLowerCase())) {
-            toast({ title: 'Item already exists', variant: 'destructive' });
             return;
         }
         setEditedItems([...editedItems, newItem.trim()]);
@@ -871,7 +853,6 @@ function FoodManagerDialog({
     const handleSave = () => {
         onSave(editedItems);
         onOpenChange(false);
-        toast({ title: 'Quick-Log Items Updated!' });
     };
 
     return (
@@ -938,7 +919,6 @@ function OverloadTrackerDialog({
     setWorkoutSplit: (split: CyclicalWorkoutSplit) => void;
     todaysExercises: Exercise[];
 }) {
-    const { toast } = useToast();
     const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
     const [sessionWeight, setSessionWeight] = useState('');
     const [sessionReps, setSessionReps] = useState('');
@@ -1020,7 +1000,6 @@ function OverloadTrackerDialog({
         const reps = parseInt(sessionReps);
 
         if (!selectedExerciseId || isNaN(weight) || isNaN(reps) || weight <= 0 || reps <= 0) {
-            toast({ title: "Invalid Input", description: "Please enter valid, positive numbers for weight and reps.", variant: "destructive" });
             return;
         }
 
@@ -1045,7 +1024,6 @@ function OverloadTrackerDialog({
             setWorkoutSplit(newSplit);
             setSessionWeight('');
             setSessionReps('');
-            toast({ title: "Session Logged!", description: `Added ${weight}kg x ${reps} reps for ${selectedExercise?.name}.` });
         }
     };
     
@@ -1191,7 +1169,6 @@ function OverloadTrackerDialog({
 }
 
 export default function HabitsPage() {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
 
   // Core State
@@ -1279,13 +1256,12 @@ export default function HabitsPage() {
 
     } catch (error) {
       console.error("Failed to load data from localStorage", error);
-      toast({ variant: 'destructive', title: "Error", description: "Could not load saved data." });
       setHabits(P_HABITS);
       setCyclicalWorkoutSplit(initialWorkoutSplit);
     }
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
-  }, [toast]);
+  }, []);
 
   // --- Effects for Saving Data ---
   useEffect(() => {
@@ -1385,7 +1361,6 @@ export default function HabitsPage() {
         if (!habitToDelete) return;
         setHabits(prev => prev.filter(h => h.id !== habitToDelete.id));
         setHabitToDelete(null);
-        toast({ title: "Habit Deleted", description: `"${habitToDelete.name}" has been removed.` });
     };
 
     const handleAddHabit = (name: string, icon: string) => {
@@ -1396,7 +1371,6 @@ export default function HabitsPage() {
             completions: {},
         };
         setHabits(prev => [...prev, newHabit]);
-        toast({ title: "Habit Added!", description: `"${newHabit.name}" has been added to your Streak Book.` });
     };
 
   const getWorkoutDayInfo = useWorkoutDayInfo(cyclicalWorkoutSplit, cycleConfig);
@@ -1408,7 +1382,6 @@ export default function HabitsPage() {
 
   const handleToggleWorkoutCompletion = () => {
     if (!workoutHabit) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Workout habit not found.' });
         return;
     }
     const updatedHabits = habits.map(h => {
@@ -1424,7 +1397,6 @@ export default function HabitsPage() {
         return h;
     });
     setHabits(updatedHabits);
-    toast({ title: !isTodayWorkoutCompleted ? 'Workout Completed!' : 'Workout marked as not done.' });
   };
 
 
@@ -1570,7 +1542,6 @@ export default function HabitsPage() {
             setCyclicalWorkoutSplit(newSplit);
             setCycleConfig(newConfig);
             setIsGymSettingsOpen(false);
-            toast({ title: 'Gym settings saved!' });
         }}
       />
        <FoodManagerDialog
@@ -1626,13 +1597,11 @@ function AddHabitDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (name: string, icon: string) => void;
 }) {
-    const { toast } = useToast();
     const [name, setName] = useState('');
     const [icon, setIcon] = useState(availableIcons[0].name);
 
     const handleSave = () => {
         if (!name.trim()) {
-            toast({ title: 'Name is required', variant: 'destructive' });
             return;
         }
         onSave(name, icon);

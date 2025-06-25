@@ -36,7 +36,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -260,7 +259,6 @@ function NotificationBell() {
 }
 
 function HeaderCalendar() {
-  const { toast } = useToast();
   const [date, setDate] = useState<Date>();
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -268,7 +266,6 @@ function HeaderCalendar() {
 
   const handleAddReminder = () => {
     if (!date || !title.trim() || !message.trim()) {
-        toast({ title: 'Missing Information', description: 'Please select a date and fill out all fields.', variant: 'destructive'});
         return;
     }
 
@@ -291,8 +288,6 @@ function HeaderCalendar() {
             newValue: JSON.stringify(updatedNotifications),
         }));
 
-        toast({ title: 'Reminder Set!', description: `You'll be reminded about "${title}".` });
-
         // Reset form
         setDate(undefined);
         setTitle('');
@@ -300,7 +295,7 @@ function HeaderCalendar() {
         setIsPopoverOpen(false);
 
     } catch (error) {
-        toast({ title: 'Error', description: 'Could not save the reminder.', variant: 'destructive'});
+      console.error(error);
     }
   };
 
