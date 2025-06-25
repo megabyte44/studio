@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -17,6 +18,7 @@ import {
   Power,
   PlusCircle,
   CalendarDays,
+  Bell,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -34,6 +36,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { format } from 'date-fns';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import type { Notification } from '@/types';
+import { P_NOTIFICATIONS } from '@/lib/placeholder-data';
+
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -173,11 +184,128 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
   )
 }
 
-function HeaderCalendar() {
-  const [date, setDate] = useState<Date>();
+function NotificationBell() {
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const loadNotifications = () => {
+        try {
+            const stored = localStorage.getItem('lifeos_notifications');
+            setNotifications(stored ? JSON.parse(stored) : P_NOTIFICATIONS);
+        } catch {
+            setNotifications(P_NOTIFICATIONS);
+        }
+    }
+    loadNotifications();
+
+    const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'lifeos_notifications') {
+            loadNotifications();
+        }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative h-8 w-8">
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute top-0 right-0 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+          )}
+          <span className="sr-only">Open notifications</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        <div className="p-4 border-b">
+            <h4 className="font-medium text-sm">Notifications</h4>
+        </div>
+        <ScrollArea className="max-h-80">
+            <div className="p-4 space-y-4">
+                {unreadCount > 0 ? (
+                    notifications.filter(n => !n.read).slice(0, 5).map(n => (
+                        <div key={n.id} className="text-sm">
+                            <p className="font-semibold">{n.title}</p>
+                            <p className="text-muted-foreground truncate">{n.message}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-sm text-center text-muted-foreground py-4">No unread notifications.</p>
+                )}
+            </div>
+        </ScrollArea>
+        <div className="p-2 border-t bg-muted/50">
+            <Button variant="link" className="w-full h-8" onClick={() => {
+                setIsOpen(false);
+                router.push('/notifications');
+            }}>
+                View all notifications
+            </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function HeaderCalendar() {
+  const { toast } = useToast();
+  const [date, setDate] = useState<Date>();
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const handleAddReminder = () => {
+    if (!date || !title.trim() || !message.trim()) {
+        toast({ title: 'Missing Information', description: 'Please select a date and fill out all fields.', variant: 'destructive'});
+        return;
+    }
+
+    const newReminder: Notification = {
+        id: `notif-${Date.now()}`,
+        title,
+        message,
+        date: format(date, 'yyyy-MM-dd'),
+        read: false,
+    };
+    
+    try {
+        const stored = localStorage.getItem('lifeos_notifications');
+        const notifications = stored ? JSON.parse(stored) : [];
+        const updatedNotifications = [newReminder, ...notifications];
+        localStorage.setItem('lifeos_notifications', JSON.stringify(updatedNotifications));
+
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: 'lifeos_notifications',
+            newValue: JSON.stringify(updatedNotifications),
+        }));
+
+        toast({ title: 'Reminder Set!', description: `You'll be reminded about "${title}".` });
+
+        // Reset form
+        setDate(undefined);
+        setTitle('');
+        setMessage('');
+        setIsPopoverOpen(false);
+
+    } catch (error) {
+        toast({ title: 'Error', description: 'Could not save the reminder.', variant: 'destructive'});
+    }
+  };
+
+  return (
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <CalendarDays className="h-4 w-4" />
@@ -191,6 +319,20 @@ function HeaderCalendar() {
           onSelect={setDate}
           initialFocus
         />
+        <div className="p-4 border-t space-y-4">
+            <h4 className="font-medium text-sm text-center">Add a Reminder</h4>
+            <div className="space-y-2">
+                <Label htmlFor="reminder-title" className="text-xs">Title</Label>
+                <Input id="reminder-title" placeholder="e.g., Mom's Birthday" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="reminder-message" className="text-xs">Message</Label>
+                <Textarea id="reminder-message" placeholder="e.g., Call her in the morning" value={message} onChange={(e) => setMessage(e.target.value)} className="text-sm"/>
+            </div>
+            <Button className="w-full" onClick={handleAddReminder} disabled={!date}>
+                Set Reminder for {date ? format(date, 'PPP') : '...'}
+            </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
@@ -239,6 +381,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
         <h1 className="font-headline text-lg font-bold text-primary">LifeOS</h1>
         <div className="flex-1" />
+        <NotificationBell />
         <HeaderCalendar />
         <UserNav user={user} onLogout={handleLogout} />
       </header>

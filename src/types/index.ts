@@ -108,3 +108,11 @@ export type LoggedFoodItem = {
 };
 
 export type CompletedWorkouts = Record<string, boolean>; // date key: 'yyyy-MM-dd'
+
+export type Notification = {
+  id: string;
+  title: string;
+  date: string; // ISO string 'yyyy-MM-dd'
+  message: string;
+  read: boolean;
+};

@@ -1,5 +1,5 @@
 
-import type { TodoItem, Transaction, Habit, Note, Credential } from '@/types';
+import type { TodoItem, Transaction, Habit, Note, Credential, Notification } from '@/types';
 import { subDays, formatISO } from 'date-fns';
 
 export const P_TODO_ITEMS: TodoItem[] = [
@@ -85,4 +85,10 @@ export const P_PASSWORDS: Credential[] = [
   { id: "acc3", name: "Twitter Profile", username: "@socialuserX", password: "socialXpassword", lastUpdated: "2023-11-01", category: "Social Media" },
   { id: "acc4", name: "Salary Account", password: "anothergenericbankpassword", lastUpdated: "2023-11-05", category: "Banking", accountNumber: "987654321098", ifscCode: "SBIN0005678", upiPin: "654321", netbankingId: "salaryNB", mpin: "3344", netbankingPassword: "nbSecurePassword2", transactionPassword: "txnPassSecure2" },
   { id: "acc5", name: "Netflix", username: "subscriber@email.com", password: "streamingservicepass", lastUpdated: "2023-10-25", category: "Website", website: "https://netflix.com" },
+];
+
+export const P_NOTIFICATIONS: Notification[] = [
+  { id: '1', title: "Ram's Birthday", date: formatISO(new Date(), {representation: 'date'}), message: "Don't forget to wish Ram a happy birthday!", read: false },
+  { id: '2', title: "Project Submission Deadline", date: formatISO(subDays(new Date(), 2), {representation: 'date'}), message: "The final report for Project Phoenix is due today.", read: false },
+  { id: '3', title: "Pay Credit Card Bill", date: formatISO(subDays(new Date(), 5), {representation: 'date'}), message: "Your credit card bill is due soon.", read: true },
 ];
