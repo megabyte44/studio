@@ -228,25 +228,25 @@ function NotificationBell() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <div className="p-4 border-b">
-            <h4 className="font-medium text-sm">Notifications</h4>
-        </div>
         <ScrollArea className="max-h-80">
-            <div className="p-4 space-y-4">
+            <div className="p-2 space-y-2">
                 {unreadCount > 0 ? (
-                    notifications.filter(n => !n.read).slice(0, 5).map(n => (
-                        <div key={n.id} className="text-sm">
-                            <p className="font-semibold">{n.title}</p>
-                            <p className="text-muted-foreground truncate">{n.message}</p>
-                        </div>
-                    ))
+                    <>
+                        <h4 className="font-medium text-sm px-2">Unread</h4>
+                        {notifications.filter(n => !n.read).slice(0, 5).map(n => (
+                            <div key={n.id} className="text-sm p-2 rounded-md hover:bg-accent">
+                                <p className="font-semibold">{n.title}</p>
+                                <p className="text-muted-foreground truncate">{n.message}</p>
+                            </div>
+                        ))}
+                    </>
                 ) : (
-                    <p className="text-sm text-center text-muted-foreground py-4">No unread notifications.</p>
+                    <p className="text-sm text-center text-muted-foreground py-8">No unread notifications.</p>
                 )}
             </div>
         </ScrollArea>
-        <div className="p-2 border-t bg-muted/50">
-            <Button variant="link" className="w-full h-8" onClick={() => {
+        <div className="p-1 border-t bg-muted/50">
+            <Button variant="ghost" className="w-full h-8 text-xs" onClick={() => {
                 setIsOpen(false);
                 router.push('/notifications');
             }}>
