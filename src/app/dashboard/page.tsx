@@ -3,7 +3,7 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus, GlassWater, Settings } from 'lucide-react';
+import { PlusCircle, Trash2, Droplets, Wallet, CalendarCheck, ListChecks, Plus, Minus, GlassWater, Settings, Sparkles } from 'lucide-react';
 import { P_TODO_ITEMS, P_HABITS, P_TRANSACTIONS } from '@/lib/placeholder-data';
 import type { PlannerItem, TodoItem, Habit, Transaction } from '@/types';
 import { useState, useEffect, useRef } from 'react';
@@ -545,18 +545,6 @@ function TodoList() {
   )
 }
 
-const AiIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 256 256"
-    className="h-6 w-6"
-    fill="currentColor"
-  >
-    <path d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z" opacity="0.2" />
-    <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a48,48,0,1,1-52.23-47.51,8,8,0,0,1,15.82,2A32,32,0,1,0,176,128a8,8,0,0,1,0,16Z" />
-  </svg>
-);
-
 export default function DashboardPage() {
   const [user, setUser] = useState<{ username: string } | null>(null);
   const [greeting, setGreeting] = useState('');
@@ -587,14 +575,16 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <Button
-        variant="default"
-        size="icon"
-        className="fixed top-20 right-4 h-[50px] w-[50px] rounded-full shadow-lg z-40"
-        aria-label="AI Action"
-      >
-        <AiIcon />
-      </Button>
+      <Link href="/ai-chat">
+        <Button
+          variant="default"
+          size="icon"
+          className="fixed top-20 right-4 h-[50px] w-[50px] rounded-full shadow-lg z-40"
+          aria-label="AI Action"
+        >
+          <Sparkles className="h-6 w-6" />
+        </Button>
+      </Link>
       <div className="space-y-4">
         <header>
           {user ? (
