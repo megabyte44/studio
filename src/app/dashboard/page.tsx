@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
-function WaterIntakeWidget() {
+function WaterIntakeWidget({ now }: { now: Date }) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
@@ -104,7 +104,7 @@ function WaterIntakeWidget() {
   const handleIntakeChange = () => {
     if (!waterHabit) return;
 
-    const todayKey = format(new Date(), 'yyyy-MM-dd');
+    const todayKey = format(now, 'yyyy-MM-dd');
     const updatedHabits = habits.map(h => {
       if (h.id === waterHabit.id) {
         const newCompletions = { ...h.completions };
@@ -138,7 +138,7 @@ function WaterIntakeWidget() {
 
   if (!waterHabit) return null;
 
-  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const todayKey = format(now, 'yyyy-MM-dd');
   const glassesToday = typeof waterHabit.completions[todayKey] === 'number' ? (waterHabit.completions[todayKey] as number) : 0;
   const mlToday = glassesToday * ML_PER_GLASS;
   
@@ -199,7 +199,7 @@ function WaterIntakeWidget() {
   );
 }
 
-function TodaysPlan() {
+function TodaysPlan({ now }: { now: Date }) {
   const [routineItems, setRoutineItems] = useState<PlannerItem[]>([]);
   const [displayedItems, setDisplayedItems] = useState<PlannerItem[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(1);
@@ -208,17 +208,19 @@ function TodaysPlan() {
     const loadSchedule = () => {
       const storedSchedule = localStorage.getItem('lifeos_weeklySchedule');
       const schedule = storedSchedule ? JSON.parse(storedSchedule) : {};
-      const dayName = format(new Date(), 'EEEE');
+      const dayName = format(now, 'EEEE');
       setRoutineItems(schedule[dayName] || []);
     };
     
     loadSchedule();
-    window.addEventListener('storage', (e) => {
+    const handleStorageChange = (e: StorageEvent) => {
         if (e.key === 'lifeos_weeklySchedule') {
             loadSchedule();
         }
-    });
-  }, []);
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [now]);
 
   useEffect(() => {
     const calculateDisplayedItems = () => {
@@ -228,7 +230,6 @@ function TodaysPlan() {
       }
       if (routineItems.length <= 3) {
         setDisplayedItems(routineItems);
-        const now = new Date();
         const currentIndex = routineItems.findLastIndex(item => {
             try {
                 return parse(item.startTime, 'HH:mm', new Date()) <= now;
@@ -238,7 +239,6 @@ function TodaysPlan() {
         return;
       }
 
-      const now = new Date();
       let currentIndex = routineItems.findIndex(item => {
         try {
           return parse(item.startTime, 'HH:mm', new Date()) > now;
@@ -267,10 +267,7 @@ function TodaysPlan() {
     };
 
     calculateDisplayedItems();
-    const timer = setInterval(calculateDisplayedItems, 60000); // Update every minute
-
-    return () => clearInterval(timer);
-  }, [routineItems]);
+  }, [routineItems, now]);
 
   return (
     <Card>
@@ -315,7 +312,7 @@ function TodaysPlan() {
             </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-sm rounded-xl p-0">
                 <DialogHeader className="p-4 pb-2">
-                    <DialogTitle>Full Plan for {format(new Date(), 'EEEE')}</DialogTitle>
+                    <DialogTitle>Full Plan for {format(now, 'EEEE')}</DialogTitle>
                     <DialogDescription>
                         Here is your complete schedule for today.
                     </DialogDescription>
@@ -347,7 +344,7 @@ function TodaysPlan() {
 }
 
 
-function FinancialSnapshot() {
+function FinancialSnapshot({ now }: { now: Date }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [monthlyBudget, setMonthlyBudget] = useState(5000000); // in cents
 
@@ -368,16 +365,15 @@ function FinancialSnapshot() {
     return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  const today = new Date();
   const todaysExpenses = transactions
-    .filter(t => t.type === 'expense' && isSameDay(parseISO(t.date), today))
+    .filter(t => t.type === 'expense' && isSameDay(parseISO(t.date), now))
     .reduce((sum, t) => sum + t.amount, 0);
   
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
   const netBalance = totalIncome - totalExpenses;
   
-  const startOfCurrentMonth = startOfMonth(today);
+  const startOfCurrentMonth = startOfMonth(now);
   const monthlyExpenses = transactions
     .filter(t => t.type === 'expense' && parseISO(t.date) >= startOfCurrentMonth)
     .reduce((sum, t) => sum + t.amount, 0);
@@ -527,13 +523,13 @@ function TodoList() {
       <CardContent className="pt-0 sm:pt-0">
         <ul className="space-y-3">
             {todos.map(todo => (
-                 <li key={todo.id} className="flex items-center space-x-3 group border-b pb-3">
+                 <li key={todo.id} className="flex items-center space-x-3 border-b pb-3">
                     <Checkbox id={`todo-${todo.id}`} checked={todo.completed} onCheckedChange={() => toggleTodo(todo.id)} />
                     <label htmlFor={`todo-${todo.id}`} className={cn("flex-1 text-sm", todo.completed && "line-through text-muted-foreground")}>{todo.text}</label>
                     {todo.priority && (
                         <Badge variant={getPriorityBadgeVariant(todo.priority)} className="capitalize">{todo.priority}</Badge>
                     )}
-                    <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive" onClick={() => deleteTodo(todo.id)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteTodo(todo.id)}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
                  </li>
@@ -552,6 +548,7 @@ function TodoList() {
 export default function DashboardPage() {
   const [user, setUser] = useState<{ username: string } | null>(null);
   const [greeting, setGreeting] = useState('');
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -559,14 +556,22 @@ export default function DashboardPage() {
       setUser(JSON.parse(storedUser));
     }
 
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     const getGreeting = () => {
-      const hour = new Date().getHours();
+      const hour = now.getHours();
       if (hour < 12) return 'Good Morning';
       if (hour < 18) return 'Good Afternoon';
       return 'Good Evening';
     };
     setGreeting(getGreeting());
-  }, []);
+  }, [now]);
 
   return (
     <AppLayout>
@@ -588,13 +593,13 @@ export default function DashboardPage() {
         </header>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-3">
-                <WaterIntakeWidget />
+                <WaterIntakeWidget now={now} />
             </div>
             <div className="lg:col-span-2">
-                <TodaysPlan />
+                <TodaysPlan now={now} />
             </div>
             <div className="lg:col-span-1">
-                <FinancialSnapshot />
+                <FinancialSnapshot now={now} />
             </div>
             <div className="lg:col-span-3">
                 <TodoList />
@@ -604,9 +609,5 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-
-    
-
-    
 
     
