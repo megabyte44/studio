@@ -3,12 +3,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Message = {
@@ -24,16 +23,15 @@ export default function AiChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  // Auto-scroll to bottom whenever messages change
   useEffect(() => {
-    // This is a bit of a hack to get the viewport of the ScrollArea component
-    // because it doesn't expose a ref to it directly.
-    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
-    if (viewport) {
-      viewport.scrollTop = viewport.scrollHeight;
-    }
+    scrollToBottom();
   }, [messages, isLoading]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -65,79 +63,80 @@ export default function AiChatPage() {
 
   return (
     <AppLayout>
-      <div className="h-full flex flex-col">
-        <Card className="flex-1 flex flex-col max-h-[calc(100vh-12rem)]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-6 w-6 text-primary" />
-              AI Assistant
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-hidden p-0">
-             <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
-                 <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={cn(
-                          'flex items-start gap-3',
-                          message.role === 'user' ? 'justify-end' : 'justify-start'
-                        )}
-                      >
-                        {message.role === 'ai' && (
-                          <Avatar className="h-8 w-8">
-                             <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
-                          </Avatar>
-                        )}
-                        <div
-                          className={cn(
-                            'max-w-xs md:max-w-md lg:max-w-lg rounded-xl p-3 text-sm',
-                            message.role === 'user'
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted'
-                          )}
-                        >
-                          {message.content}
-                        </div>
-                         {message.role === 'user' && (
-                          <Avatar className="h-8 w-8">
-                             <AvatarFallback><User className="h-5 w-5"/></AvatarFallback>
-                          </Avatar>
-                        )}
-                      </div>
-                    ))}
-                    {isLoading && (
-                        <div className="flex items-start gap-3 justify-start">
-                            <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
-                            </Avatar>
-                             <div className="bg-muted rounded-xl p-3 text-sm">
-                                <div className="flex items-center gap-2">
-                                    <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0s]"></span>
-                                    <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0.15s]"></span>
-                                    <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0.3s]"></span>
-                                </div>
+      <div className="h-full flex flex-col max-w-4xl mx-auto">
+        <div className="p-4 border-b">
+            <h1 className="text-xl font-bold font-headline flex items-center gap-2">
+                <Sparkles className="h-6 w-6 text-primary" />
+                AI Assistant
+            </h1>
+            <p className="text-sm text-muted-foreground">Your personal assistant to help manage your life.</p>
+        </div>
+
+        <ScrollArea className="flex-1 p-4">
+            <div className="space-y-6">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      'flex items-start gap-4',
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    )}
+                  >
+                    {message.role === 'ai' && (
+                      <Avatar className="h-9 w-9">
+                         <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div
+                      className={cn(
+                        'max-w-md rounded-xl p-3 text-sm shadow-md',
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-card border'
+                      )}
+                    >
+                      {message.content}
+                    </div>
+                     {message.role === 'user' && (
+                      <Avatar className="h-9 w-9">
+                         <AvatarFallback><User className="h-5 w-5"/></AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                    <div className="flex items-start gap-4 justify-start">
+                        <Avatar className="h-9 w-9">
+                            <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
+                        </Avatar>
+                         <div className="bg-card border rounded-xl p-3 text-sm shadow-md">
+                            <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0s]"></span>
+                                <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0.15s]"></span>
+                                <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0.3s]"></span>
                             </div>
                         </div>
-                    )}
-                 </div>
-             </ScrollArea>
-          </CardContent>
-          <CardFooter className="pt-4 border-t">
-            <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
-              <Input
-                autoFocus
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask me anything..."
-                disabled={isLoading}
-              />
-              <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          </CardFooter>
-        </Card>
+                    </div>
+                )}
+                <div ref={messagesEndRef} />
+             </div>
+        </ScrollArea>
+        
+        <div className="p-4 border-t">
+          <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
+            <Input
+              autoFocus
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask me anything..."
+              disabled={isLoading}
+              className="flex-1"
+            />
+            <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
       </div>
     </AppLayout>
   );
