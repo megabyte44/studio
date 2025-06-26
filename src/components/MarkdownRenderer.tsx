@@ -1,7 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Copy, Check } from 'lucide-react';
 
 // Function to parse inline markdown (bold, italic, inline code)
 // This is now recursive to handle nested formatting.
@@ -35,11 +37,46 @@ const parseInline = (text: string): React.ReactNode => {
   });
 };
 
+const CodeBlockWithCopy = ({ language, code }: { language: string; code: string }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy code to clipboard: ', err);
+    });
+  };
+
+  return (
+    <div className="my-2 rounded-md border bg-muted font-code text-sm relative group">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b">
+        <span className="text-xs text-muted-foreground">{language || 'code'}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute top-0.5 right-0.5"
+          onClick={handleCopy}
+          aria-label="Copy code to clipboard"
+        >
+          {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+        </Button>
+      </div>
+      <pre className="p-3 whitespace-pre-wrap break-words overflow-x-auto">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+};
+
 
 /**
  * A component to render markdown content.
  * Supports:
- * - Code blocks (```) with language specifiers
+ * - Code blocks (```) with language specifiers and a copy button
  * - Unordered lists (*, -, +)
  * - Ordered lists (1., 2.)
  * - Bold text (**)
@@ -65,17 +102,9 @@ export const MarkdownRenderer = ({ content }: { content: string }) => {
         codeLines.push(lines[j]);
         j++;
       }
+      const code = codeLines.join('\n');
       elements.push(
-        <div key={`code-block-${i}`} className="my-2 rounded-md border bg-muted font-code text-sm">
-          {language && (
-            <div className="flex items-center justify-between px-3 py-1.5 border-b">
-              <span className="text-xs text-muted-foreground">{language}</span>
-            </div>
-          )}
-          <pre className="p-3 whitespace-pre-wrap break-words overflow-x-auto">
-            <code>{codeLines.join('\n')}</code>
-          </pre>
-        </div>
+        <CodeBlockWithCopy key={`code-block-${i}`} language={language} code={code} />
       );
       i = j + 1;
       continue;
