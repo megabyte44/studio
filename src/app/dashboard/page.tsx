@@ -529,7 +529,7 @@ function TodoList() {
                     {todo.priority && (
                         <Badge variant={getPriorityBadgeVariant(todo.priority)} className="capitalize">{todo.priority}</Badge>
                     )}
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteTodo(todo.id)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteTodo(todo.id)}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
                  </li>
@@ -544,6 +544,18 @@ function TodoList() {
     </Card>
   )
 }
+
+const AiIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 256 256"
+    className="h-6 w-6"
+    fill="currentColor"
+  >
+    <path d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z" opacity="0.2" />
+    <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a48,48,0,1,1-52.23-47.51,8,8,0,0,1,15.82,2A32,32,0,1,0,176,128a8,8,0,0,1,0,16Z" />
+  </svg>
+);
 
 export default function DashboardPage() {
   const [user, setUser] = useState<{ username: string } | null>(null);
@@ -575,6 +587,14 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
+      <Button
+        variant="default"
+        size="icon"
+        className="fixed top-20 right-4 h-[50px] w-[50px] rounded-full shadow-lg z-40"
+        aria-label="AI Action"
+      >
+        <AiIcon />
+      </Button>
       <div className="space-y-4">
         <header>
           {user ? (
@@ -609,5 +629,4 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-
     
