@@ -45,12 +45,13 @@ const augmentWorkoutSplit = (split: CyclicalWorkoutSplit): CyclicalWorkoutSplit 
             ...dayData,
             exercises: dayData.exercises.map(ex => ({
                 id: ex.id || crypto.randomUUID(),
-                ...ex,
-                kValue: ex.kValue || 0.5,
-                baselineWeight: ex.baselineWeight || 0,
-                baselineReps: ex.baselineReps || 0,
-                targetWeight: ex.targetWeight || 0,
-                targetReps: ex.targetReps || 0,
+                name: ex.name,
+                sets: ex.sets,
+                kValue: ex.kValue ?? 0.5,
+                baselineWeight: ex.baselineWeight ?? 0,
+                baselineReps: ex.baselineReps ?? 0,
+                targetWeight: ex.targetWeight ?? 0,
+                targetReps: ex.targetReps ?? 0,
                 sessionHistory: ex.sessionHistory || [],
             }))
         };
