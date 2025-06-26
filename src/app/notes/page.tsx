@@ -383,7 +383,6 @@ export default function NotesPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold font-headline">Personal Notes</h1>
-              <p className="text-muted-foreground">Your digital canvas for thoughts and ideas.</p>
             </div>
             <Button onClick={() => { setIsAddingNote(true); setEditingNoteId(null); }} disabled={isAddingNote || !!editingNoteId}>
               <PlusCircle className="mr-2 h-4 w-4" />
