@@ -54,7 +54,7 @@ function BottomNav() {
   const pathname = usePathname();
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur-sm">
-      <div className="flex justify-center h-16 items-center gap-x-8 sm:gap-x-16">
+      <div className="flex justify-around h-16 items-center">
         {navItems.map((item) => (
           <Link
             href={item.href}
