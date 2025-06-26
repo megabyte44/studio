@@ -116,3 +116,19 @@ export type Notification = {
   message: string;
   read: boolean;
 };
+
+// Types for AI Chat
+export type ChatMessage = {
+  role: 'user' | 'model';
+  content: string;
+};
+
+export type ChatInput = {
+  history: ChatMessage[];
+  message: string;
+  apiKey: string;
+};
+
+export type ChatOutput = {
+  content: string;
+};

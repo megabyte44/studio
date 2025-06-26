@@ -3,31 +3,11 @@
  * @fileOverview A conversational AI agent.
  *
  * - chat - A function that handles a chat conversation turn.
- * - ChatInputSchema - The input type for the chat function.
- * - ChatOutputSchema - The return type for the chat function.
- * - ChatMessageSchema - The schema for a single message in the history.
  */
 
-import { genkit, z } from 'genkit';
+import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-
-export const ChatMessageSchema = z.object({
-  role: z.enum(['user', 'model']),
-  content: z.string(),
-});
-export type ChatMessage = z.infer<typeof ChatMessageSchema>;
-
-export const ChatInputSchema = z.object({
-  history: z.array(ChatMessageSchema),
-  message: z.string(),
-  apiKey: z.string(),
-});
-export type ChatInput = z.infer<typeof ChatInputSchema>;
-
-export const ChatOutputSchema = z.object({
-  content: z.string(),
-});
-export type ChatOutput = z.infer<typeof ChatOutputSchema>;
+import type { ChatInput, ChatOutput } from '@/types';
 
 export async function chat(input: ChatInput): Promise<ChatOutput> {
   if (!input.apiKey) {
