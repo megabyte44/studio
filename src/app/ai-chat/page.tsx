@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Bot, User, AlertTriangle, Database } from 'lucide-react';
+import { Send, Bot, User, AlertTriangle, Database, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { chat } from '@/ai/flows/chat';
 import type { ChatMessage } from '@/types';
@@ -16,6 +16,17 @@ import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type Message = {
   id: string;
@@ -73,6 +84,15 @@ export default function AiChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  const handleNewChat = () => {
+    setMessages([DEFAULT_MESSAGE]);
+    localStorage.removeItem(LOCAL_STORAGE_KEY_CHATS);
+    toast({
+      title: "New Chat Started",
+      description: "Your previous conversation has been cleared.",
+    });
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,6 +187,30 @@ export default function AiChatPage() {
   return (
     <AppLayout>
       <div className="absolute inset-x-0 top-14 bottom-16 flex flex-col bg-background">
+        <div className="flex-shrink-0 border-b bg-background">
+          <div className="max-w-4xl mx-auto p-2 flex justify-end items-center">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  New Chat
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will start a new chat and permanently delete your current conversation history. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleNewChat}>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
         <ScrollArea className="flex-1" viewportRef={viewportRef}>
             <div className="max-w-4xl mx-auto p-4 space-y-6">
                 {!apiKey && (
@@ -189,7 +233,7 @@ export default function AiChatPage() {
                             <Avatar className="h-9 w-9">
                               <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
                             </Avatar>
-                            <div className="max-w-3xl rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-card border">
+                            <div className="w-full max-w-4xl rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-card border">
                               <MarkdownRenderer content={message.content} />
                             </div>
                           </div>
