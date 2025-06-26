@@ -79,16 +79,17 @@ function ThemeToggle() {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-      const storedTheme = typeof window !== 'undefined' ? localStorage.getItem('theme') || 'light' : 'light';
-      setTheme(storedTheme);
-      document.documentElement.classList.toggle('dark', storedTheme === 'dark');
+    // The class is set by the inline script in layout.tsx.
+    // This effect just syncs the React state with the DOM.
+    const isDark = document.documentElement.classList.contains('dark');
+    setTheme(isDark ? 'dark' : 'light');
   }, []);
 
   const toggleTheme = () => {
-      const newTheme = theme === 'light' ? 'dark' : 'light';
-      setTheme(newTheme);
-      localStorage.setItem('theme', newTheme);
-      document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   return (
@@ -311,7 +312,7 @@ function HeaderCalendar() {
           disabled={(d) => d < today}
           initialFocus
         />
-        {date && isFuture(date) && (
+        {date && (isFuture(date) || isSameDay(date, today)) && (
             <div className="p-2 border-t space-y-2">
                 <h4 className="font-semibold text-xs text-center">Add Reminder for {format(date, 'MMM d')}</h4>
                 <div className="space-y-1">

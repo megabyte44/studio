@@ -8,6 +8,21 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
+const ThemeInitializer = () => {
+  const script = `
+    (function() {
+      const theme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (theme === 'dark' || (!theme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  `;
+  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,6 +35,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+        <ThemeInitializer />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         {children}
