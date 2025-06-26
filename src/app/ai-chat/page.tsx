@@ -270,7 +270,7 @@ export default function AiChatPage() {
                       <p>New Chat</p>
                     </TooltipContent>
                   </Tooltip>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="sm:max-w-sm rounded-xl">
                     <AlertDialogHeader>
                       <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                       <AlertDialogDescription>
