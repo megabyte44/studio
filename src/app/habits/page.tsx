@@ -70,6 +70,37 @@ const initialWorkoutSplit = augmentWorkoutSplit(initialWorkoutSplitRaw);
 const initialCustomFoodItems = ["Protein Powder", "Creatine", "Oatmeal", "Eggs", "Chicken Breast", "Greek Yogurt"];
 const SPECIAL_HABIT_ICONS = ['GlassWater', 'Dumbbell', 'Beef', 'Pill'];
 
+const useWorkoutDayInfo = (cyclicalWorkoutSplit: CyclicalWorkoutSplit, cycleConfig: CycleConfig) => {
+    return useCallback((date: Date) => {
+        const cycleWorkoutKeys = Object.keys(cyclicalWorkoutSplit);
+        const cycleLength = cycleWorkoutKeys.length;
+        if (!cycleConfig.startDate || !cycleConfig.startDayKey || cycleLength === 0) {
+            return { key: "N/A", title: "Cycle Not Configured", exercises: [], isRestDay: false };
+        }
+        
+        const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const normalizedStartDate = new Date(parseISO(cycleConfig.startDate));
+        
+        const daysSinceStart = differenceInCalendarDays(normalizedDate, normalizedStartDate);
+
+        if (daysSinceStart < 0) {
+            return { key: "N/A", title: "Cycle Starts in Future", exercises: [], isRestDay: true };
+        }
+
+        let startIndexInCycle = cycleWorkoutKeys.indexOf(cycleConfig.startDayKey);
+        if (startIndexInCycle === -1) {
+             startIndexInCycle = 0;
+        }
+        const currentDayIndexInCycle = (startIndexInCycle + daysSinceStart) % cycleLength;
+        const workoutKey = cycleWorkoutKeys[currentDayIndexInCycle];
+        const workoutData = cyclicalWorkoutSplit[workoutKey] || { title: "Undefined Workout", exercises: [] };
+        const isRestDay = workoutData.exercises.length === 0;
+
+        return { key: workoutKey, ...workoutData, isRestDay };
+    }, [cyclicalWorkoutSplit, cycleConfig]);
+};
+
+
 type GymTrackerProps = {
   proteinIntakes: ProteinIntake[];
   setProteinIntakes: (intakes: ProteinIntake[]) => void;
@@ -78,11 +109,17 @@ type GymTrackerProps = {
   proteinTarget: number;
   setProteinTarget: (target: number) => void;
   customFoodItems: string[];
+  setCustomFoodItems: (items: string[]) => void;
   cyclicalWorkoutSplit: CyclicalWorkoutSplit;
   setCyclicalWorkoutSplit: (split: CyclicalWorkoutSplit) => void;
   cycleConfig: CycleConfig;
   setCycleConfig: (config: CycleConfig) => void;
   onOpenOverloadTracker: () => void;
+  onManageCustomFoodItems: () => void;
+  onManagePlan: () => void;
+  onToggleWorkoutCompletion: () => void;
+  isTodayCompleted: boolean;
+  todaysWorkoutInfo: ReturnType<ReturnType<typeof useWorkoutDayInfo>>;
 };
 
 
@@ -99,14 +136,7 @@ function GymTracker({
     isTodayCompleted,
     todaysWorkoutInfo,
     onOpenOverloadTracker,
-}: GymTrackerProps & { 
-    setCustomFoodItems: (items: string[]) => void;
-    onManageCustomFoodItems: () => void,
-    onManagePlan: () => void,
-    onToggleWorkoutCompletion: () => void,
-    isTodayCompleted: boolean,
-    todaysWorkoutInfo: ReturnType<typeof useWorkoutDayInfo>
-}) {
+}: GymTrackerProps) {
     
     return (
         <div className="space-y-4">
@@ -184,7 +214,7 @@ function GymTracker({
 
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
-                      setLoggedItems={setLoggedFoodItems}
+                      setLoggedItems={setLoggedItems}
                       customItems={customFoodItems}
                       onManageItems={onManageCustomFoodItems}
                     />
@@ -418,37 +448,6 @@ function EditHabitDialog({
     </Dialog>
   );
 }
-
-const useWorkoutDayInfo = (cyclicalWorkoutSplit: CyclicalWorkoutSplit, cycleConfig: CycleConfig) => {
-    return useCallback((date: Date) => {
-        const cycleWorkoutKeys = Object.keys(cyclicalWorkoutSplit);
-        const cycleLength = cycleWorkoutKeys.length;
-        if (!cycleConfig.startDate || !cycleConfig.startDayKey || cycleLength === 0) {
-            return { key: "N/A", title: "Cycle Not Configured", exercises: [], isRestDay: false };
-        }
-        
-        const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        const normalizedStartDate = new Date(parseISO(cycleConfig.startDate));
-        
-        const daysSinceStart = differenceInCalendarDays(normalizedDate, normalizedStartDate);
-
-        if (daysSinceStart < 0) {
-            return { key: "N/A", title: "Cycle Starts in Future", exercises: [], isRestDay: true };
-        }
-
-        let startIndexInCycle = cycleWorkoutKeys.indexOf(cycleConfig.startDayKey);
-        if (startIndexInCycle === -1) {
-             startIndexInCycle = 0;
-        }
-        const currentDayIndexInCycle = (startIndexInCycle + daysSinceStart) % cycleLength;
-        const workoutKey = cycleWorkoutKeys[currentDayIndexInCycle];
-        const workoutData = cyclicalWorkoutSplit[workoutKey] || { title: "Undefined Workout", exercises: [] };
-        const isRestDay = workoutData.exercises.length === 0;
-
-        return { key: workoutKey, ...workoutData, isRestDay };
-    }, [cyclicalWorkoutSplit, cycleConfig]);
-};
-
 
 function OverloadSetup({ exercise, onExerciseChange }: { exercise: Exercise, onExerciseChange: (field: keyof Exercise, value: any) => void }) {
     return (
@@ -1399,7 +1398,7 @@ export default function HabitsPage() {
     };
 
   const getWorkoutDayInfo = useWorkoutDayInfo(cyclicalWorkoutSplit, cycleConfig);
-  const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfo(new Date()), [getWorkoutDayInfo, cyclicalWorkoutSplit, cycleConfig]);
+  const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfo(new Date()), [getWorkoutDayInfo]);
   
   const workoutHabit = habits.find(h => h.icon === 'Dumbbell');
   const todayKey = format(new Date(), 'yyyy-MM-dd');
