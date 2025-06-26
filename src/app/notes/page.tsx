@@ -277,7 +277,7 @@ function EditNoteCard({
 
 function NoteCard({ note, onEdit, onView }: { note: Note; onEdit: () => void; onView: () => void }) {
   return (
-    <Card className="flex flex-col h-96 hover:shadow-lg transition-shadow duration-300">
+    <Card className="flex flex-col group-[.is-grid]:h-96 hover:shadow-lg transition-shadow duration-300">
       <div onClick={onView} className="cursor-pointer flex-grow flex flex-col min-h-0">
           <CardHeader>
             <CardTitle className="font-headline text-lg">{note.title}</CardTitle>
@@ -286,8 +286,8 @@ function NoteCard({ note, onEdit, onView }: { note: Note; onEdit: () => void; on
                 <Badge variant="outline" className="capitalize">{note.type}</Badge>
             </div>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col min-h-0 p-[2px] pt-0">
-            <ScrollArea className="flex-grow pr-[2px]">
+          <CardContent className="flex-grow flex flex-col min-h-0 p-4 pt-0">
+            <ScrollArea className="flex-grow pr-4">
                 {note.type === 'text' && (
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{String(note.content)}</p>
                 )}
@@ -409,8 +409,10 @@ export default function NotesPage() {
         </header>
 
         <div className={cn(
-            'grid gap-6',
-            layout === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'
+            'grid group',
+            layout === 'grid' 
+                ? 'gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 is-grid' 
+                : 'gap-4 grid-cols-1 is-list'
         )}>
           {isAddingNote && (
             <NewNoteCard onSave={handleSaveNote} onCancel={handleCancelNewNote} />
@@ -456,3 +458,4 @@ export default function NotesPage() {
     </AppLayout>
   );
 }
+
