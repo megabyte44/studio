@@ -1,35 +1,45 @@
 'use client';
 
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 // Function to parse inline markdown (bold, italic, inline code)
-const parseInline = (text: string) => {
-  // Regex to capture bold, italics (using * or _), and inline code.
+// This is now recursive to handle nested formatting.
+const parseInline = (text: string): React.ReactNode => {
   const inlineRegex = /(\*\*.*?\*\*)|(_.*?_)|(\*.*?\*)|(`.*?`)/g;
-  const parts = text.split(inlineRegex).filter(Boolean);
+  const parts = text.split(inlineRegex);
 
-  return parts.map((part, index) => {
+  if (parts.length <= 1) {
+    return text;
+  }
+
+  return parts.filter(Boolean).map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
+      // Bold: recursively parse content inside
+      return <strong key={index}>{parseInline(part.slice(2, -2))}</strong>;
     }
     if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) {
-      return <em key={index}>{part.slice(1, -1)}</em>;
+      // Italic: recursively parse content inside
+      return <em key={index}>{parseInline(part.slice(1, -1))}</em>;
     }
     if (part.startsWith('`') && part.endsWith('`')) {
+      // Inline code
       return (
         <code key={index} className="bg-muted text-card-foreground font-code px-1 py-0.5 rounded-sm text-sm">
           {part.slice(1, -1)}
         </code>
       );
     }
+    // Plain text
     return <React.Fragment key={index}>{part}</React.Fragment>;
   });
 };
 
+
 /**
  * A component to render markdown content.
  * Supports:
- * - Code blocks (```)
+ * - Code blocks (```) with language specifiers
  * - Unordered lists (*, -, +)
  * - Ordered lists (1., 2.)
  * - Bold text (**)
@@ -48,6 +58,7 @@ export const MarkdownRenderer = ({ content }: { content: string }) => {
 
     // Code blocks ```
     if (line.startsWith('```')) {
+      const language = line.substring(3).trim();
       const codeLines = [];
       let j = i + 1;
       while (j < lines.length && !lines[j].startsWith('```')) {
@@ -55,9 +66,16 @@ export const MarkdownRenderer = ({ content }: { content: string }) => {
         j++;
       }
       elements.push(
-        <pre key={`code-${i}`} className="bg-muted text-card-foreground rounded-md my-2 p-3 text-sm whitespace-pre-wrap break-words font-code">
-          <code>{codeLines.join('\n')}</code>
-        </pre>
+        <div key={`code-block-${i}`} className="my-2 rounded-md border bg-muted font-code text-sm">
+          {language && (
+            <div className="flex items-center justify-between px-3 py-1.5 border-b">
+              <span className="text-xs text-muted-foreground">{language}</span>
+            </div>
+          )}
+          <pre className="p-3 whitespace-pre-wrap break-words overflow-x-auto">
+            <code>{codeLines.join('\n')}</code>
+          </pre>
+        </div>
       );
       i = j + 1;
       continue;
