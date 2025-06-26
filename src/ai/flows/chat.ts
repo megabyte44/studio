@@ -31,11 +31,16 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
   if (input.userData) {
     systemPrompt += `\n\nThe user has provided the following data from their LifeOS app. Use this data to answer their questions. Be helpful and proactive. Today's date is ${new Date().toDateString()}.\n\nUSER DATA:\n${input.userData}`;
   }
+  
+  // The `system` property was causing a type error during the build.
+  // To fix this, we're prepending the system instructions to the user's prompt.
+  // This is a robust way to provide instructions and resolves the type ambiguity.
+  const fullPrompt = `${systemPrompt}\n\n---\n\n${input.message}`;
+
 
   const response = await requestAi.generate({
     model: 'googleai/gemini-2.0-flash',
-    system: systemPrompt,
-    prompt: input.message,
+    prompt: fullPrompt,
     history,
   });
 
