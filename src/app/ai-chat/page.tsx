@@ -14,6 +14,7 @@ import type { ChatMessage } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 type Message = {
   id: string;
@@ -153,7 +154,7 @@ export default function AiChatPage() {
                           : 'bg-card border'
                       )}
                     >
-                      {message.content}
+                      {message.role === 'model' ? <MarkdownRenderer content={message.content} /> : message.content}
                     </div>
                      {message.role === 'user' && (
                       <Avatar className="h-9 w-9">
