@@ -21,7 +21,7 @@ export const MarkdownRenderer = ({ content }: { content: string }) => {
           // This is a code block.
           const code = part.slice(3, -3).trim();
           return (
-            <pre key={index} className="bg-muted text-card-foreground rounded-md my-2 p-3 text-sm overflow-x-auto font-code">
+            <pre key={index} className="bg-muted text-card-foreground rounded-md my-2 p-3 text-sm whitespace-pre-wrap break-all font-code">
               <code>{code}</code>
             </pre>
           );
