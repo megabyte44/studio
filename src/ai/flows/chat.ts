@@ -28,6 +28,7 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
 
   const response = await requestAi.generate({
     model: 'googleai/gemini-2.0-flash',
+    system: "Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.",
     prompt: input.message,
     history,
   });
