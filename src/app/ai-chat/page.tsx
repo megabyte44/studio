@@ -24,10 +24,11 @@ type Message = {
   content: string;
 };
 
+const LOCAL_STORAGE_KEY_CHATS = 'lifeos_ai_chats';
+const DEFAULT_MESSAGE: Message = { id: '1', role: 'model', content: "Hello! How can I help you manage your life today?" };
+
 export default function AiChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'model', content: "Hello! How can I help you manage your life today?" },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([DEFAULT_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -40,6 +41,29 @@ export default function AiChatPage() {
     const key = localStorage.getItem('google_api_key');
     setApiKey(key);
   }, []);
+
+  useEffect(() => {
+    try {
+      const storedChats = localStorage.getItem(LOCAL_STORAGE_KEY_CHATS);
+      if (storedChats) {
+        const parsedChats = JSON.parse(storedChats);
+        if (Array.isArray(parsedChats) && parsedChats.length > 0) {
+          setMessages(parsedChats);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load chat history from local storage.", e);
+      setMessages([DEFAULT_MESSAGE]);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Avoid saving just the initial default message if there's no history.
+    if (messages.length === 1 && messages[0].id === '1') {
+      return;
+    }
+    localStorage.setItem(LOCAL_STORAGE_KEY_CHATS, JSON.stringify(messages));
+  }, [messages]);
 
   const scrollToBottom = () => {
     if (viewportRef.current) {
