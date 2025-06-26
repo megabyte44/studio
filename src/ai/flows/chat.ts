@@ -26,9 +26,15 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
       parts: [{ text: m.content }],
   }));
 
+  let systemPrompt = "Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.";
+
+  if (input.userData) {
+    systemPrompt += `\n\nThe user has provided the following data from their LifeOS app. Use this data to answer their questions. Be helpful and proactive. Today's date is ${new Date().toDateString()}.\n\nUSER DATA:\n${input.userData}`;
+  }
+
   const response = await requestAi.generate({
     model: 'googleai/gemini-2.0-flash',
-    system: "Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.",
+    system: systemPrompt,
     prompt: input.message,
     history,
   });

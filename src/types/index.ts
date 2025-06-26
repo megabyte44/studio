@@ -127,6 +127,7 @@ export type ChatInput = {
   history: ChatMessage[];
   message: string;
   apiKey: string;
+  userData?: string;
 };
 
 export type ChatOutput = {

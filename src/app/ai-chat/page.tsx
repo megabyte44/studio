@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 type Message = {
   id: string;
@@ -29,6 +31,7 @@ export default function AiChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [includeData, setIncludeData] = useState(false);
   
   const viewportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -80,12 +83,35 @@ export default function AiChatPage() {
     const history: ChatMessage[] = newMessages
       .slice(0, -1)
       .map(({ role, content }) => ({ role, content }));
+    
+    let userData: string | undefined = undefined;
+    if (includeData) {
+      try {
+        const dataToInclude = {
+            user: JSON.parse(localStorage.getItem('user') || '{}'),
+            todos: JSON.parse(localStorage.getItem('lifeos_todos') || '[]'),
+            transactions: JSON.parse(localStorage.getItem('lifeos_transactions') || '[]'),
+            habits: JSON.parse(localStorage.getItem('lifeos_habits') || '[]'),
+            notes: JSON.parse(localStorage.getItem('lifeos_notes') || '[]'),
+            schedule: JSON.parse(localStorage.getItem('lifeos_weeklySchedule') || '{}'),
+        };
+        userData = JSON.stringify(dataToInclude, null, 2);
+      } catch (e) {
+        console.error("Failed to gather user data:", e);
+        toast({
+          variant: "destructive",
+          title: "Could not load user data",
+          description: "There was an error reading your app data from local storage.",
+        });
+      }
+    }
 
     try {
       const aiResponse = await chat({
         history,
         message: userMessage.content,
         apiKey,
+        userData,
       });
 
       const aiMessage: Message = {
@@ -177,6 +203,17 @@ export default function AiChatPage() {
         
         <div className="p-4 border-t bg-background">
           <div className="max-w-4xl mx-auto">
+              <div className="flex items-center space-x-2 mb-2">
+                <Switch
+                  id="include-data-switch"
+                  checked={includeData}
+                  onCheckedChange={setIncludeData}
+                  disabled={isLoading || !apiKey}
+                />
+                <Label htmlFor="include-data-switch" className="text-sm text-muted-foreground">
+                  Include my data in conversation
+                </Label>
+              </div>
               <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
                 <Input
                   autoFocus
