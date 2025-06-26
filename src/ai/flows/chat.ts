@@ -21,27 +21,30 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
     plugins: [googleAI({ apiKey: input.apiKey })],
   });
 
-  const history = input.history.map(m => ({
-      role: m.role,
-      parts: [{ text: m.content }],
-  }));
-
-  let systemPrompt = "Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.";
+  // To fix a persistent build error with the `history` parameter, we will format the entire
+  // conversation history as a single string and prepend it to the prompt.
+  // This is a robust way to provide context and resolves the type ambiguity.
+  
+  let fullPrompt = 'Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.';
 
   if (input.userData) {
-    systemPrompt += `\n\nThe user has provided the following data from their LifeOS app. Use this data to answer their questions. Be helpful and proactive. Today's date is ${new Date().toDateString()}.\n\nUSER DATA:\n${input.userData}`;
+    fullPrompt += `\n\nThe user has provided the following data from their LifeOS app. Use this data to answer their questions. Be helpful and proactive. Today's date is ${new Date().toDateString()}.\n\nUSER DATA:\n${input.userData}`;
   }
-  
-  // The `system` property was causing a type error during the build.
-  // To fix this, we're prepending the system instructions to the user's prompt.
-  // This is a robust way to provide instructions and resolves the type ambiguity.
-  const fullPrompt = `${systemPrompt}\n\n---\n\n${input.message}`;
 
+  // Prepend the formatted history to the prompt
+  if (input.history && input.history.length > 0) {
+    const historyText = input.history
+      .map((m) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`)
+      .join('\n');
+    fullPrompt += `\n\n--- PREVIOUS CONVERSATION ---\n${historyText}`;
+  }
+
+  // Add the current message
+  fullPrompt += `\n\n--- CURRENT MESSAGE ---\nUser: ${input.message}`;
 
   const response = await requestAi.generate({
     model: 'googleai/gemini-2.0-flash',
     prompt: fullPrompt,
-    history,
   });
 
   return { content: response.text };
