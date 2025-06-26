@@ -140,7 +140,7 @@ export default function AiChatPage() {
                             <Avatar className="h-9 w-9">
                               <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
                             </Avatar>
-                            <div className="max-w-md rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-card border">
+                            <div className="max-w-3xl rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-card border">
                               <MarkdownRenderer content={message.content} />
                             </div>
                           </div>
@@ -148,7 +148,7 @@ export default function AiChatPage() {
                     }
                     return (
                         <div key={message.id} className="flex items-start gap-4 justify-end">
-                            <div className="max-w-md rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-primary text-primary-foreground">
+                            <div className="max-w-3xl rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-primary text-primary-foreground">
                                 {message.content}
                             </div>
                             <Avatar className="h-9 w-9">
