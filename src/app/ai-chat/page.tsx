@@ -133,38 +133,33 @@ export default function AiChatPage() {
                       </AlertDescription>
                     </Alert>
                 )}
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      'flex items-start gap-4',
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    {message.role === 'model' && (
-                      <Avatar className="h-9 w-9">
-                         <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div
-                      className={cn(
-                        'max-w-md rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap',
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-card border'
-                      )}
-                    >
-                      {message.role === 'model' ? <MarkdownRenderer content={message.content} /> : message.content}
-                    </div>
-                     {message.role === 'user' && (
-                      <Avatar className="h-9 w-9">
-                         <AvatarFallback><User className="h-5 w-5"/></AvatarFallback>
-                      </Avatar>
-                    )}
-                  </div>
-                ))}
+                {messages.map((message) => {
+                    if (message.role === 'model') {
+                        return (
+                          <div key={message.id} className="flex flex-col items-start gap-2">
+                            <Avatar className="h-9 w-9">
+                              <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
+                            </Avatar>
+                            <div className="max-w-md rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-card border">
+                              <MarkdownRenderer content={message.content} />
+                            </div>
+                          </div>
+                        );
+                    }
+                    return (
+                        <div key={message.id} className="flex items-start gap-4 justify-end">
+                            <div className="max-w-md rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-primary text-primary-foreground">
+                                {message.content}
+                            </div>
+                            <Avatar className="h-9 w-9">
+                                <AvatarFallback><User className="h-5 w-5"/></AvatarFallback>
+                            </Avatar>
+                        </div>
+                    );
+                })}
+
                 {isLoading && (
-                    <div className="flex items-start gap-4 justify-start">
+                    <div className="flex flex-col items-start gap-2">
                         <Avatar className="h-9 w-9">
                             <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
                         </Avatar>
