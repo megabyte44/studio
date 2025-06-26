@@ -21,14 +21,13 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
     plugins: [googleAI({ apiKey: input.apiKey })],
   });
 
-  const model = requestAi.model('gemini-2.0-flash');
-
   const history = input.history.map(m => ({
       role: m.role,
       parts: [{ text: m.content }],
   }));
 
-  const response = await model.generate({
+  const response = await requestAi.generate({
+    model: 'googleai/gemini-2.0-flash',
     prompt: input.message,
     history,
   });
