@@ -245,27 +245,7 @@ export default function AiChatPage() {
         </ScrollArea>
         
         <div className="p-4 border-t bg-background">
-          <div className="max-w-4xl mx-auto space-y-2">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  New Chat
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will start a new chat and permanently delete your current conversation history. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleNewChat}>Continue</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+          <div className="max-w-4xl mx-auto">
             <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
               <Input
                 autoFocus
@@ -275,6 +255,36 @@ export default function AiChatPage() {
                 disabled={isLoading || !apiKey}
                 className="flex-1"
               />
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" type="button" disabled={isLoading || !apiKey}>
+                          <PlusCircle className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>New Chat</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will start a new chat and permanently delete your current conversation history. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleNewChat}>Continue</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -285,9 +295,8 @@ export default function AiChatPage() {
                       onClick={() => setIncludeData(p => !p)}
                       disabled={isLoading || !apiKey}
                       aria-label="Toggle including user data"
-                      className="h-5 w-5"
                     >
-                      <Database className="h-3 w-3" />
+                      <Database className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -295,6 +304,7 @@ export default function AiChatPage() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+
               <Button type="submit" size="icon" disabled={!input.trim() || isLoading || !apiKey}>
                 <Send className="h-4 w-4" />
               </Button>
