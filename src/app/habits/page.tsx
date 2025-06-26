@@ -214,7 +214,7 @@ function GymTracker({
 
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
-                      setLoggedItems={setLoggedItems}
+                      setLoggedItems={setLoggedFoodItems}
                       customItems={customFoodItems}
                       onManageItems={onManageCustomFoodItems}
                     />
