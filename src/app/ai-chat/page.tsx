@@ -64,14 +64,6 @@ export default function AiChatPage() {
   return (
     <AppLayout>
       <div className="h-full flex flex-col max-w-4xl mx-auto">
-        <div className="p-4 border-b">
-            <h1 className="text-xl font-bold font-headline flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-primary" />
-                AI Assistant
-            </h1>
-            <p className="text-sm text-muted-foreground">Your personal assistant to help manage your life.</p>
-        </div>
-
         <ScrollArea className="flex-1 p-4">
             <div className="space-y-6">
                 {messages.map((message) => (
