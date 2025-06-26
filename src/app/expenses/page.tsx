@@ -179,7 +179,7 @@ export default function ExpensesPage() {
                                         {txns.map((txn) => {
                                             const { icon: Icon, color } = categoryDetails[txn.category] || categoryDetails['Other'];
                                             return (
-                                                <li key={txn.id} className="flex items-center justify-between p-2 group hover:bg-muted/50">
+                                                <li key={txn.id} className="flex items-center justify-between p-2 hover:bg-muted/50">
                                                     <div className="flex items-center gap-3">
                                                         <div className={`w-9 h-9 rounded-full flex items-center justify-center ${color}`}>
                                                             <Icon className="h-4 w-4" />
@@ -190,7 +190,7 @@ export default function ExpensesPage() {
                                                         <span className={`font-bold text-base ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                                                             {formatCurrency(Math.abs(txn.amount))}
                                                         </span>
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteTransaction(txn.id)}>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteTransaction(txn.id)}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
