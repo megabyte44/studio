@@ -227,6 +227,14 @@ export default function AiChatPage() {
         <div className="p-4 border-t bg-background">
           <div className="max-w-4xl mx-auto">
               <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
+                <Input
+                  autoFocus
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask me anything..."
+                  disabled={isLoading || !apiKey}
+                  className="flex-1"
+                />
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -246,15 +254,6 @@ export default function AiChatPage() {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-
-                <Input
-                  autoFocus
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me anything..."
-                  disabled={isLoading || !apiKey}
-                  className="flex-1"
-                />
                 <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !apiKey}>
                   <Send className="h-4 w-4" />
                 </Button>
