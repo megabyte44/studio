@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Bot, User, AlertTriangle } from 'lucide-react';
+import { Send, Bot, User, AlertTriangle, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { chat } from '@/ai/flows/chat';
 import type { ChatMessage } from '@/types';
@@ -15,8 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Message = {
   id: string;
@@ -227,18 +226,27 @@ export default function AiChatPage() {
         
         <div className="p-4 border-t bg-background">
           <div className="max-w-4xl mx-auto">
-              <div className="flex items-center space-x-2 mb-2">
-                <Switch
-                  id="include-data-switch"
-                  checked={includeData}
-                  onCheckedChange={setIncludeData}
-                  disabled={isLoading || !apiKey}
-                />
-                <Label htmlFor="include-data-switch" className="text-sm text-muted-foreground">
-                  Include my data in conversation
-                </Label>
-              </div>
               <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant={includeData ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => setIncludeData(p => !p)}
+                        disabled={isLoading || !apiKey}
+                        aria-label="Toggle including user data"
+                      >
+                        <Database className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{includeData ? 'Stop including app data' : 'Include app data in conversation'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
                 <Input
                   autoFocus
                   value={input}
