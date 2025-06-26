@@ -277,16 +277,18 @@ function EditNoteCard({
 
 function NoteCard({ note, onEdit, onView }: { note: Note; onEdit: () => void; onView: () => void }) {
   return (
-    <Card className="flex flex-col group-[.is-grid]:h-96 hover:shadow-lg transition-shadow duration-300">
+    <Card 
+        className="flex flex-col group-[.is-grid]:h-96 hover:shadow-lg transition-shadow duration-300 group-[.is-list]:flex-row group-[.is-list]:items-center group-[.is-list]:p-3"
+    >
       <div onClick={onView} className="cursor-pointer flex-grow flex flex-col min-h-0">
-          <CardHeader>
-            <CardTitle className="font-headline text-lg">{note.title}</CardTitle>
-            <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2">
+          <CardHeader className="group-[.is-list]:p-0">
+            <CardTitle className="font-headline text-lg group-[.is-list]:text-base">{note.title}</CardTitle>
+            <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2 group-[.is-list]:hidden">
                 <span>{format(parseISO(note.createdAt), 'MMM d, yyyy')}</span>
                 <Badge variant="outline" className="capitalize">{note.type}</Badge>
             </div>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col min-h-0 p-4 pt-0">
+          <CardContent className="flex-grow flex flex-col min-h-0 p-4 pt-0 group-[.is-list]:hidden">
             <ScrollArea className="flex-grow pr-4">
                 {note.type === 'text' && (
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{String(note.content)}</p>
@@ -304,10 +306,18 @@ function NoteCard({ note, onEdit, onView }: { note: Note; onEdit: () => void; on
             </ScrollArea>
           </CardContent>
       </div>
-      <CardFooter className="pt-4 flex-shrink-0">
-          <Button variant="outline" size="sm" className="w-full" onClick={onEdit}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Note
+      <CardFooter className="pt-4 flex-shrink-0 group-[.is-list]:p-0 group-[.is-list]:ml-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full group-[.is-list]:w-auto group-[.is-list]:size-8 group-[.is-list]:p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+          >
+            <Edit className="h-4 w-4 group-[.is-grid]:mr-2" />
+            <span className="group-[.is-list]:hidden">Edit Note</span>
           </Button>
       </CardFooter>
     </Card>
@@ -458,4 +468,3 @@ export default function NotesPage() {
     </AppLayout>
   );
 }
-
