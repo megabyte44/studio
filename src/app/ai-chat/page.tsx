@@ -285,8 +285,9 @@ export default function AiChatPage() {
                       onClick={() => setIncludeData(p => !p)}
                       disabled={isLoading || !apiKey}
                       aria-label="Toggle including user data"
+                      className="h-5 w-5"
                     >
-                      <Database className="h-4 w-4" />
+                      <Database className="h-3 w-3" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -294,7 +295,7 @@ export default function AiChatPage() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !apiKey}>
+              <Button type="submit" size="icon" disabled={!input.trim() || isLoading || !apiKey}>
                 <Send className="h-4 w-4" />
               </Button>
             </form>
