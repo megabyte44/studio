@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { Send, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Message = {
@@ -23,13 +23,14 @@ export default function AiChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (viewportRef.current) {
+      viewportRef.current.scrollTo({ top: viewportRef.current.scrollHeight, behavior: 'smooth' });
+    }
   }
 
-  // Auto-scroll to bottom whenever messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
@@ -49,7 +50,6 @@ export default function AiChatPage() {
     setIsLoading(true);
 
     // Placeholder for AI response.
-    // In a real app, you would make an API call here.
     setTimeout(() => {
       const aiResponse: Message = {
         id: `ai-${Date.now()}`,
@@ -63,8 +63,10 @@ export default function AiChatPage() {
 
   return (
     <AppLayout>
-      <div className="h-full flex flex-col">
-        <ScrollArea className="flex-1">
+      {/* This component needs a specific layout. We'll use absolute positioning to fill the space
+          between the header and the bottom nav, ignoring the main content padding. */}
+      <div className="absolute inset-x-0 top-14 bottom-16 flex flex-col bg-background">
+        <ScrollArea className="flex-1" viewportRef={viewportRef}>
             <div className="max-w-4xl mx-auto p-4 space-y-6">
                 {messages.map((message) => (
                   <div
@@ -110,7 +112,6 @@ export default function AiChatPage() {
                         </div>
                     </div>
                 )}
-                <div ref={messagesEndRef} />
              </div>
         </ScrollArea>
         
