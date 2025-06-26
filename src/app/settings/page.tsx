@@ -6,15 +6,17 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell, ShieldCheck, PlusCircle, Trash2 } from 'lucide-react';
+import { Dumbbell, ShieldCheck, PlusCircle, Trash2, Save } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from "@/hooks/use-toast";
 
 const LOCAL_STORAGE_KEY_FEATURES = 'lifeos_feature_settings';
 const LOCAL_STORAGE_KEY_WHITELIST = 'lifeos_whitelist';
 const LOCAL_STORAGE_KEY_USER = 'user';
+const LOCAL_STORAGE_KEY_API_KEY = 'google_api_key';
 
 
 function WhitelistManager() {
@@ -94,6 +96,76 @@ function WhitelistManager() {
   )
 }
 
+function ApiKeyManager() {
+  const [apiKey, setApiKey] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const storedApiKey = localStorage.getItem(LOCAL_STORAGE_KEY_API_KEY);
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleSave = () => {
+    localStorage.setItem(LOCAL_STORAGE_KEY_API_KEY, apiKey);
+    toast({
+      title: "API Key Saved",
+      description: "Your Google AI API key has been updated.",
+    });
+  };
+
+  if (isLoading) {
+      return (
+          <Card>
+              <CardHeader>
+                  <Skeleton className="h-6 w-1/4 mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+              </CardHeader>
+              <CardContent>
+                  <Skeleton className="h-10 w-full" />
+              </CardContent>
+              <CardFooter>
+                  <Skeleton className="h-10 w-24" />
+              </CardFooter>
+          </Card>
+      );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5" />
+          AI API Key Management
+        </CardTitle>
+        <CardDescription>
+          Provide your Google AI API key to enable generative AI features. Your key is stored locally in your browser.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <Label htmlFor="api-key-input">Google AI API Key</Label>
+          <Input
+            id="api-key-input"
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="Enter your API key here"
+          />
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button onClick={handleSave}>
+          <Save className="mr-2 h-4 w-4" /> Save Key
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
 export default function SettingsPage() {
   const [gymTrackingEnabled, setGymTrackingEnabled] = useState(true);
   const [currentUser, setCurrentUser] = useState<{ username: string } | null>(null);
@@ -171,6 +243,8 @@ export default function SettingsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <ApiKeyManager />
 
             {isLoading ? (
               <Skeleton className="h-64 w-full" />
