@@ -187,30 +187,6 @@ export default function AiChatPage() {
   return (
     <AppLayout>
       <div className="absolute inset-x-0 top-14 bottom-16 flex flex-col bg-background">
-        <div className="flex-shrink-0 border-b bg-background">
-          <div className="max-w-4xl mx-auto p-2 flex justify-end items-center">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  New Chat
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will start a new chat and permanently delete your current conversation history. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleNewChat}>Continue</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
         <ScrollArea className="flex-1" viewportRef={viewportRef}>
             <div className="max-w-4xl mx-auto p-4 space-y-6">
                 {!apiKey && (
@@ -269,39 +245,59 @@ export default function AiChatPage() {
         </ScrollArea>
         
         <div className="p-4 border-t bg-background">
-          <div className="max-w-4xl mx-auto">
-              <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
-                <Input
-                  autoFocus
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me anything..."
-                  disabled={isLoading || !apiKey}
-                  className="flex-1"
-                />
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        variant={includeData ? "default" : "outline"}
-                        size="icon"
-                        onClick={() => setIncludeData(p => !p)}
-                        disabled={isLoading || !apiKey}
-                        aria-label="Toggle including user data"
-                      >
-                        <Database className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{includeData ? 'Stop including app data' : 'Include app data in conversation'}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !apiKey}>
-                  <Send className="h-4 w-4" />
+          <div className="max-w-4xl mx-auto space-y-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  New Chat
                 </Button>
-              </form>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will start a new chat and permanently delete your current conversation history. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleNewChat}>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
+              <Input
+                autoFocus
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask me anything..."
+                disabled={isLoading || !apiKey}
+                className="flex-1"
+              />
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant={includeData ? "default" : "outline"}
+                      size="icon"
+                      onClick={() => setIncludeData(p => !p)}
+                      disabled={isLoading || !apiKey}
+                      aria-label="Toggle including user data"
+                    >
+                      <Database className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{includeData ? 'Stop including app data' : 'Include app data in conversation'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !apiKey}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
           </div>
         </div>
       </div>
