@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -15,10 +16,8 @@ export default function HomePage() {
       // If a user is found, they are already "logged in". Redirect to the dashboard.
       router.replace('/dashboard');
     } else {
-      // If no user is found, this is a "first-time login". 
-      // Set a default user to bypass a login screen, and then redirect.
-      localStorage.setItem('user', JSON.stringify({ username: 'Default User' }));
-      router.replace('/dashboard');
+      // If no user is found, redirect to the login page.
+      router.replace('/login');
     }
   }, [router]);
 

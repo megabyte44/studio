@@ -345,16 +345,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         setUser(JSON.parse(storedUser));
         setIsVerified(true);
       } else {
-        router.replace('/');
+        router.replace('/login');
       }
     } catch (error) {
-      router.replace('/');
+      router.replace('/login');
     }
   }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
-    router.push('/');
+    router.push('/login');
   };
   
   if (!isVerified) {

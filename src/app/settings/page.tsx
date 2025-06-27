@@ -27,6 +27,10 @@ function WhitelistManager() {
     const storedWhitelist = localStorage.getItem(LOCAL_STORAGE_KEY_WHITELIST);
     if (storedWhitelist) {
       setWhitelist(JSON.parse(storedWhitelist));
+    } else {
+        const initialWhitelist = ['admin'];
+        setWhitelist(initialWhitelist);
+        localStorage.setItem(LOCAL_STORAGE_KEY_WHITELIST, JSON.stringify(initialWhitelist));
     }
   }, []);
 
@@ -249,7 +253,7 @@ export default function SettingsPage() {
             {isLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : (
-              currentUser?.username === 'admin' && <WhitelistManager />
+              currentUser?.username.toLowerCase() === 'admin' && <WhitelistManager />
             )}
       </div>
     </AppLayout>
