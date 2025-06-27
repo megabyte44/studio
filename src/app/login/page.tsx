@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { verifyUser } from './actions';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
 
@@ -41,33 +42,25 @@ export default function LoginPage() {
     setIsLoginLoading(true);
 
     try {
-        const response = await fetch('https://pastebin.com/raw/PJ1dfNnx');
-        if (!response.ok) {
-            throw new Error('Failed to fetch user list.');
-        }
+        const result = await verifyUser(trimmedUsername);
 
-        const text = await response.text();
-        const whitelist = text.split('\n').map(u => u.trim().toLowerCase()).filter(Boolean);
-
-        if (!whitelist.includes(trimmedUsername.toLowerCase())) {
+        if (result.success) {
+            localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify({ username: trimmedUsername }));
+            router.replace('/dashboard');
+        } else {
             toast({
                 variant: 'destructive',
                 title: 'Login Failed',
-                description: 'This username is not authorized to access the application.',
+                description: result.error || 'An unknown error occurred.',
             });
-            return;
         }
-
-        localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify({ username: trimmedUsername }));
-        router.replace('/dashboard');
-
     } catch (error) {
         toast({
             variant: 'destructive',
             title: 'Login Error',
-            description: 'Could not verify username. Please check your network connection and try again.',
+            description: 'Could not connect to the server. Please check your network connection.',
         });
-        console.error("Login error:", error);
+        console.error("Login client-side error:", error);
     } finally {
         setIsLoginLoading(false);
     }
