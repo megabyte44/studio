@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 const LOCAL_STORAGE_KEY_FEATURES = 'lifeos_feature_settings';
 const LOCAL_STORAGE_KEY_API_KEY = 'google_api_key';
 
-
 function ApiKeyManager() {
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(true);
