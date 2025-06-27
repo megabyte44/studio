@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,11 +10,11 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const LOCAL_STORAGE_KEY_USER = 'user';
-const LOCAL_STORAGE_KEY_WHITELIST = 'lifeos_whitelist';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -24,11 +23,11 @@ export default function LoginPage() {
     if (localStorage.getItem(LOCAL_STORAGE_KEY_USER)) {
       router.replace('/dashboard');
     } else {
-      setIsLoading(false);
+      setIsPageLoading(false);
     }
   }, [router]);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const trimmedUsername = username.trim();
     if (!trimmedUsername) {
       toast({
@@ -38,33 +37,40 @@ export default function LoginPage() {
       });
       return;
     }
-
-    // Check against whitelist. By default, if no whitelist is set, only 'admin' can log in.
-    let whitelist: string[] = ['admin'];
-    const storedWhitelist = localStorage.getItem(LOCAL_STORAGE_KEY_WHITELIST);
-
-    if (storedWhitelist) {
-        try {
-            const parsedWhitelist = JSON.parse(storedWhitelist);
-            if (Array.isArray(parsedWhitelist) && parsedWhitelist.length > 0) {
-                whitelist = parsedWhitelist;
-            }
-        } catch (e) {
-            console.error("Failed to parse whitelist", e);
-        }
-    }
     
-    if (!whitelist.includes(trimmedUsername.toLowerCase())) {
+    setIsLoginLoading(true);
+
+    try {
+        const response = await fetch('https://pastebin.com/raw/PJ1dfNnx');
+        if (!response.ok) {
+            throw new Error('Failed to fetch user list.');
+        }
+
+        const text = await response.text();
+        const whitelist = text.split('\n').map(u => u.trim().toLowerCase()).filter(Boolean);
+
+        if (!whitelist.includes(trimmedUsername.toLowerCase())) {
+            toast({
+                variant: 'destructive',
+                title: 'Login Failed',
+                description: 'This username is not authorized to access the application.',
+            });
+            return;
+        }
+
+        localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify({ username: trimmedUsername }));
+        router.replace('/dashboard');
+
+    } catch (error) {
         toast({
             variant: 'destructive',
-            title: 'Login Failed',
-            description: 'This username is not authorized to access the application.',
+            title: 'Login Error',
+            description: 'Could not verify username. Please check your network connection and try again.',
         });
-        return;
+        console.error("Login error:", error);
+    } finally {
+        setIsLoginLoading(false);
     }
-
-    localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify({ username: trimmedUsername }));
-    router.replace('/dashboard');
   };
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -73,7 +79,7 @@ export default function LoginPage() {
       }
   }
 
-  if (isLoading) {
+  if (isPageLoading) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -102,12 +108,14 @@ export default function LoginPage() {
               onKeyDown={handleKeyDown}
               required
               autoFocus
+              disabled={isLoginLoading}
             />
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={handleLogin}>
-            Login
+          <Button className="w-full" onClick={handleLogin} disabled={isLoginLoading}>
+            {isLoginLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoginLoading ? 'Verifying...' : 'Login'}
           </Button>
         </CardFooter>
       </Card>
