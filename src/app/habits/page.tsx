@@ -334,11 +334,17 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
     );
 }
 
-function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: string, date: string) => void }) {
+function HabitGrid({ habit, onToggle, proteinIntakes, proteinTarget }: { 
+    habit: Habit; 
+    onToggle: (habitId: string, date: string) => void;
+    proteinIntakes?: ProteinIntake[];
+    proteinTarget?: number;
+}) {
   const today = new Date();
   const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
   const isSyncedHabit = SPECIAL_HABIT_ICONS.includes(habit.icon);
   const isWaterHabit = habit.icon === 'GlassWater';
+  const isProteinHabit = habit.icon === 'Beef';
 
   const getIsCompleted = (dateString: string) => {
     const completion = habit.completions[dateString];
@@ -346,6 +352,7 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
       const target = habit.target || 8;
       return typeof completion === 'number' && completion >= target;
     }
+    // For protein, the completion is already synced as a boolean, so this is fine.
     return !!completion;
   };
 
@@ -356,7 +363,14 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
                 const dateString = format(day, 'yyyy-MM-dd');
                 const isCompleted = getIsCompleted(dateString);
                 const isTodayFlag = isSameDay(day, today);
-                const isDisabled = isSyncedHabit || !isTodayFlag;
+                const isDisabled = isSyncedHabit || (!SPECIAL_HABIT_ICONS.includes(habit.icon) && !isTodayFlag);
+
+                let dailyProteinIntake: number | null = null;
+                if (isProteinHabit && proteinIntakes) {
+                    dailyProteinIntake = proteinIntakes
+                        .filter(intake => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === dateString)
+                        .reduce((sum, intake) => sum + intake.amount, 0);
+                }
 
                 return (
                     <Tooltip key={dateString} delayDuration={0}>
@@ -376,6 +390,9 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
                             <p>{format(day, 'MMM d, yyyy')}</p>
                             {isWaterHabit && typeof habit.completions[dateString] === 'number' && (
                                 <p className="text-xs text-muted-foreground">{habit.completions[dateString]} glasses</p>
+                            )}
+                             {isProteinHabit && dailyProteinIntake !== null && (
+                                <p className="text-xs text-muted-foreground">{dailyProteinIntake}g / {proteinTarget || 150}g</p>
                             )}
                         </TooltipContent>
                     </Tooltip>
@@ -1570,7 +1587,12 @@ export default function HabitsPage() {
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <HabitGrid habit={habit} onToggle={handleToggleCompletion} />
+                                    <HabitGrid 
+                                        habit={habit} 
+                                        onToggle={handleToggleCompletion} 
+                                        proteinIntakes={proteinIntakes}
+                                        proteinTarget={proteinTarget}
+                                    />
                                 </AccordionContent>
                             </AccordionItem>
                         </Card>
