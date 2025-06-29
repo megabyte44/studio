@@ -127,9 +127,7 @@ function GymTracker({
     proteinIntakes, setProteinIntakes, 
     loggedFoodItems, setLoggedFoodItems,
     proteinTarget, setProteinTarget,
-    customFoodItems, setCustomFoodItems,
-    cyclicalWorkoutSplit, setCyclicalWorkoutSplit,
-    cycleConfig, setCycleConfig,
+    customFoodItems,
     onManageCustomFoodItems,
     onManagePlan,
     onToggleWorkoutCompletion,
@@ -1193,6 +1191,14 @@ export default function HabitsPage() {
   
   // Feature flag state
   const [gymTrackingEnabled, setGymTrackingEnabled] = useState(true);
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+
+  const todaysProteinIntake = useMemo(() => {
+    return proteinIntakes
+      .filter(intake => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === todayKey)
+      .reduce((sum, intake) => sum + intake.amount, 0);
+  }, [proteinIntakes, todayKey]);
+
 
   // --- Effects for Loading Data ---
   useEffect(() => {
@@ -1362,6 +1368,11 @@ export default function HabitsPage() {
 
   // --- Handlers ---
   const handleToggleCompletion = (habitId: string, date: string) => {
+    const today = new Date();
+    const dateToToggle = parseISO(date);
+
+    if (!isSameDay(dateToToggle, today)) return;
+
     setHabits(habits.map(h => {
         if (h.id === habitId && !SPECIAL_HABIT_ICONS.includes(h.icon)) {
             const newCompletions = {...h.completions};
@@ -1404,7 +1415,6 @@ export default function HabitsPage() {
   const todaysWorkoutInfo = useMemo(() => getWorkoutDayInfo(new Date()), [getWorkoutDayInfo]);
   
   const workoutHabit = habits.find(h => h.icon === 'Dumbbell');
-  const todayKey = format(new Date(), 'yyyy-MM-dd');
   const isTodayWorkoutCompleted = workoutHabit ? !!workoutHabit.completions[todayKey] : false;
 
   const handleToggleWorkoutCompletion = () => {
@@ -1495,11 +1505,15 @@ export default function HabitsPage() {
                     if (!habit) return null;
                     const Icon = iconMap[habit.icon] || iconMap.CheckCircle2;
                     const isWaterHabit = habit.icon === 'GlassWater';
+                    const isProteinHabit = habit.icon === 'Beef';
                     const isSyncedHabit = SPECIAL_HABIT_ICONS.includes(habit.icon);
                     const streak = calculateStreak(
                         habit.completions,
                         isWaterHabit ? (habit.target || 8) : 1
                     );
+                    
+                    const waterToday = (isWaterHabit && typeof habit.completions[todayKey] === 'number') ? habit.completions[todayKey] as number : 0;
+                    const waterTarget = habit.target || 8;
 
                     return (
                         <Card key={habit.id} className="group">
@@ -1537,9 +1551,21 @@ export default function HabitsPage() {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-1 text-orange-500">
-                                            <Flame className="h-4 w-4" />
-                                            <span className="font-bold text-base">{streak} Day{streak !== 1 ? 's' : ''}</span>
+                                        <div className="flex items-center gap-4">
+                                            {isWaterHabit && (
+                                                <span className="text-sm font-semibold text-muted-foreground">
+                                                    {waterToday} / {waterTarget} glasses
+                                                </span>
+                                            )}
+                                            {isProteinHabit && (
+                                                <span className="text-sm font-semibold text-muted-foreground">
+                                                    {todaysProteinIntake} / {proteinTarget} g
+                                                </span>
+                                            )}
+                                            <div className="flex items-center gap-1 text-orange-500">
+                                                <Flame className="h-4 w-4" />
+                                                <span className="font-bold text-base">{streak} Day{streak !== 1 ? 's' : ''}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </AccordionTrigger>
