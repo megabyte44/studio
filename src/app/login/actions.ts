@@ -2,7 +2,7 @@
 
 // The list of authorized users. For this example, we're using a simple array.
 // In a real application, this would be a database check.
-const authorizedUsers = ["admin", "guest", "johndoe"];
+const authorizedUsers = ["Punith", "guest01", "guest02"];
 
 export async function verifyUser(username: string): Promise<{ success: boolean; error?: string }> {
   if (!username) {
