@@ -6,15 +6,20 @@ export async function verifyUser(username: string): Promise<{ success: boolean; 
   }
 
   try {
-    const response = await fetch('https://pastebin.com/raw/PJ1dfNnx', { cache: 'no-store' });
+    const response = await fetch('https://pastebin.com/raw/xRH7URSZ', { cache: 'no-store' });
     if (!response.ok) {
       throw new Error(`Failed to fetch user list. Status: ${response.status}`);
     }
 
-    const text = await response.text();
-    const whitelist = text.split('\n').map(u => u.trim().toLowerCase()).filter(Boolean);
+    const whitelist = await response.json();
 
-    if (whitelist.includes(username.toLowerCase())) {
+    if (!Array.isArray(whitelist)) {
+      throw new Error('User list from source is not a valid array.');
+    }
+
+    const lowerCaseWhitelist: string[] = whitelist.map(u => String(u).trim().toLowerCase());
+
+    if (lowerCaseWhitelist.includes(username.toLowerCase())) {
       return { success: true };
     } else {
       return { success: false, error: 'This username is not authorized to access the application.' };
