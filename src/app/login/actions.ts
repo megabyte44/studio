@@ -1,31 +1,21 @@
 'use server';
 
+// The list of authorized users. For this example, we're using a simple array.
+// In a real application, this would be a database check.
+const authorizedUsers = ["admin", "guest", "johndoe"];
+
 export async function verifyUser(username: string): Promise<{ success: boolean; error?: string }> {
   if (!username) {
     return { success: false, error: 'Username is required.' };
   }
+  
+  // We'll perform a case-insensitive check.
+  const lowerCaseUsername = username.trim().toLowerCase();
+  const lowerCaseWhitelist = authorizedUsers.map(u => u.toLowerCase());
 
-  try {
-    const response = await fetch('https://pastebin.com/raw/PJ1dfNnx', { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch user list. Status: ${response.status}`);
-    }
-
-    const whitelist = await response.json();
-
-    if (!Array.isArray(whitelist)) {
-      throw new Error('User list from source is not a valid array.');
-    }
-
-    const lowerCaseWhitelist: string[] = whitelist.map(u => String(u).trim().toLowerCase());
-
-    if (lowerCaseWhitelist.includes(username.toLowerCase())) {
-      return { success: true };
-    } else {
-      return { success: false, error: 'This username is not authorized to access the application.' };
-    }
-  } catch (error) {
-    console.error("Verification error:", error);
-    return { success: false, error: 'Could not verify username. Please check your network connection and try again.' };
+  if (lowerCaseWhitelist.includes(lowerCaseUsername)) {
+    return { success: true };
+  } else {
+    return { success: false, error: 'This username is not authorized to access the application.' };
   }
 }
