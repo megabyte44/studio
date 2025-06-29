@@ -334,73 +334,121 @@ function FoodLogCard({ loggedItems, setLoggedItems, customItems, onManageItems }
     );
 }
 
-function HabitGrid({ habit, onToggle, proteinIntakes, proteinTarget }: { 
-    habit: Habit; 
+function HabitGrid({ habit, onToggle, proteinIntakes, proteinTarget }: {
+    habit: Habit;
     onToggle: (habitId: string, date: string) => void;
     proteinIntakes?: ProteinIntake[];
     proteinTarget?: number;
 }) {
-  const today = new Date();
-  const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
-  const isSyncedHabit = SPECIAL_HABIT_ICONS.includes(habit.icon);
-  const isWaterHabit = habit.icon === 'GlassWater';
-  const isProteinHabit = habit.icon === 'Beef';
+    const [selectedDayInfo, setSelectedDayInfo] = useState<{ date: string, text: string } | null>(null);
+    const today = new Date();
+    const days = Array.from({ length: 30 }).map((_, i) => subDays(today, i)).reverse();
+    const isSyncedHabit = SPECIAL_HABIT_ICONS.includes(habit.icon);
+    const isWaterHabit = habit.icon === 'GlassWater';
+    const isProteinHabit = habit.icon === 'Beef';
 
-  const getIsCompleted = (dateString: string) => {
-    const completion = habit.completions[dateString];
-    if (isWaterHabit) {
-      const target = habit.target || 8;
-      return typeof completion === 'number' && completion >= target;
-    }
-    // For protein, the completion is already synced as a boolean, so this is fine.
-    return !!completion;
-  };
+    const getIsCompleted = (dateString: string) => {
+        const completion = habit.completions[dateString];
+        if (isWaterHabit) {
+            const target = habit.target || 8;
+            return typeof completion === 'number' && completion >= target;
+        }
+        return !!completion;
+    };
 
-  return (
-    <TooltipProvider>
-        <div className="mx-auto grid w-fit grid-cols-6 gap-1 p-2">
-            {days.map((day) => {
-                const dateString = format(day, 'yyyy-MM-dd');
-                const isCompleted = getIsCompleted(dateString);
-                const isTodayFlag = isSameDay(day, today);
-                const isDisabled = isSyncedHabit || (!SPECIAL_HABIT_ICONS.includes(habit.icon) && !isTodayFlag);
+    const handleDayClick = (date: Date) => {
+        const dateString = format(date, 'yyyy-MM-dd');
+        const isTodayFlag = isSameDay(date, today);
 
-                let dailyProteinIntake: number | null = null;
-                if (isProteinHabit && proteinIntakes) {
-                    dailyProteinIntake = proteinIntakes
-                        .filter(intake => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === dateString)
-                        .reduce((sum, intake) => sum + intake.amount, 0);
-                }
+        // If it's a normal habit and it's today, then toggle it.
+        if (!isSyncedHabit && isTodayFlag) {
+            onToggle(habit.id, dateString);
+            setSelectedDayInfo(null);
+            return;
+        }
 
-                return (
-                    <Tooltip key={dateString} delayDuration={0}>
-                        <TooltipTrigger asChild>
-                            <button
-                                onClick={() => onToggle(habit.id, dateString)}
-                                disabled={isDisabled}
-                                className={cn(
-                                    'h-5 w-5 rounded-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60',
-                                    isCompleted ? 'bg-primary' : 'bg-secondary',
-                                    !isDisabled && (isCompleted ? 'hover:bg-primary/90' : 'hover:bg-accent'),
-                                    isTodayFlag && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                                )}
-                            />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{format(day, 'MMM d, yyyy')}</p>
-                            {isWaterHabit && typeof habit.completions[dateString] === 'number' && (
-                                <p className="text-xs text-muted-foreground">{habit.completions[dateString]} glasses</p>
-                            )}
-                             {isProteinHabit && dailyProteinIntake !== null && (
-                                <p className="text-xs text-muted-foreground">{dailyProteinIntake}g / {proteinTarget || 150}g</p>
-                            )}
-                        </TooltipContent>
-                    </Tooltip>
-                );
-            })}
-        </div>
-    </TooltipProvider>
-  );
+        // For any other case (synced habits, or past days), show info.
+        if (selectedDayInfo?.date === dateString) {
+            setSelectedDayInfo(null);
+            return;
+        }
+
+        let infoText = '';
+        const formattedDate = format(date, 'MMM d');
+
+        if (isWaterHabit) {
+            const count = typeof habit.completions[dateString] === 'number' ? habit.completions[dateString] : 0;
+            infoText = `Drank ${count} glasses on ${formattedDate}.`;
+        } else if (isProteinHabit && proteinIntakes) {
+            const dailyProteinIntake = proteinIntakes
+                .filter(intake => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === dateString)
+                .reduce((sum, intake) => sum + intake.amount, 0);
+            infoText = `Consumed ${dailyProteinIntake}g protein on ${formattedDate}.`;
+        } else {
+            const isCompleted = getIsCompleted(dateString);
+            infoText = `Habit was ${isCompleted ? 'completed' : 'not completed'} on ${formattedDate}.`;
+        }
+        
+        if (infoText) {
+            setSelectedDayInfo({ date: dateString, text: infoText });
+        }
+    };
+
+    return (
+        <>
+            <TooltipProvider>
+                <div className="mx-auto grid w-fit grid-cols-6 gap-1 p-2">
+                    {days.map((day) => {
+                        const dateString = format(day, 'yyyy-MM-dd');
+                        const isCompleted = getIsCompleted(dateString);
+                        const isTodayFlag = isSameDay(day, today);
+                        
+                        const canBeToggled = !isSyncedHabit && isTodayFlag;
+
+                        let dailyProteinIntake: number | null = null;
+                        if (isProteinHabit && proteinIntakes) {
+                            dailyProteinIntake = proteinIntakes
+                                .filter(intake => format(parseISO(intake.timestamp), 'yyyy-MM-dd') === dateString)
+                                .reduce((sum, intake) => sum + intake.amount, 0);
+                        }
+
+                        return (
+                            <Tooltip key={dateString} delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={() => handleDayClick(day)}
+                                        aria-label={`Habit status for ${format(day, 'PPP')}`}
+                                        className={cn(
+                                            'h-5 w-5 rounded-sm transition-colors',
+                                            isCompleted ? 'bg-primary' : 'bg-secondary',
+                                            canBeToggled && (isCompleted ? 'hover:bg-primary/90' : 'hover:bg-accent'),
+                                            isTodayFlag && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                                            !canBeToggled && 'opacity-70',
+                                            selectedDayInfo?.date === dateString && 'ring-2 ring-foreground ring-offset-2 ring-offset-background'
+                                        )}
+                                    />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{format(day, 'MMM d, yyyy')}</p>
+                                    {isWaterHabit && typeof habit.completions[dateString] === 'number' && (
+                                        <p className="text-xs text-muted-foreground">{habit.completions[dateString]} glasses</p>
+                                    )}
+                                    {isProteinHabit && dailyProteinIntake !== null && (
+                                        <p className="text-xs text-muted-foreground">{dailyProteinIntake}g / {proteinTarget || 150}g</p>
+                                    )}
+                                </TooltipContent>
+                            </Tooltip>
+                        );
+                    })}
+                </div>
+            </TooltipProvider>
+            {selectedDayInfo && (
+                <div className="mt-2 text-center text-sm text-muted-foreground bg-secondary p-2 rounded-md mx-2">
+                    {selectedDayInfo.text}
+                </div>
+            )}
+        </>
+    );
 }
 
 function EditHabitDialog({
