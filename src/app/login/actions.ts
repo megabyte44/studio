@@ -6,7 +6,7 @@ export async function verifyUser(username: string): Promise<{ success: boolean; 
   }
 
   try {
-    const response = await fetch('https://pastebin.com/raw/xRH7URSZ', { cache: 'no-store' });
+    const response = await fetch('https://pastebin.com/raw/PJ1dfNnx', { cache: 'no-store' });
     if (!response.ok) {
       throw new Error(`Failed to fetch user list. Status: ${response.status}`);
     }
