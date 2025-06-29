@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -52,13 +53,13 @@ const CodeBlockWithCopy = ({ language, code }: { language: string; code: string 
   };
 
   return (
-    <div className="my-2 rounded-md border bg-muted font-code text-sm relative group">
+    <div className="my-2 rounded-md border bg-muted font-code text-sm relative">
       <div className="flex items-center justify-between px-3 py-1.5 border-b">
         <span className="text-xs text-muted-foreground">{language || 'code'}</span>
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute top-0.5 right-0.5"
+          className="h-7 w-7 text-muted-foreground hover:text-foreground"
           onClick={handleCopy}
           aria-label="Copy code to clipboard"
         >

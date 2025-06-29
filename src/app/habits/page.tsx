@@ -215,7 +215,7 @@ function GymTracker({
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
                       setLoggedItems={setLoggedFoodItems}
-                      customItems={customFoodItems}
+                      customItems={customItems}
                       onManageItems={onManageCustomFoodItems}
                     />
                 </div>
@@ -357,17 +357,20 @@ function HabitGrid({ habit, onToggle }: { habit: Habit; onToggle: (habitId: stri
             {days.map((day) => {
                 const dateString = format(day, 'yyyy-MM-dd');
                 const isCompleted = getIsCompleted(dateString);
+                const isTodayFlag = isSameDay(day, today);
+                const isDisabled = isSyncedHabit || !isTodayFlag;
+
                 return (
                     <Tooltip key={dateString} delayDuration={0}>
                         <TooltipTrigger asChild>
                             <button
                                 onClick={() => onToggle(habit.id, dateString)}
-                                disabled={isSyncedHabit}
+                                disabled={isDisabled}
                                 className={cn(
-                                    'h-5 w-5 rounded-sm transition-colors',
-                                    isCompleted ? 'bg-primary hover:bg-primary/90' : 'bg-secondary hover:bg-accent',
-                                    isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
-                                    isSyncedHabit && 'cursor-not-allowed'
+                                    'h-5 w-5 rounded-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                                    isCompleted ? 'bg-primary' : 'bg-secondary',
+                                    !isDisabled && (isCompleted ? 'hover:bg-primary/90' : 'hover:bg-accent'),
+                                    isTodayFlag && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
                                 )}
                             />
                         </TooltipTrigger>
