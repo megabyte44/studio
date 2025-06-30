@@ -28,10 +28,15 @@ export async function chat(input: Omit<ChatInput, 'apiKey'>): Promise<ChatOutput
       content: [{ text: msg.content }]
   }));
 
+  // Construct the full message history for the model, including the system prompt
+  const messages: MessageData[] = [
+    { role: 'system', content: [{ text: systemPrompt }] },
+    ...genkitHistory
+  ];
+
   const response = await ai.generate({
     model: 'googleai/gemini-2.0-flash',
-    system: systemPrompt,
-    history: genkitHistory, // Use the correctly formatted history
+    history: messages,
     prompt: input.message,
   });
 
