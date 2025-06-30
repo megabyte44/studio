@@ -173,8 +173,16 @@ function PushNotificationManager() {
             toast({ title: 'Subscribed!', description: 'You will now receive push notifications.' });
         } catch (error) {
             console.error('Failed to subscribe:', error);
-            setPermission('default');
-            toast({ variant: 'destructive', title: 'Subscription Failed', description: 'Could not enable push notifications. Please try again.' });
+            setPermission('default'); // Reset to allow retrying
+            let description = 'Could not enable push notifications. Please try again.';
+            if (error instanceof DOMException) {
+                if (error.name === 'NotAllowedError') {
+                    description = 'Notification permission was denied. Please enable it in your browser settings and try again.';
+                } else {
+                    description = 'Subscription failed. This is often due to an invalid VAPID key. Please verify your keys in the .env file and in your hosting provider settings.';
+                }
+            }
+            toast({ variant: 'destructive', title: 'Subscription Failed', description });
         } finally {
             setIsLoading(false);
         }
@@ -347,3 +355,5 @@ export default function SettingsPage() {
     </AppLayout>
   );
 }
+
+    
