@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User, getRedirectResult } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -45,20 +45,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This handles the redirect result from Google Sign-In on app load.
-    // It returns a promise that resolves with the user credential if a redirect was just completed.
-    getRedirectResult(auth).catch((error) => {
-      // Handle any errors that occurred during the redirect.
-      console.error("Error processing redirect result:", error);
-    });
-
+    // onAuthStateChanged handles all auth state changes, including after a redirect.
+    // The redirect result itself is now handled on the login page.
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
           if (!userDoc.exists()) {
-            // Create user profile document
+            // Create user profile document and default data for new users
             const username = firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User');
             
             await setDoc(userDocRef, {
@@ -66,7 +61,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               username: username,
               createdAt: new Date().toISOString(),
             });
-            // Initialize all their data collections
             await initializeNewUserData(firebaseUser.uid);
           }
           setUser(firebaseUser);
@@ -77,6 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error during user initialization:", error);
         setUser(null);
       } finally {
+        // Ensure loading is set to false only after all auth processing is complete.
         setLoading(false);
       }
     });

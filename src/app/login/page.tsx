@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,8 +11,35 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // This effect runs once on component mount to handle the redirect result from Google.
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // A result means the user has successfully signed in.
+          // The onAuthStateChanged listener in AuthProvider will handle setting user state
+          // and navigating to the dashboard. We can show a toast here for better UX.
+          toast({ title: 'Sign-in successful!', description: 'Redirecting to your dashboard...' });
+        }
+      })
+      .catch((error) => {
+        console.error("Authentication Error during redirect:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Failed',
+          description: 'Could not complete sign-in. Please try again.',
+        });
+      })
+      .finally(() => {
+        // Stop the redirect processing loader regardless of outcome.
+        setIsProcessingRedirect(false);
+      });
+  }, [toast]);
+
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -52,6 +79,18 @@ export default function LoginPage() {
       setIsLoading(false); // Only stop loading if an error prevented the redirect
     }
   };
+
+  // While we process the redirect result, it's best to show a loading state.
+  if (isProcessingRedirect) {
+    return (
+        <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+            <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <p>Finalizing sign-in...</p>
+            </div>
+        </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
