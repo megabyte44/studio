@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,13 +19,13 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
 
     try {
-      await signInWithPopup(auth, provider);
-      router.replace('/dashboard');
+      await signInWithRedirect(auth, provider);
+      // After this, the user is redirected to the Google sign-in page.
+      // They will be redirected back to the app, where AuthProvider will handle the result.
     } catch (error: any) {
-      console.error("Authentication Error:", error); // Log the full error object for debugging
+      console.error("Authentication Error:", error);
       let description = 'An unexpected error occurred. Please try again.';
       
-      // Provide more specific feedback based on the error code
       switch(error.code) {
         case 'auth/popup-closed-by-user':
           description = 'The sign-in window was closed before completing the sign-in. Please try again.';
@@ -41,7 +40,6 @@ export default function LoginPage() {
              description = 'The credential used is malformed or has expired.';
              break;
         default:
-          // For other errors, you might want to show a generic message but log the specific error
           description = 'An unexpected error occurred during sign-in. Check the console for more details.';
           break;
       }
@@ -51,8 +49,7 @@ export default function LoginPage() {
         title: 'Authentication Failed',
         description: description,
       });
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Only stop loading if an error prevented the redirect
     }
   };
 
