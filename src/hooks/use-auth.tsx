@@ -51,9 +51,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userDoc = await getDoc(userDocRef);
         if (!userDoc.exists()) {
           // Create user profile document
+          const username = firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User');
+          
           await setDoc(userDocRef, {
             email: firebaseUser.email,
-            username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+            username: username,
             createdAt: new Date().toISOString(),
           });
           // Initialize all their data collections
