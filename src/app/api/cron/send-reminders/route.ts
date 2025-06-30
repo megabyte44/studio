@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       const remindersDocRef = adminDb.doc(`users/${userId}/data/notifications`);
       const remindersDoc = await remindersDocRef.get();
 
-      if (!remindersDoc.exists()) continue;
+      if (!remindersDoc.exists) continue;
 
       const remindersData = (remindersDoc.data() as { items: Reminder[] }).items;
       const todaysReminders = remindersData.filter(r => r.date === todayKey);

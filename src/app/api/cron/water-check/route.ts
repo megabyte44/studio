@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       const habitsDocRef = adminDb.doc(`users/${userId}/data/habits`);
       const habitsDoc = await habitsDocRef.get();
 
-      if (!habitsDoc.exists()) continue;
+      if (!habitsDoc.exists) continue;
 
       const habitsData = (habitsDoc.data() as { items: Habit[] }).items;
       const waterHabit = habitsData.find(h => h.icon === 'GlassWater');
