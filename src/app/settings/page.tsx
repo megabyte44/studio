@@ -73,9 +73,9 @@ function BackupAndRestore() {
 
                 for (const [coll, data] of Object.entries(backupData)) {
                     if (coll === 'userProfile') {
-                         await setDoc(doc(db, 'users', user.uid), data, { merge: true });
+                         await setDoc(doc(db, 'users', user.uid), data as any, { merge: true });
                     } else {
-                         await setDoc(doc(db, 'users', user.uid, 'data', coll), data);
+                         await setDoc(doc(db, 'users', user.uid, 'data', coll), data as any);
                     }
                 }
                 toast({ title: 'Success', description: 'Your data has been restored. The page will now reload.' });
