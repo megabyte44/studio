@@ -18,10 +18,10 @@ if (
             VAPID_PRIVATE_KEY
         );
     } catch (error) {
-        console.error("Failed to initialize web-push with VAPID details. This is likely due to misconfigured environment variables.", error);
+        console.error("Failed to initialize web-push with VAPID details. This is likely due to misconfigured environment variables.", error instanceof Error ? error.message : String(error));
     }
 } else {
-    console.warn("VAPID keys are not fully configured. Push notifications will not work.");
+    console.warn("VAPID keys are not fully configured. Push notifications will not work if not configured at runtime.");
 }
 
 export default webpush;
