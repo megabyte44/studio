@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -22,11 +23,27 @@ export default function LoginPage() {
       await signInWithPopup(auth, provider);
       router.replace('/dashboard');
     } catch (error: any) {
-      let description = 'An unexpected error occurred during sign-in. Please try again.';
-      if (error.code === 'auth/popup-closed-by-user') {
-        description = 'The sign-in window was closed. Please try again.';
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        description = 'The sign-in process was cancelled.';
+      console.error("Authentication Error:", error); // Log the full error object for debugging
+      let description = 'An unexpected error occurred. Please try again.';
+      
+      // Provide more specific feedback based on the error code
+      switch(error.code) {
+        case 'auth/popup-closed-by-user':
+          description = 'The sign-in window was closed before completing the sign-in. Please try again.';
+          break;
+        case 'auth/cancelled-popup-request':
+          description = 'Multiple sign-in attempts were made. Please try again.';
+          break;
+        case 'auth/operation-not-allowed':
+          description = 'Google Sign-In is not enabled for this project. Please enable it in the Firebase console.';
+          break;
+        case 'auth/invalid-credential':
+             description = 'The credential used is malformed or has expired.';
+             break;
+        default:
+          // For other errors, you might want to show a generic message but log the specific error
+          description = 'An unexpected error occurred during sign-in. Check the console for more details.';
+          break;
       }
       
       toast({
