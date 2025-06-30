@@ -1,17 +1,27 @@
 import webpush from 'web-push';
 
+const {
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY,
+    VAPID_SUBJECT
+} = process.env;
+
 if (
-    !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-    !process.env.VAPID_PRIVATE_KEY ||
-    !process.env.VAPID_SUBJECT
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
+    VAPID_PRIVATE_KEY &&
+    VAPID_SUBJECT
 ) {
-    console.warn("VAPID keys are not configured. Push notifications will not work.");
+    try {
+        webpush.setVapidDetails(
+            VAPID_SUBJECT,
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+            VAPID_PRIVATE_KEY
+        );
+    } catch (error) {
+        console.error("Failed to initialize web-push with VAPID details. This is likely due to misconfigured environment variables.", error);
+    }
 } else {
-    webpush.setVapidDetails(
-        process.env.VAPID_SUBJECT!,
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-        process.env.VAPID_PRIVATE_KEY!
-    );
+    console.warn("VAPID keys are not fully configured. Push notifications will not work.");
 }
 
 export default webpush;

@@ -3,16 +3,27 @@ import { type NextRequest } from 'next/server';
 
 // Check if the app is already initialized to prevent errors
 if (!admin.apps.length) {
-  const serviceAccount = {
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-      // Use logical OR to handle undefined case before calling replace
-      privateKey: (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-  };
+  const {
+    FIREBASE_ADMIN_PROJECT_ID,
+    FIREBASE_ADMIN_PRIVATE_KEY,
+    FIREBASE_ADMIN_CLIENT_EMAIL,
+  } = process.env;
 
-  admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-  });
+  if (FIREBASE_ADMIN_PROJECT_ID && FIREBASE_ADMIN_PRIVATE_KEY && FIREBASE_ADMIN_CLIENT_EMAIL) {
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: FIREBASE_ADMIN_PROJECT_ID,
+          privateKey: FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          clientEmail: FIREBASE_ADMIN_CLIENT_EMAIL,
+        }),
+      });
+    } catch (error) {
+      console.error('Firebase admin initialization error:', error);
+    }
+  } else {
+    console.warn("Firebase Admin credentials not set. Some backend features may not work.");
+  }
 }
 
 
