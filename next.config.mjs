@@ -1,18 +1,16 @@
+import withPWA from '@ducanh2912/next-pwa';
 
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const withPWA = withPWAInit({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
+const pwa = withPWA({
+  dest: 'public',
   register: true,
   skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  customWorkerSrc: 'src/worker',
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  devIndicators: {
-    buildActivity: false,
-  },
+    // any other next.js config you might have
 };
 
-export default withPWA(nextConfig);
+export default pwa(nextConfig);

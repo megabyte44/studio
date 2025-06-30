@@ -6,14 +6,14 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell, ShieldCheck, Save, Download, Upload } from 'lucide-react';
+import { Dumbbell, ShieldCheck, Save, Download, Upload, BellDot } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
 function BackupAndRestore() {
     const { user } = useAuth();
@@ -105,6 +105,185 @@ function BackupAndRestore() {
     );
 }
 
+function PushNotificationManager() {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [isSubscribed, setIsSubscribed] = useState(false);
+    const [isSupported, setIsSupported] = useState(false);
+    const [isPermissionGranted, setIsPermissionGranted] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+            setIsSupported(true);
+            setIsPermissionGranted(Notification.permission === 'granted');
+        } else {
+            setIsSupported(false);
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        const checkSubscription = async () => {
+            if (isSupported) {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                setIsSubscribed(!!subscription);
+                setIsLoading(false);
+            }
+        };
+        if(isSupported) {
+            checkSubscription();
+        }
+    }, [isSupported]);
+    
+    const urlBase64ToUint8Array = (base64String: string) => {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    };
+
+    const subscribeUser = async () => {
+        if (!user || !isSupported || !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+            if(!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+                 toast({ variant: 'destructive', title: 'Setup Incomplete', description: 'VAPID public key is not configured.' });
+            }
+            return;
+        }
+        
+        if (Notification.permission === 'denied') {
+            toast({ variant: 'destructive', title: 'Permission Denied', description: 'Please enable notifications in your browser settings.' });
+            return;
+        }
+        
+        setIsLoading(true);
+
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            let subscription = await registration.pushManager.getSubscription();
+            
+            if (!subscription) {
+                const applicationServerKey = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey,
+                });
+            }
+
+            const token = await user.getIdToken();
+            await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(subscription),
+            });
+            
+            setIsSubscribed(true);
+            setIsPermissionGranted(true);
+            toast({ title: 'Subscribed!', description: 'You will now receive push notifications.' });
+
+        } catch (error) {
+            console.error('Failed to subscribe:', error);
+            toast({ variant: 'destructive', title: 'Subscription Failed', description: 'Could not enable push notifications.' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const unsubscribeUser = async () => {
+        if (!user || !isSupported) return;
+
+        setIsLoading(true);
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            
+            if (subscription) {
+                await subscription.unsubscribe();
+                const token = await user.getIdToken();
+                await fetch('/api/push/unsubscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ endpoint: subscription.endpoint }),
+                });
+            }
+            
+            setIsSubscribed(false);
+            toast({ title: 'Unsubscribed', description: 'Push notifications have been disabled.' });
+
+        } catch (error) {
+            console.error('Failed to unsubscribe:', error);
+             toast({ variant: 'destructive', title: 'Failed to Unsubscribe', description: 'Could not disable push notifications.' });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    
+    const handleSendTest = async () => {
+        if (!user) return;
+        toast({ title: 'Sending...', description: 'Sending a test notification to your device.' });
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch('/api/push/send-test', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if(!res.ok) throw new Error("Failed to send test notification");
+            toast({ title: 'Test Sent!', description: 'Check your device for a notification.' });
+        } catch(e) {
+             toast({ variant: 'destructive', title: 'Failed to Send', description: 'Could not send test notification.' });
+        }
+    }
+
+    if (!isSupported) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><BellDot />Push Notifications</CardTitle>
+                    <CardDescription>Receive reminders even when the app is closed.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-destructive">Your browser does not support push notifications.</p>
+                </CardContent>
+            </Card>
+        );
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><BellDot />Push Notifications</CardTitle>
+                <CardDescription>Receive reminders even when the app is closed.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                        <Label htmlFor="push-switch" className="text-base">Enable Notifications</Label>
+                        <p className="text-sm text-muted-foreground">
+                            { isSubscribed ? "Notifications are enabled on this device." : "Allow notifications to stay updated."}
+                        </p>
+                    </div>
+                    <Switch id="push-switch" checked={isSubscribed} onCheckedChange={isSubscribed ? unsubscribeUser : subscribeUser} disabled={isLoading} />
+                </div>
+                {!isPermissionGranted && !isSubscribed && (
+                    <p className="text-xs text-amber-600">Note: Your browser will prompt you for permission.</p>
+                )}
+            </CardContent>
+            {isSubscribed && (
+                <CardFooter>
+                    <Button onClick={handleSendTest} variant="secondary">
+                        Send Test Notification
+                    </Button>
+                </CardFooter>
+            )}
+        </Card>
+    )
+}
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const [gymTrackingEnabled, setGymTrackingEnabled] = useState(true);
@@ -153,6 +332,8 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
             
+            <PushNotificationManager />
+
             <BackupAndRestore />
             
             <Card>
