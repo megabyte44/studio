@@ -53,26 +53,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists()) {
-          // Create user profile document
-          const username = firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User');
-          
-          await setDoc(userDocRef, {
-            email: firebaseUser.email,
-            username: username,
-            createdAt: new Date().toISOString(),
-          });
-          // Initialize all their data collections
-          await initializeNewUserData(firebaseUser.uid);
+      try {
+        if (firebaseUser) {
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (!userDoc.exists()) {
+            // Create user profile document
+            const username = firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User');
+            
+            await setDoc(userDocRef, {
+              email: firebaseUser.email,
+              username: username,
+              createdAt: new Date().toISOString(),
+            });
+            // Initialize all their data collections
+            await initializeNewUserData(firebaseUser.uid);
+          }
+          setUser(firebaseUser);
+        } else {
+          setUser(null);
         }
-        setUser(firebaseUser);
-      } else {
+      } catch (error) {
+        console.error("Error during user initialization:", error);
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
