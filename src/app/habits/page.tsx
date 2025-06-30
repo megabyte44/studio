@@ -126,6 +126,7 @@ function GymTracker({
     proteinIntakes, onProteinIntakesChange,
     loggedFoodItems, onLoggedFoodItemsChange,
     proteinTarget, onProteinTargetChange,
+    customFoodItems,
     onManageCustomFoodItems,
     onManagePlan,
     onToggleWorkoutCompletion,
