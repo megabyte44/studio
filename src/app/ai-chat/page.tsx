@@ -121,10 +121,19 @@ export default function AiChatPage() {
       saveChatHistory(finalMessages);
     } catch (error) {
       console.error(error);
-      const errorMessageContent = error instanceof Error ? error.message : "Failed to get response from AI.";
-      const errorMessage: Message = { id: `err-${Date.now()}`, role: 'model', content: `Sorry, something went wrong. Please try again later. \n\n**Error:** ${errorMessageContent}` };
+      let errorMessageContent = "Failed to get response from AI. Please try again later.";
+      let errorTitle = "An error occurred";
+
+      if (error instanceof Error && error.message.includes('API key not valid')) {
+        errorTitle = "AI Configuration Error";
+        errorMessageContent = "The AI service API key is missing or invalid. Please ensure it's correctly set in your environment variables.";
+      } else if (error instanceof Error) {
+        errorMessageContent = error.message;
+      }
+      
+      const errorMessage: Message = { id: `err-${Date.now()}`, role: 'model', content: `Sorry, something went wrong. \n\n**Error:** ${errorMessageContent}` };
       setMessages(prev => [...prev, errorMessage]);
-      toast({ variant: "destructive", title: "An error occurred", description: errorMessageContent });
+      toast({ variant: "destructive", title: errorTitle, description: errorMessageContent });
     } finally {
       setIsChatLoading(false);
     }

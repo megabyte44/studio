@@ -6,32 +6,26 @@
  */
 
 import { ai } from '@/ai/genkit';
-import type { ChatInput, ChatOutput } from '@/types';
+import type { ChatInput, ChatOutput, ChatMessage } from '@/types';
 
-// The API key is now handled server-side via environment variables in genkit.ts
-// We no longer need to pass it from the client.
+// The API key is now handled server-side via environment variables in genkit.ts.
 
 export async function chat(input: Omit<ChatInput, 'apiKey'>): Promise<ChatOutput> {
-  let fullPrompt = 'Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.';
+  
+  let systemPrompt = 'You are LifeOS, an AI assistant. Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.';
 
   if (input.userData) {
-    fullPrompt += `\n\nThe user has provided the following data from their LifeOS app. Use this data to answer their questions. Be helpful and proactive. Today's date is ${new Date().toDateString()}.\n\nUSER DATA:\n${input.userData}`;
+    systemPrompt += `\n\nThe user has provided the following data from their LifeOS app. Use this data to answer their questions. Be helpful and proactive. Today's date is ${new Date().toDateString()}.\n\nUSER DATA:\n${input.userData}`;
   }
-
-  // Prepend the formatted history to the prompt
-  if (input.history && input.history.length > 0) {
-    const historyText = input.history
-      .map((m) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`)
-      .join('\n');
-    fullPrompt += `\n\n--- PREVIOUS CONVERSATION ---\n${historyText}`;
-  }
-
-  // Add the current message
-  fullPrompt += `\n\n--- CURRENT MESSAGE ---\nUser: ${input.message}`;
+  
+  // The history from the client already has the correct role ('user' or 'model')
+  const history: ChatMessage[] = input.history || [];
 
   const response = await ai.generate({
     model: 'googleai/gemini-2.0-flash',
-    prompt: fullPrompt,
+    system: systemPrompt,
+    history: history,
+    prompt: input.message,
   });
 
   return { content: response.text };
