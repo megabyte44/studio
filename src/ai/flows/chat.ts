@@ -28,16 +28,18 @@ export async function chat(input: Omit<ChatInput, 'apiKey'>): Promise<ChatOutput
       content: [{ text: msg.content }]
   }));
 
-  // Construct the full message history for the model, including the system prompt
+  // Construct the full message history for the model, including the system prompt and the latest user message.
   const messages: MessageData[] = [
     { role: 'system', content: [{ text: systemPrompt }] },
-    ...genkitHistory
+    ...genkitHistory,
+    { role: 'user', content: [{ text: input.message }] } // The new message is added to the history array.
   ];
 
+  // For chat conversations, the entire exchange (including the latest message)
+  // should be in the 'history' array. The 'prompt' parameter is for simpler, non-chat use cases.
   const response = await ai.generate({
     model: 'googleai/gemini-2.0-flash',
     history: messages,
-    prompt: input.message,
   });
 
   return { content: response.text };
