@@ -18,7 +18,6 @@ import { db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, setDoc } from 'firebase/firestore';
 
 
-const LOCAL_STORAGE_KEY = 'lifeos_weeklySchedule';
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const getCurrentDayName = () => {

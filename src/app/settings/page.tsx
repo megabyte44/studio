@@ -25,7 +25,7 @@ function BackupAndRestore() {
             return;
         }
         try {
-            const dataCollections = ['budget', 'habits', 'notes', 'notifications', 'passwords', 'todos', 'transactions', 'weeklySchedule', 'ai_chats'];
+            const dataCollections = ['budget', 'habits', 'notes', 'notifications', 'passwords', 'todos', 'transactions', 'weeklySchedule', 'ai_chats', 'settings', 'gym_protein_intakes', 'gym_logged_foods', 'gym_protein_target', 'gym_custom_foods', 'gym_workout_split', 'gym_cycle_config'];
             const backupData: Record<string, any> = {};
             
             for (const coll of dataCollections) {
@@ -299,12 +299,20 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+        setIsLoading(false);
+        return;
+    };
+    setIsLoading(true);
     const settingsDocRef = doc(db, 'users', user.uid, 'data', 'settings');
     const unsubscribe = onSnapshot(settingsDocRef, (docSnap) => {
         if (docSnap.exists()) {
             const settings = (docSnap.data() as {items: any}).items;
             setGymTrackingEnabled(settings.gymTracking !== false);
+        } else {
+            // If settings don't exist, create them
+            setDoc(settingsDocRef, { items: { gymTracking: true } });
+            setGymTrackingEnabled(true);
         }
         setIsLoading(false);
     });
@@ -355,5 +363,3 @@ export default function SettingsPage() {
     </AppLayout>
   );
 }
-
-    
