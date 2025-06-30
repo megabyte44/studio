@@ -110,32 +110,31 @@ function PushNotificationManager() {
     const { toast } = useToast();
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [isSupported, setIsSupported] = useState(false);
-    const [isPermissionGranted, setIsPermissionGranted] = useState(false);
+    const [permission, setPermission] = useState<NotificationPermission>('default');
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
             setIsSupported(true);
-            setIsPermissionGranted(Notification.permission === 'granted');
+            setPermission(Notification.permission);
         } else {
             setIsSupported(false);
-            setIsLoading(false);
         }
+        setIsLoading(false);
     }, []);
 
     useEffect(() => {
         const checkSubscription = async () => {
-            if (isSupported) {
+            if (isSupported && Notification.permission === 'granted') {
                 const registration = await navigator.serviceWorker.ready;
                 const subscription = await registration.pushManager.getSubscription();
                 setIsSubscribed(!!subscription);
-                setIsLoading(false);
             }
         };
         if(isSupported) {
             checkSubscription();
         }
-    }, [isSupported]);
+    }, [isSupported, permission]);
     
     const urlBase64ToUint8Array = (base64String: string) => {
         const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -149,46 +148,33 @@ function PushNotificationManager() {
     };
 
     const subscribeUser = async () => {
-        if (!user || !isSupported || !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
-            if(!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
-                 toast({ variant: 'destructive', title: 'Setup Incomplete', description: 'VAPID public key is not configured.' });
-            }
-            return;
-        }
+        if (!user || !isSupported) return;
         
-        if (Notification.permission === 'denied') {
-            toast({ variant: 'destructive', title: 'Permission Denied', description: 'Please enable notifications in your browser settings.' });
+        if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+            toast({ variant: 'destructive', title: 'Configuration Error', description: 'VAPID public key is not configured in the environment.' });
             return;
         }
         
         setIsLoading(true);
-
         try {
             const registration = await navigator.serviceWorker.ready;
-            let subscription = await registration.pushManager.getSubscription();
-            
-            if (!subscription) {
-                const applicationServerKey = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
-                subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey,
-                });
-            }
-
+            const applicationServerKey = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey,
+            });
             const token = await user.getIdToken();
             await fetch('/api/push/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(subscription),
             });
-            
             setIsSubscribed(true);
-            setIsPermissionGranted(true);
             toast({ title: 'Subscribed!', description: 'You will now receive push notifications.' });
-
         } catch (error) {
             console.error('Failed to subscribe:', error);
-            toast({ variant: 'destructive', title: 'Subscription Failed', description: 'Could not enable push notifications.' });
+            setPermission('default');
+            toast({ variant: 'destructive', title: 'Subscription Failed', description: 'Could not enable push notifications. Please try again.' });
         } finally {
             setIsLoading(false);
         }
@@ -196,12 +182,10 @@ function PushNotificationManager() {
     
     const unsubscribeUser = async () => {
         if (!user || !isSupported) return;
-
         setIsLoading(true);
         try {
             const registration = await navigator.serviceWorker.ready;
             const subscription = await registration.pushManager.getSubscription();
-            
             if (subscription) {
                 await subscription.unsubscribe();
                 const token = await user.getIdToken();
@@ -211,18 +195,37 @@ function PushNotificationManager() {
                     body: JSON.stringify({ endpoint: subscription.endpoint }),
                 });
             }
-            
             setIsSubscribed(false);
             toast({ title: 'Unsubscribed', description: 'Push notifications have been disabled.' });
-
         } catch (error) {
             console.error('Failed to unsubscribe:', error);
-             toast({ variant: 'destructive', title: 'Failed to Unsubscribe', description: 'Could not disable push notifications.' });
+            toast({ variant: 'destructive', title: 'Failed to Unsubscribe', description: 'Could not disable push notifications.' });
         } finally {
             setIsLoading(false);
         }
     }
     
+    const handleToggleSubscription = async () => {
+        if (isSubscribed) {
+            await unsubscribeUser();
+            return;
+        }
+
+        if (permission === 'granted') {
+            await subscribeUser();
+        } else if (permission === 'default') {
+            const newPermission = await Notification.requestPermission();
+            setPermission(newPermission);
+            if (newPermission === 'granted') {
+                await subscribeUser();
+            } else {
+                toast({ variant: 'destructive', title: 'Permission Required', description: 'You need to grant permission to enable notifications.' });
+            }
+        } else { // 'denied'
+            toast({ variant: 'destructive', title: 'Permission Denied', description: 'Please enable notifications for this site in your browser settings.' });
+        }
+    };
+
     const handleSendTest = async () => {
         if (!user) return;
         toast({ title: 'Sending...', description: 'Sending a test notification to your device.' });
@@ -244,11 +247,8 @@ function PushNotificationManager() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><BellDot />Push Notifications</CardTitle>
-                    <CardDescription>Receive reminders even when the app is closed.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-destructive">Your browser does not support push notifications.</p>
-                </CardContent>
+                <CardContent><p className="text-sm text-destructive">Your browser does not support push notifications.</p></CardContent>
             </Card>
         );
     }
@@ -257,27 +257,28 @@ function PushNotificationManager() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><BellDot />Push Notifications</CardTitle>
-                <CardDescription>Receive reminders even when the app is closed.</CardDescription>
+                <CardDescription>Receive reminders on supported desktop and mobile browsers, even when the app is closed.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
                         <Label htmlFor="push-switch" className="text-base">Enable Notifications</Label>
                         <p className="text-sm text-muted-foreground">
-                            { isSubscribed ? "Notifications are enabled on this device." : "Allow notifications to stay updated."}
+                            {permission === 'denied' && "You have blocked notifications."}
+                            {permission === 'granted' && isSubscribed && "Notifications are enabled on this device."}
+                            {permission === 'granted' && !isSubscribed && "Click to finalize subscription."}
+                            {permission === 'default' && "Allow notifications to stay updated."}
                         </p>
                     </div>
-                    <Switch id="push-switch" checked={isSubscribed} onCheckedChange={isSubscribed ? unsubscribeUser : subscribeUser} disabled={isLoading} />
+                    <Switch id="push-switch" checked={isSubscribed} onCheckedChange={handleToggleSubscription} disabled={isLoading || permission === 'denied'} />
                 </div>
-                {!isPermissionGranted && !isSubscribed && (
-                    <p className="text-xs text-amber-600">Note: Your browser will prompt you for permission.</p>
+                {permission === 'denied' && (
+                    <p className="text-xs text-destructive px-1">You must enable notification permissions in your browser or system settings to use this feature.</p>
                 )}
             </CardContent>
             {isSubscribed && (
                 <CardFooter>
-                    <Button onClick={handleSendTest} variant="secondary">
-                        Send Test Notification
-                    </Button>
+                    <Button onClick={handleSendTest} variant="secondary">Send Test Notification</Button>
                 </CardFooter>
             )}
         </Card>
