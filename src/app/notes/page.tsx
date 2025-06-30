@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
+type Layout = 'grid' | 'list';
 
 function ViewNoteDialog({ note, isOpen, onOpenChange }: { note: Note | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
     if (!note) return null;
