@@ -2,48 +2,31 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoginView, setIsLoginView] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleAuth = async () => {
-    if (!email || !password) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Email and password are required.' });
-      return;
-    }
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    const provider = new GoogleAuthProvider();
 
     try {
-      if (isLoginView) {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-        toast({ title: 'Success', description: 'Account created! Logging you in...' });
-      }
+      await signInWithPopup(auth, provider);
       router.replace('/dashboard');
     } catch (error: any) {
-      // Provide more user-friendly error messages
-      let description = 'An unexpected error occurred. Please try again.';
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        description = 'Invalid email or password. Please check your credentials.';
-      } else if (error.code === 'auth/email-already-in-use') {
-        description = 'This email is already associated with an account. Please log in.';
-      } else if (error.code === 'auth/weak-password') {
-        description = 'The password is too weak. Please choose a stronger password.';
+      let description = 'An unexpected error occurred during sign-in. Please try again.';
+      if (error.code === 'auth/popup-closed-by-user') {
+        description = 'The sign-in window was closed. Please try again.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        description = 'The sign-in process was cancelled.';
       }
       
       toast({
@@ -55,43 +38,38 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-  
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-          handleAuth();
-      }
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <Tabs defaultValue="login" className="w-full max-w-sm" onValueChange={(value) => setIsLoginView(value === 'login')}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="signup">Sign Up</TabsTrigger>
-        </TabsList>
-        <Card className="mt-2">
-            <CardHeader>
-              <CardTitle className="text-2xl font-headline">{isLoginView ? 'Welcome Back' : 'Create an Account'}</CardTitle>
-              <CardDescription>{isLoginView ? 'Enter your credentials to access your dashboard.' : 'Get started by creating a new account.'}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={handleKeyDown} required disabled={isLoading} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={handleKeyDown} required disabled={isLoading} />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={handleAuth} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLoginView ? 'Login' : 'Sign Up'}
-              </Button>
-            </CardFooter>
-          </Card>
-      </Tabs>
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-headline">Welcome to LifeOS</CardTitle>
+          <CardDescription>Sign in with your Google account to continue.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            {/* This space can be used for a separator or additional info if needed later */}
+        </CardContent>
+        <CardFooter>
+          <Button className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                <svg
+                    role="img"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-4 w-4"
+                >
+                    <path
+                    d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.03-4.56 2.03-3.86 0-7-3.14-7-7s3.14-7 7-7c1.74 0 3.32.67 4.54 1.8l2.45-2.3c-1.5-1.4-3.47-2.3-5.99-2.3-4.97 0-9 4.03-9 9s4.03 9 9 9c2.73 0 4.97-1.02 6.6-2.65 1.78-1.78 2.34-4.24 2.34-6.32 0-.46-.05-.88-.13-1.28h-9.13z"
+                    fill="currentColor"
+                    />
+                </svg>
+            )}
+            Sign in with Google
+          </Button>
+        </CardFooter>
+      </Card>
     </main>
   );
 }
