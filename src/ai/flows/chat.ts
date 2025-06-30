@@ -5,26 +5,13 @@
  * - chat - A function that handles a chat conversation turn.
  */
 
-import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { ai } from '@/ai/genkit';
 import type { ChatInput, ChatOutput } from '@/types';
 
-export async function chat(input: ChatInput): Promise<ChatOutput> {
-  if (!input.apiKey) {
-    throw new Error('Google AI API key is required. Please set it in the settings.');
-  }
+// The API key is now handled server-side via environment variables in genkit.ts
+// We no longer need to pass it from the client.
 
-  // Create a temporary, request-scoped Genkit instance.
-  // This is necessary to handle a user-provided API key that is not
-  // available in the server's environment variables.
-  const requestAi = genkit({
-    plugins: [googleAI({ apiKey: input.apiKey })],
-  });
-
-  // To fix a persistent build error with the `history` parameter, we will format the entire
-  // conversation history as a single string and prepend it to the prompt.
-  // This is a robust way to provide context and resolves the type ambiguity.
-  
+export async function chat(input: Omit<ChatInput, 'apiKey'>): Promise<ChatOutput> {
   let fullPrompt = 'Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.';
 
   if (input.userData) {
@@ -42,7 +29,7 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
   // Add the current message
   fullPrompt += `\n\n--- CURRENT MESSAGE ---\nUser: ${input.message}`;
 
-  const response = await requestAi.generate({
+  const response = await ai.generate({
     model: 'googleai/gemini-2.0-flash',
     prompt: fullPrompt,
   });

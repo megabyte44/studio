@@ -17,6 +17,7 @@ import {
   UserCog,
   CalendarDays,
   Bell,
+  Loader2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -40,7 +41,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { format, parseISO, isSameDay, isFuture } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Notification } from '@/types';
-import { P_NOTIFICATIONS } from '@/lib/placeholder-data';
+import { useAuth } from '@/hooks/use-auth';
+import { signOut, User } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
 
 
 const navItems = [
@@ -79,8 +83,6 @@ function ThemeToggle() {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    // The class is set by the inline script in layout.tsx.
-    // This effect just syncs the React state with the DOM.
     const isDark = document.documentElement.classList.contains('dark');
     setTheme(isDark ? 'dark' : 'light');
   }, []);
@@ -105,7 +107,7 @@ function ThemeToggle() {
   );
 }
 
-function UserNav({ user, onLogout }: { user: { username: string } | null, onLogout: () => void }) {
+function UserNav({ user, username, onLogout }: { user: User, username: string | null, onLogout: () => void }) {
   const router = useRouter();
   
   if (!user) return <Skeleton className="h-8 w-8 rounded-full" />;
@@ -116,14 +118,14 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src="https://placehold.co/100x100.png" alt="User Avatar" data-ai-hint="profile silhouette" />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarFallback>{username ? username.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-2">
-            <p className="text-sm font-medium leading-none">{user.username}</p>
+            <p className="text-sm font-medium leading-none">{username || user.email}</p>
             <p className="text-xs leading-none text-muted-foreground">
               Welcome back!
             </p>
@@ -165,31 +167,22 @@ function UserNav({ user, onLogout }: { user: { username: string } | null, onLogo
 
 function NotificationBell() {
   const router = useRouter();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const loadNotifications = () => {
-        try {
-            const stored = localStorage.getItem('lifeos_notifications');
-            setNotifications(stored ? JSON.parse(stored) : P_NOTIFICATIONS);
-        } catch {
-            setNotifications(P_NOTIFICATIONS);
+    if (!user) return;
+    
+    const notificationsDocRef = doc(db, 'users', user.uid, 'data', 'notifications');
+    const unsubscribe = onSnapshot(notificationsDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            setNotifications((docSnap.data() as {items: Notification[]}).items || []);
         }
-    }
-    loadNotifications();
+    });
 
-    const handleStorageChange = (e: StorageEvent) => {
-        if (e.key === 'lifeos_notifications') {
-            loadNotifications();
-        }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-        window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+    return () => unsubscribe();
+  }, [user]);
 
   const todaysUnreadNotifications = notifications.filter(n => {
     if (!n.read) {
@@ -225,7 +218,7 @@ function NotificationBell() {
                 {unreadCount > 0 ? (
                     <>
                         {todaysUnreadNotifications.slice(0, 5).map(n => (
-                            <div key={n.id} className="text-sm p-2 rounded-md hover:bg-accent" onClick={() => {
+                            <div key={n.id} className="text-sm p-2 rounded-md hover:bg-accent cursor-pointer" onClick={() => {
                                 setIsOpen(false);
                                 router.push('/notifications');
                             }}>
@@ -253,13 +246,14 @@ function NotificationBell() {
 }
 
 function HeaderCalendar() {
+  const { user } = useAuth();
   const [date, setDate] = useState<Date>();
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  const handleAddReminder = () => {
-    if (!date || !title.trim() || !message.trim()) {
+  const handleAddReminder = async () => {
+    if (!date || !title.trim() || !message.trim() || !user) {
         return;
     }
 
@@ -272,24 +266,20 @@ function HeaderCalendar() {
     };
     
     try {
-        const stored = localStorage.getItem('lifeos_notifications');
-        const notifications = stored ? JSON.parse(stored) : [];
-        const updatedNotifications = [newReminder, ...notifications];
-        localStorage.setItem('lifeos_notifications', JSON.stringify(updatedNotifications));
+        const notificationsDocRef = doc(db, 'users', user.uid, 'data', 'notifications');
+        const docSnap = await getDoc(notificationsDocRef);
+        const currentNotifications = docSnap.exists() ? (docSnap.data() as {items: Notification[]}).items : [];
+        const updatedNotifications = [newReminder, ...currentNotifications];
+        
+        await setDoc(notificationsDocRef, { items: updatedNotifications });
 
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: 'lifeos_notifications',
-            newValue: JSON.stringify(updatedNotifications),
-        }));
-
-        // Reset form
         setDate(undefined);
         setTitle('');
         setMessage('');
         setIsPopoverOpen(false);
 
     } catch (error) {
-      console.error(error);
+      console.error("Failed to add reminder:", error);
     }
   };
 
@@ -323,7 +313,7 @@ function HeaderCalendar() {
                     <Label htmlFor="reminder-message" className="text-xs px-1">Message</Label>
                     <Textarea id="reminder-message" placeholder="e.g., Call her in the morning" value={message} onChange={(e) => setMessage(e.target.value)} className="text-xs min-h-[60px]"/>
                 </div>
-                <Button size="sm" className="w-full h-8 text-xs" onClick={handleAddReminder}>
+                <Button size="sm" className="w-full h-8 text-xs" onClick={handleAddReminder} disabled={!user}>
                     Set Reminder
                 </Button>
             </div>
@@ -335,38 +325,37 @@ function HeaderCalendar() {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = useState<{ username: string } | null>(null);
-  const [isVerified, setIsVerified] = useState(false);
+  const { user, loading } = useAuth();
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-        setIsVerified(true);
-      } else {
-        router.replace('/login');
-      }
-    } catch (error) {
+    if (loading) return;
+    if (!user) {
       router.replace('/login');
+      return;
     }
-  }, [router]);
+    
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            setUsername(docSnap.data().username);
+        }
+    });
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
+    return () => unsubscribe();
+
+  }, [user, loading, router]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
     router.push('/login');
   };
   
-  if (!isVerified) {
+  if (loading || !user) {
+    // AuthProvider now shows a loading screen, but this is a safeguard.
     return (
       <div className="flex h-screen w-screen items-center justify-center p-4">
-        <div className="flex flex-col space-y-3 w-full">
-            <Skeleton className="h-[125px] w-full rounded-xl" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-4/5" />
-            </div>
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -378,7 +367,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1" />
         <NotificationBell />
         <HeaderCalendar />
-        <UserNav user={user} onLogout={handleLogout} />
+        <UserNav user={user} username={username} onLogout={handleLogout} />
       </header>
       <main className="flex-1 p-4 md:p-6 pb-24">
         {children}

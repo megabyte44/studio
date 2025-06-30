@@ -7,26 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Bot, User, AlertTriangle, Database, PlusCircle } from 'lucide-react';
+import { Send, Bot, User, AlertTriangle, Database, PlusCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { chat } from '@/ai/flows/chat';
-import type { ChatMessage } from '@/types';
+import type { ChatMessage, Transaction, TodoItem, Habit, Note } from '@/types';
 import { useToast } from "@/hooks/use-toast";
-import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog";
+import { useAuth } from '@/hooks/use-auth';
+import { db } from '@/lib/firebase';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+
 
 type Message = {
   id: string;
@@ -34,153 +26,107 @@ type Message = {
   content: string;
 };
 
-const LOCAL_STORAGE_KEY_CHATS = 'lifeos_ai_chats';
 const DEFAULT_MESSAGE: Message = { id: '1', role: 'model', content: "Hello! How can I help you manage your life today?" };
 
 export default function AiChatPage() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([DEFAULT_MESSAGE]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [includeData, setIncludeData] = useState(false);
   
   const viewportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const key = localStorage.getItem('google_api_key');
-    setApiKey(key);
-  }, []);
-
-  useEffect(() => {
-    try {
-      const storedChats = localStorage.getItem(LOCAL_STORAGE_KEY_CHATS);
-      if (storedChats) {
-        const parsedChats = JSON.parse(storedChats);
-        if (Array.isArray(parsedChats) && parsedChats.length > 0) {
-          setMessages(parsedChats);
+    if (!user) {
+        setIsHistoryLoading(false);
+        return;
+    }
+    const chatDocRef = doc(db, 'users', user.uid, 'data', 'ai_chats');
+    const unsubscribe = onSnapshot(chatDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const chatData = (docSnap.data() as {items: Message[]}).items;
+            setMessages(chatData.length > 0 ? chatData : [DEFAULT_MESSAGE]);
+        } else {
+            setMessages([DEFAULT_MESSAGE]);
         }
-      }
-    } catch (e) {
-      console.error("Failed to load chat history from local storage.", e);
-      setMessages([DEFAULT_MESSAGE]);
-    }
-  }, []);
+        setIsHistoryLoading(false);
+    });
+    return () => unsubscribe();
+  }, [user]);
 
-  useEffect(() => {
-    // Avoid saving just the initial default message if there's no history.
-    if (messages.length === 1 && messages[0].id === '1') {
-      return;
-    }
-    localStorage.setItem(LOCAL_STORAGE_KEY_CHATS, JSON.stringify(messages));
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    if (viewportRef.current) {
-      viewportRef.current.scrollTo({ top: viewportRef.current.scrollHeight, behavior: 'smooth' });
-    }
+  const saveChatHistory = async (newMessages: Message[]) => {
+      if (!user) return;
+      const chatDocRef = doc(db, 'users', user.uid, 'data', 'ai_chats');
+      await setDoc(chatDocRef, { items: newMessages });
   }
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    if (viewportRef.current) {
+      viewportRef.current.scrollTo({ top: viewportRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages, isChatLoading]);
 
   const handleNewChat = () => {
     setMessages([DEFAULT_MESSAGE]);
-    localStorage.removeItem(LOCAL_STORAGE_KEY_CHATS);
-    toast({
-      title: "New Chat Started",
-      description: "Your previous conversation has been cleared.",
-    });
+    saveChatHistory([]);
+    toast({ title: "New Chat Started", description: "Your previous conversation has been cleared." });
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isChatLoading || !user) return;
 
-    if (!apiKey) {
-      toast({
-        variant: "destructive",
-        title: "API Key Missing",
-        description: (
-          <p>
-            Please set your Google AI API key in the{' '}
-            <Link href="/settings" className="underline">settings page</Link>.
-          </p>
-        ),
-      });
-      return;
-    }
-
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: input,
-    };
-    
+    const userMessage: Message = { id: `user-${Date.now()}`, role: 'user', content: input };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput('');
-    setIsLoading(true);
+    setIsChatLoading(true);
 
-    const history: ChatMessage[] = newMessages
-      .slice(0, -1)
-      .map(({ role, content }) => ({ role, content }));
+    const history: ChatMessage[] = newMessages.slice(0, -1).map(({ role, content }) => ({ role, content }));
     
     let userData: string | undefined = undefined;
     if (includeData) {
       try {
+        const [userProfile, todos, transactions, habits, notes, schedule] = await Promise.all([
+            getDoc(doc(db, 'users', user.uid)),
+            getDoc(doc(db, 'users', user.uid, 'data', 'todos')),
+            getDoc(doc(db, 'users', user.uid, 'data', 'transactions')),
+            getDoc(doc(db, 'users', user.uid, 'data', 'habits')),
+            getDoc(doc(db, 'users', user.uid, 'data', 'notes')),
+            getDoc(doc(db, 'users', user.uid, 'data', 'weeklySchedule')),
+        ]);
         const dataToInclude = {
-            user: JSON.parse(localStorage.getItem('user') || '{}'),
-            todos: JSON.parse(localStorage.getItem('lifeos_todos') || '[]'),
-            transactions: JSON.parse(localStorage.getItem('lifeos_transactions') || '[]'),
-            habits: JSON.parse(localStorage.getItem('lifeos_habits') || '[]'),
-            notes: JSON.parse(localStorage.getItem('lifeos_notes') || '[]'),
-            schedule: JSON.parse(localStorage.getItem('lifeos_weeklySchedule') || '{}'),
+            user: userProfile.exists() ? userProfile.data() : {},
+            todos: todos.exists() ? (todos.data() as {items: TodoItem[]}).items : [],
+            transactions: transactions.exists() ? (transactions.data() as {items: Transaction[]}).items : [],
+            habits: habits.exists() ? (habits.data() as {items: Habit[]}).items : [],
+            notes: notes.exists() ? (notes.data() as {items: Note[]}).items : [],
+            schedule: schedule.exists() ? (schedule.data() as {items: any}).items : {},
         };
         userData = JSON.stringify(dataToInclude, null, 2);
       } catch (e) {
         console.error("Failed to gather user data:", e);
-        toast({
-          variant: "destructive",
-          title: "Could not load user data",
-          description: "There was an error reading your app data from local storage.",
-        });
+        toast({ variant: "destructive", title: "Could not load user data", description: "There was an error reading your app data from the database." });
       }
     }
 
     try {
-      const aiResponse = await chat({
-        history,
-        message: userMessage.content,
-        apiKey,
-        userData,
-      });
-
-      const aiMessage: Message = {
-        id: `ai-${Date.now()}`,
-        role: 'model',
-        content: aiResponse.content,
-      };
-      setMessages(prev => [...prev, aiMessage]);
+      const aiResponse = await chat({ history, message: userMessage.content, userData });
+      const aiMessage: Message = { id: `ai-${Date.now()}`, role: 'model', content: aiResponse.content };
+      const finalMessages = [...newMessages, aiMessage];
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
     } catch (error) {
       console.error(error);
       const errorMessageContent = error instanceof Error ? error.message : "Failed to get response from AI.";
-      
-      const errorMessage: Message = {
-        id: `err-${Date.now()}`,
-        role: 'model',
-        content: `Sorry, something went wrong. Please check your API key and network connection. \n\n**Error:** ${errorMessageContent}`,
-      };
+      const errorMessage: Message = { id: `err-${Date.now()}`, role: 'model', content: `Sorry, something went wrong. Please try again later. \n\n**Error:** ${errorMessageContent}` };
       setMessages(prev => [...prev, errorMessage]);
-
-      toast({
-        variant: "destructive",
-        title: "An error occurred",
-        description: errorMessageContent,
-      });
+      toast({ variant: "destructive", title: "An error occurred", description: errorMessageContent });
     } finally {
-      setIsLoading(false);
+      setIsChatLoading(false);
     }
   };
 
@@ -189,55 +135,32 @@ export default function AiChatPage() {
       <div className="absolute inset-x-0 top-14 bottom-16 flex flex-col bg-background">
         <ScrollArea className="flex-1" viewportRef={viewportRef}>
             <div className="max-w-4xl mx-auto p-4 space-y-6">
-                {!apiKey && (
-                    <Alert variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertTitle>API Key Not Set</AlertTitle>
-                      <AlertDescription>
-                        The AI chat is disabled. Please{' '}
-                        <Link href="/settings" className="font-bold underline">
-                          set your Google AI API key
-                        </Link>{' '}
-                        in the settings to enable it.
-                      </AlertDescription>
-                    </Alert>
-                )}
-                {messages.map((message) => {
-                    if (message.role === 'model') {
+                {isHistoryLoading ? (
+                    <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div>
+                ) : (
+                    messages.map((message) => {
+                        if (message.role === 'model') {
+                            return (
+                              <div key={message.id} className="flex flex-col items-start gap-2">
+                                <Avatar className="h-9 w-9"><AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback></Avatar>
+                                <div className="w-full max-w-4xl rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-card border"><MarkdownRenderer content={message.content} /></div>
+                              </div>
+                            );
+                        }
                         return (
-                          <div key={message.id} className="flex flex-col items-start gap-2">
-                            <Avatar className="h-9 w-9">
-                              <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
-                            </Avatar>
-                            <div className="w-full max-w-4xl rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-card border">
-                              <MarkdownRenderer content={message.content} />
+                            <div key={message.id} className="flex items-start gap-4 justify-end">
+                                <div className="max-w-3xl rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-primary text-primary-foreground">{message.content}</div>
+                                <Avatar className="h-9 w-9"><AvatarFallback><User className="h-5 w-5"/></AvatarFallback></Avatar>
                             </div>
-                          </div>
                         );
-                    }
-                    return (
-                        <div key={message.id} className="flex items-start gap-4 justify-end">
-                            <div className="max-w-3xl rounded-xl p-3 text-sm shadow-md whitespace-pre-wrap bg-primary text-primary-foreground">
-                                {message.content}
-                            </div>
-                            <Avatar className="h-9 w-9">
-                                <AvatarFallback><User className="h-5 w-5"/></AvatarFallback>
-                            </Avatar>
-                        </div>
-                    );
-                })}
+                    })
+                )}
 
-                {isLoading && (
+                {isChatLoading && (
                     <div className="flex flex-col items-start gap-2">
-                        <Avatar className="h-9 w-9">
-                            <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback>
-                        </Avatar>
+                        <Avatar className="h-9 w-9"><AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-5 w-5"/></AvatarFallback></Avatar>
                          <div className="bg-card border rounded-xl p-3 text-sm shadow-md">
-                            <div className="flex items-center gap-2">
-                                <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0s]"></span>
-                                <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0.15s]"></span>
-                                <span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0.3s]"></span>
-                            </div>
+                            <div className="flex items-center gap-2"><span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0s]"></span><span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0.15s]"></span><span className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse [animation-delay:0.3s]"></span></div>
                         </div>
                     </div>
                 )}
@@ -247,65 +170,24 @@ export default function AiChatPage() {
         <div className="p-4 border-t bg-background">
           <div className="max-w-4xl mx-auto">
             <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
-              <Input
-                autoFocus
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask me anything..."
-                disabled={isLoading || !apiKey}
-                className="flex-1"
-              />
-              
+              <Input autoFocus value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask me anything..." disabled={isChatLoading || !user} className="flex-1" />
               <TooltipProvider delayDuration={0}>
                 <AlertDialog>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="icon" type="button" disabled={isLoading || !apiKey}>
-                          <PlusCircle className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>New Chat</p>
-                    </TooltipContent>
+                    <TooltipTrigger asChild><AlertDialogTrigger asChild><Button variant="outline" size="icon" type="button" disabled={isChatLoading}><PlusCircle className="h-4 w-4" /></Button></AlertDialogTrigger></TooltipTrigger>
+                    <TooltipContent><p>New Chat</p></TooltipContent>
                   </Tooltip>
                   <AlertDialogContent className="sm:max-w-sm rounded-xl">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will start a new chat and permanently delete your current conversation history. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleNewChat}>Continue</AlertDialogAction>
-                    </AlertDialogFooter>
+                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will start a new chat and permanently delete your current conversation history. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleNewChat}>Continue</AlertDialogAction></AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant={includeData ? "default" : "outline"}
-                      size="icon"
-                      onClick={() => setIncludeData(p => !p)}
-                      disabled={isLoading || !apiKey}
-                      aria-label="Toggle including user data"
-                    >
-                      <Database className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{includeData ? 'Stop including app data' : 'Include app data in conversation'}</p>
-                  </TooltipContent>
+                  <TooltipTrigger asChild><Button type="button" variant={includeData ? "default" : "outline"} size="icon" onClick={() => setIncludeData(p => !p)} disabled={isChatLoading} aria-label="Toggle including user data"><Database className="h-4 w-4" /></Button></TooltipTrigger>
+                  <TooltipContent><p>{includeData ? 'Stop including app data' : 'Include app data in conversation'}</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
-              <Button type="submit" size="icon" disabled={!input.trim() || isLoading || !apiKey}>
-                <Send className="h-4 w-4" />
-              </Button>
+              <Button type="submit" size="icon" disabled={!input.trim() || isChatLoading || !user}><Send className="h-4 w-4" /></Button>
             </form>
           </div>
         </div>
