@@ -7,7 +7,7 @@ import type { Notification } from '@/types';
 import { P_NOTIFICATIONS } from '@/lib/placeholder-data';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BellRing, Check, Mail } from 'lucide-react';
+import { BellRing, Check, Mail, Trash2 } from 'lucide-react';
 import { format, parseISO, isToday, isFuture, isPast } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -15,7 +15,11 @@ import { Separator } from '@/components/ui/separator';
 const LOCAL_STORAGE_KEY_NOTIFICATIONS = 'lifeos_notifications';
 
 
-function NotificationCard({ notification, onToggleRead }: { notification: Notification, onToggleRead: (id: string) => void }) {
+function NotificationCard({ notification, onToggleRead, onDelete }: { 
+    notification: Notification, 
+    onToggleRead: (id: string) => void,
+    onDelete: (id: string) => void 
+}) {
     return (
         <Card className={cn('transition-colors', !notification.read && 'bg-primary/5 border-primary/20')}>
             <CardHeader className="flex flex-row items-start justify-between gap-4 p-4">
@@ -28,10 +32,16 @@ function NotificationCard({ notification, onToggleRead }: { notification: Notifi
                         <CardDescription>{format(parseISO(notification.date), 'PPP')}</CardDescription>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => onToggleRead(notification.id)}>
-                    {notification.read ? <Mail className="h-4 w-4 text-muted-foreground" /> : <Check className="h-4 w-4 text-primary" />}
-                    <span className="sr-only">Mark as {notification.read ? 'unread' : 'read'}</span>
-                </Button>
+                <div className="flex items-center flex-shrink-0">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onToggleRead(notification.id)}>
+                        {notification.read ? <Mail className="h-4 w-4 text-muted-foreground" /> : <Check className="h-4 w-4 text-primary" />}
+                        <span className="sr-only">Mark as {notification.read ? 'unread' : 'read'}</span>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(notification.id)}>
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete reminder</span>
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent className="p-4 pt-0 pl-14">
                 <p className="text-sm text-foreground/80">{notification.message}</p>
@@ -70,6 +80,10 @@ export default function NotificationsPage() {
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({...n, read: true})));
   }
+
+  const handleDeleteNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
 
   const { todays, future, past } = useMemo(() => {
     const todays: Notification[] = [];
@@ -119,7 +133,7 @@ export default function NotificationsPage() {
                     <div className="space-y-4">
                         {todays.length > 0 ? (
                             todays.map(notification => (
-                                <NotificationCard key={notification.id} notification={notification} onToggleRead={toggleReadStatus} />
+                                <NotificationCard key={notification.id} notification={notification} onToggleRead={toggleReadStatus} onDelete={handleDeleteNotification} />
                             ))
                         ) : (
                             <Card className="text-center py-8 text-muted-foreground border-dashed">
@@ -135,7 +149,7 @@ export default function NotificationsPage() {
                         <h2 className="text-lg font-semibold font-headline mb-2">Upcoming Reminders</h2>
                         <div className="space-y-4">
                             {future.map(notification => (
-                                <NotificationCard key={notification.id} notification={notification} onToggleRead={toggleReadStatus} />
+                                <NotificationCard key={notification.id} notification={notification} onToggleRead={toggleReadStatus} onDelete={handleDeleteNotification} />
                             ))}
                         </div>
                     </section>
@@ -147,7 +161,7 @@ export default function NotificationsPage() {
                         <h2 className="text-lg font-semibold font-headline mb-2">Past Reminders</h2>
                         <div className="space-y-4">
                             {past.map(notification => (
-                                <NotificationCard key={notification.id} notification={notification} onToggleRead={toggleReadStatus} />
+                                <NotificationCard key={notification.id} notification={notification} onToggleRead={toggleReadStatus} onDelete={handleDeleteNotification} />
                             ))}
                         </div>
                     </section>
