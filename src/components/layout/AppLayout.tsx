@@ -325,6 +325,36 @@ function HeaderCalendar() {
   );
 }
 
+/**
+ * This component listens to the user's theme settings in Firestore and applies
+ * the corresponding CSS class to the HTML element.
+ */
+function ThemeController() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+
+    const settingsDocRef = doc(db, 'users', user.uid, 'data', 'settings');
+    const unsubscribe = onSnapshot(settingsDocRef, (docSnap) => {
+      // Clear any previous theme class to avoid conflicts
+      document.documentElement.classList.remove('theme-legacy-green');
+
+      if (docSnap.exists()) {
+        const settings = (docSnap.data() as {items: any}).items;
+        const theme = settings.theme || 'default-green';
+        if (theme !== 'default-green') {
+           document.documentElement.classList.add(`theme-${theme}`);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  return null; // This component does not render anything
+}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -364,6 +394,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ThemeController />
       <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
         <h1 className="font-headline text-lg font-bold text-primary">LifeOS</h1>
         <div className="flex-1" />

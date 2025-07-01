@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Light Mode */
+    /* Light Mode - Default Green Theme */
     --background: 210 17% 98%; /* #F9FAFB */
     --foreground: 180 65% 4%; /* #030F0F */
     --card: 0 0% 100%; /* #FFFFFF */
@@ -44,7 +44,7 @@
   }
 
   .dark {
-    /* Dark Mode */
+    /* Dark Mode - Default Green Theme */
     --background: 180 60% 4%; /* #030F0F */
     --foreground: 0 0% 88%; /* #E0E0E0 */
     
@@ -88,6 +88,57 @@
     --sidebar-accent-foreground: 180 60% 4%;
     --sidebar-border: 157 40% 18%;
     --sidebar-ring: 155 100% 44%;
+  }
+
+  html.theme-legacy-green {
+    /* Light Mode - Legacy Green Theme */
+    --background: 210 17% 98%;
+    --foreground: 180 65% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 180 65% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 180 65% 4%;
+    --primary: 155 100% 44%;
+    --primary-foreground: 180 65% 4%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 180 65% 4%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 155 100% 44%;
+    --accent-foreground: 180 65% 4%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 155 100% 44%;
+    --radius: 0.5rem; /* Sharper corners */
+  }
+
+  html.dark.theme-legacy-green {
+    /* Dark Mode - Legacy Green Theme */
+    --background: 180 60% 4%; /* #030F0F */
+    --foreground: 0 0% 88%; /* #E0E0E0 */
+
+    --card: 167 94% 20%; /* #03624C */
+    --card-foreground: 0 0% 98%; /* Brighter text for contrast */
+
+    --popover: 167 94% 20%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 155 100% 44%; /* #00DF82 */
+    --primary-foreground: 180 60% 4%;
+
+    --secondary: 167 94% 20%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 167 94% 20%;
+    --muted-foreground: 0 0% 75%;
+
+    --accent: 155 100% 44%;
+    --accent-foreground: 180 60% 4%;
+
+    --border: 167 40% 28%; /* #287A65 */
+    --input: 167 94% 20%;
+    --ring: 155 100% 44%;
+    --radius: 0.5rem; /* Sharper corners */
   }
 }
 

@@ -6,10 +6,11 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell, ShieldCheck, Save, Download, Upload, BellDot } from 'lucide-react';
+import { Dumbbell, ShieldCheck, Save, Download, Upload, BellDot, Palette } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
@@ -295,7 +296,7 @@ function PushNotificationManager() {
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const [gymTrackingEnabled, setGymTrackingEnabled] = useState(true);
+  const [settings, setSettings] = useState({ gymTracking: true, theme: 'default-green' });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -307,23 +308,28 @@ export default function SettingsPage() {
     const settingsDocRef = doc(db, 'users', user.uid, 'data', 'settings');
     const unsubscribe = onSnapshot(settingsDocRef, (docSnap) => {
         if (docSnap.exists()) {
-            const settings = (docSnap.data() as {items: any}).items;
-            setGymTrackingEnabled(settings.gymTracking !== false);
+            const settingsData = (docSnap.data() as {items: any}).items;
+            setSettings({
+                gymTracking: settingsData.gymTracking !== false,
+                theme: settingsData.theme || 'default-green',
+            });
         } else {
             // If settings don't exist, create them
-            setDoc(settingsDocRef, { items: { gymTracking: true } });
-            setGymTrackingEnabled(true);
+            const defaultSettings = { gymTracking: true, theme: 'default-green' };
+            setDoc(settingsDocRef, { items: defaultSettings });
+            setSettings(defaultSettings);
         }
         setIsLoading(false);
     });
     return () => unsubscribe();
   }, [user]);
 
-  const handleToggleGymTracking = async (enabled: boolean) => {
+  const handleSettingChange = async (key: string, value: any) => {
     if (!user) return;
-    setGymTrackingEnabled(enabled);
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
     const settingsDocRef = doc(db, 'users', user.uid, 'data', 'settings');
-    await setDoc(settingsDocRef, { items: { gymTracking: enabled } });
+    await setDoc(settingsDocRef, { items: newSettings });
   };
 
   return (
@@ -335,6 +341,29 @@ export default function SettingsPage() {
             </header>
             
             <Card>
+                <CardHeader><CardTitle>Appearance</CardTitle><CardDescription>Customize the look and feel of the app.</CardDescription></CardHeader>
+                <CardContent>
+                    {isLoading ? ( <Skeleton className="h-10 w-full" /> ) : (
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                             <div className="space-y-0.5">
+                                <Label className="text-base flex items-center gap-2"><Palette className="h-5 w-5" />App Theme</Label>
+                                <p className="text-sm text-muted-foreground">Select a visual theme for the application.</p>
+                            </div>
+                            <Select value={settings.theme} onValueChange={(value) => handleSettingChange('theme', value)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select theme" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="default-green">Default Green</SelectItem>
+                                    <SelectItem value="legacy-green">Legacy Green</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card>
                 <CardHeader><CardTitle>Feature Management</CardTitle><CardDescription>Enable or disable optional features to customize your experience.</CardDescription></CardHeader>
                 <CardContent>
                     {isLoading ? ( <Skeleton className="h-20 w-full" /> ) : (
@@ -343,7 +372,7 @@ export default function SettingsPage() {
                                 <Label htmlFor="gym-tracking-switch" className="text-base flex items-center gap-2"><Dumbbell className="h-5 w-5" />Gym & Fitness Tracking</Label>
                                 <p className="text-sm text-muted-foreground">Show trackers for workouts, protein, and overload.</p>
                             </div>
-                            <Switch id="gym-tracking-switch" checked={gymTrackingEnabled} onCheckedChange={handleToggleGymTracking} />
+                            <Switch id="gym-tracking-switch" checked={settings.gymTracking} onCheckedChange={(checked) => handleSettingChange('gymTracking', checked)} />
                         </div>
                     )}
                 </CardContent>
