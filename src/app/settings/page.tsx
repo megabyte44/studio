@@ -92,7 +92,7 @@ function BackupAndRestore() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Backup & Restore</CardTitle>
+                <CardTitle>Backup &amp; Restore</CardTitle>
                 <CardDescription>Download all your data to a file or restore from a previous backup.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row gap-4">
@@ -355,7 +355,8 @@ export default function SettingsPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="default-green">Default Green</SelectItem>
-                                    <SelectItem value="legacy-green">Legacy Green</SelectItem>
+                                    <SelectItem value="indigo">Soft Indigo</SelectItem>
+                                    <SelectItem value="charcoal-yellow">Charcoal &amp; Yellow</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -369,7 +370,7 @@ export default function SettingsPage() {
                     {isLoading ? ( <Skeleton className="h-20 w-full" /> ) : (
                         <div className="flex items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
-                                <Label htmlFor="gym-tracking-switch" className="text-base flex items-center gap-2"><Dumbbell className="h-5 w-5" />Gym & Fitness Tracking</Label>
+                                <Label htmlFor="gym-tracking-switch" className="text-base flex items-center gap-2"><Dumbbell className="h-5 w-5" />Gym &amp; Fitness Tracking</Label>
                                 <p className="text-sm text-muted-foreground">Show trackers for workouts, protein, and overload.</p>
                             </div>
                             <Switch id="gym-tracking-switch" checked={settings.gymTracking} onCheckedChange={(checked) => handleSettingChange('gymTracking', checked)} />

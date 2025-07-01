@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -337,8 +336,11 @@ function ThemeController() {
 
     const settingsDocRef = doc(db, 'users', user.uid, 'data', 'settings');
     const unsubscribe = onSnapshot(settingsDocRef, (docSnap) => {
+      // List of all possible theme classes
+      const themeClasses = ['theme-indigo', 'theme-charcoal-yellow'];
+      
       // Clear any previous theme class to avoid conflicts
-      document.documentElement.classList.remove('theme-legacy-green');
+      document.documentElement.classList.remove(...themeClasses);
 
       if (docSnap.exists()) {
         const settings = (docSnap.data() as {items: any}).items;
