@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,13 +22,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Declare RecaptchaVerifier in a wider scope for persistence across re-renders
-// @ts-ignore
-if (typeof window !== 'undefined' && !window.recaptchaVerifier) {
-    // @ts-ignore
-    window.recaptchaVerifier = null;
-}
-
 export default function LoginPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -46,20 +40,7 @@ export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  const setupRecaptcha = () => {
-    // @ts-ignore
-    if (window.recaptchaVerifier) {
-        // @ts-ignore
-        window.recaptchaVerifier.clear();
-    }
-    // @ts-ignore
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      'size': 'invisible',
-      'callback': (response: any) => {
-        // reCAPTCHA solved, allows signInWithPhoneNumber.
-      }
-    });
-  }
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
   useEffect(() => {
     // This effect runs once on mount to handle auth state and email links.
@@ -133,9 +114,16 @@ export default function LoginPage() {
     setUiLoading(true);
     
     try {
-      setupRecaptcha();
-      // @ts-ignore
-      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+      if (!recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': (response: any) => {
+            // reCAPTCHA solved, allows signInWithPhoneNumber.
+          }
+        });
+      }
+      const verifier = recaptchaVerifierRef.current;
+      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, verifier);
       setConfirmationResult(confirmation);
       setOtpSent(true);
       toast({ title: "OTP Sent", description: `An OTP has been sent to ${phoneNumber}.` });
