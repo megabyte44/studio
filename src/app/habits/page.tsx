@@ -183,7 +183,7 @@ function GymTracker({
                     )}
                 </Card>
 
-                <Card className="lg:col-span-3 dark:bg-[hsl(var(--card-standard))]">
+                <Card>
                     <CardHeader className="p-2">
                         <CardTitle className="font-headline flex items-center gap-2 text-sm">
                             <TrendingUp className="h-4 w-4 text-primary" />
@@ -201,7 +201,7 @@ function GymTracker({
                     </CardContent>
                 </Card>
                  
-                <div className="lg:col-span-3 grid md:grid-cols-2 gap-4">
+                <div className="lg:col-span-2 grid md:grid-cols-2 gap-4">
                     <ProteinTrackerCard 
                       intakes={proteinIntakes}
                       onIntakesChange={onProteinIntakesChange}
@@ -252,7 +252,7 @@ function ProteinTrackerCard({ intakes, onIntakesChange, target, onTargetChange }
     };
 
     return (
-        <Card className="dark:bg-[hsl(var(--card-standard))]">
+        <Card>
             <CardHeader className="p-2">
                 <CardTitle className="font-headline flex items-center gap-2 text-sm"><Beef className="h-4 w-4 text-primary" /> <span>Protein Intake</span></CardTitle>
                 <CardDescription className="text-xs">Today's Total: {totalProtein}g / {target}g</CardDescription>
@@ -300,7 +300,7 @@ function FoodLogCard({ loggedItems, onLoggedItemsChange, customItems, onManageIt
     const todaysLoggedItems = loggedItems.filter((i: LoggedFoodItem) => format(parseISO(i.timestamp), 'yyyy-MM-dd') === todayKey);
 
     return (
-        <Card className="dark:bg-[hsl(var(--card-standard))]">
+        <Card>
             <CardHeader className="flex flex-row justify-between items-start p-2">
                 <div>
                     <CardTitle className="font-headline flex items-center gap-2 text-sm"><Apple className="h-4 w-4 text-primary" /> <span>Food & Supplement Log</span></CardTitle>
@@ -1489,8 +1489,6 @@ export default function HabitsPage() {
                 </CardContent>
             </Card>
         )}
-
-        <Separator />
 
         <div className="space-y-4">
             <header className="flex items-center justify-between">

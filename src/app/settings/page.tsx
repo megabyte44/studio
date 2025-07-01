@@ -89,7 +89,7 @@ function BackupAndRestore() {
     };
 
     return (
-        <Card className="dark:bg-[hsl(var(--card-standard))]">
+        <Card>
             <CardHeader>
                 <CardTitle>Backup & Restore</CardTitle>
                 <CardDescription>Download all your data to a file or restore from a previous backup.</CardDescription>
@@ -252,7 +252,7 @@ function PushNotificationManager() {
 
     if (!isSupported) {
         return (
-            <Card className="dark:bg-[hsl(var(--card-standard))]">
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><BellDot />Push Notifications</CardTitle>
                 </CardHeader>
@@ -262,7 +262,7 @@ function PushNotificationManager() {
     }
     
     return (
-        <Card className="dark:bg-[hsl(var(--card-standard))]">
+        <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><BellDot />Push Notifications</CardTitle>
                 <CardDescription>Receive reminders on supported desktop and mobile browsers, even when the app is closed.</CardDescription>
@@ -334,7 +334,7 @@ export default function SettingsPage() {
               <p className="text-muted-foreground">Manage your application settings here.</p>
             </header>
             
-            <Card className="dark:bg-[hsl(var(--card-standard))]">
+            <Card>
                 <CardHeader><CardTitle>Feature Management</CardTitle><CardDescription>Enable or disable optional features to customize your experience.</CardDescription></CardHeader>
                 <CardContent>
                     {isLoading ? ( <Skeleton className="h-20 w-full" /> ) : (
@@ -353,7 +353,7 @@ export default function SettingsPage() {
 
             <BackupAndRestore />
             
-            <Card className="dark:bg-[hsl(var(--card-standard))]">
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5" />AI API Key Management</CardTitle>
                     <CardDescription>The application is now configured to use a secure, server-side API key. No action is needed from you.</CardDescription>

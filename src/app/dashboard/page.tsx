@@ -109,7 +109,7 @@ function WaterIntakeWidget({ now }: { now: Date }) {
   const mlToday = glassesToday * ML_PER_GLASS;
   
   return (
-    <div className="w-full border rounded-xl shadow-sm flex items-center justify-between p-3 dark:bg-[hsl(var(--card-standard))]">
+    <div className="w-full border rounded-xl shadow-sm flex items-center justify-between p-3 bg-card">
         <div className="flex items-center gap-3">
             <Button onClick={handleIntakeChange} variant="outline" size="icon" className="h-12 w-12 flex-shrink-0 rounded-lg">
                 <GlassWater className="h-6 w-6 text-primary/70" />
@@ -259,7 +259,7 @@ function FinancialSnapshot({ now }: { now: Date }) {
   const budgetUsagePercent = monthlyBudget > 0 ? (monthlyExpenses / monthlyBudget) * 100 : 0;
 
   return (
-    <Card className="dark:bg-[hsl(var(--card-standard))]">
+    <Card>
       <CardHeader className="py-4 sm:py-4"><CardTitle className="font-headline flex items-center gap-3 text-lg"><Wallet className="h-6 w-6 text-primary" /><span>Financial Snapshot</span></CardTitle></CardHeader>
       <CardContent className="space-y-4 pt-0 sm:pt-0">
         <div className="flex justify-between items-center"><span className="text-muted-foreground">Today's Expenses</span><span className="font-semibold text-lg">{(todaysExpenses / 100).toFixed(2)}</span></div>

@@ -128,7 +128,7 @@ export default function ExpensesPage() {
             <StatCard title="Remaining" amount={remainingBudget} variant={remainingBudget >= 0 ? 'income' : 'expense'} />
         </div>
 
-        <Card className="dark:bg-[hsl(var(--card-standard))]">
+        <Card>
             <CardHeader className="p-3 sm:p-4"><CardTitle className="text-lg">Budget Progress</CardTitle><CardDescription>You've spent {formatCurrency(monthlyExpenses)} of your {formatCurrency(monthlyBudget)} budget.</CardDescription></CardHeader>
             <CardContent className="pt-0 sm:pt-0 pb-2 px-3 sm:px-4"><Progress value={budgetProgress} /><p className="text-right text-sm text-muted-foreground mt-1">{budgetProgress.toFixed(0)}%</p></CardContent>
             <CardFooter className="pt-0 sm:pt-0 p-3 sm:p-4">
@@ -181,7 +181,7 @@ export default function ExpensesPage() {
 function StatCard({ title, amount, icon: Icon, variant }: { title: string, amount: number, icon?: React.ElementType, variant?: 'income' | 'expense' }) {
     const amountColor = variant === 'income' ? 'text-green-600' : variant === 'expense' ? 'text-red-600' : '';
     return (
-        <Card className="dark:bg-[hsl(var(--card-standard))]">
+        <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2 sm:p-4"><CardTitle className="text-sm font-medium">{title}</CardTitle>{Icon && <Icon className="h-4 w-4 text-muted-foreground" />}</CardHeader>
             <CardContent className="pt-0 px-3 sm:px-4"><div className={`text-2xl font-bold ${amountColor}`}>{formatCurrency(Math.abs(amount))}</div></CardContent>
         </Card>
