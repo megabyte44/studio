@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -42,7 +41,7 @@ export default function LoginPage() {
   const [emailSent, setEmailSent] = useState(false);
 
   // Phone state
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('+91');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
@@ -126,8 +125,9 @@ export default function LoginPage() {
   
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phoneNumber.trim() || phoneNumber.length < 10) {
-      toast({ variant: "destructive", title: "Invalid Phone Number", description: "Please enter a valid phone number with country code (e.g., +1234567890)." });
+    // An Indian phone number is +91 followed by 10 digits = 13 characters.
+    if (!phoneNumber.trim() || phoneNumber.trim().length !== 13) {
+      toast({ variant: "destructive", title: "Invalid Phone Number", description: "Please enter a valid 10-digit Indian phone number." });
       return;
     }
     setUiLoading(true);
@@ -183,6 +183,17 @@ export default function LoginPage() {
       setUiLoading(false);
     }
   }
+
+  const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // Ensure the value always starts with +91 and contains only numbers after that.
+    if (value.startsWith('+91')) {
+      const numericPart = value.substring(3).replace(/[^0-9]/g, '');
+      setPhoneNumber(`+91${numericPart}`);
+    } else {
+      setPhoneNumber('+91');
+    }
+  };
 
   if (authLoading || (uiLoading && !otpSent && !emailSent)) {
     return (
@@ -242,8 +253,8 @@ export default function LoginPage() {
                         <div className="grid w-full items-center gap-4">
                             <div className="flex flex-col space-y-1.5">
                                 <Label htmlFor="phone">Phone Number</Label>
-                                <Input id="phone" type="tel" placeholder="+1 234 567 8900" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} disabled={uiLoading}/>
-                                <p className="text-xs text-muted-foreground">Include your country code.</p>
+                                <Input id="phone" type="tel" placeholder="+91 123 456 7890" value={phoneNumber} onChange={handlePhoneInputChange} disabled={uiLoading}/>
+                                <p className="text-xs text-muted-foreground">Currently supporting Indian phone numbers.</p>
                             </div>
                             <Button className="w-full" type="submit" disabled={uiLoading}>
                                 {uiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send OTP"}
