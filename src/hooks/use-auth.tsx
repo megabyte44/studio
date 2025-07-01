@@ -44,8 +44,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // onAuthStateChanged handles all auth state changes, including after a redirect.
-    // The redirect result itself is now handled on the login page.
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
@@ -53,10 +51,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const userDoc = await getDoc(userDocRef);
           if (!userDoc.exists()) {
             // Create user profile document and default data for new users
-            const username = firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User');
+            const username = firebaseUser.displayName 
+              || (firebaseUser.email ? firebaseUser.email.split('@')[0] : (firebaseUser.phoneNumber || 'User'));
             
             await setDoc(userDocRef, {
-              email: firebaseUser.email,
+              email: firebaseUser.email || null,
+              phoneNumber: firebaseUser.phoneNumber || null,
               username: username,
               createdAt: new Date().toISOString(),
             });
@@ -70,7 +70,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error during user initialization:", error);
         setUser(null);
       } finally {
-        // Ensure loading is set to false only after all auth processing is complete.
         setLoading(false);
       }
     });

@@ -1,34 +1,74 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, Mail } from 'lucide-react';
+import { Loader2, Mail, Smartphone } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { auth } from '@/lib/firebase';
-import { sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { 
+  sendSignInLinkToEmail, 
+  isSignInWithEmailLink, 
+  signInWithEmailLink,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  type ConfirmationResult
+} from 'firebase/auth';
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Declare RecaptchaVerifier in a wider scope for persistence across re-renders
+// @ts-ignore
+if (typeof window !== 'undefined' && !window.recaptchaVerifier) {
+    // @ts-ignore
+    window.recaptchaVerifier = null;
+}
 
 export default function LoginPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [uiLoading, setUiLoading] = useState(true); // Start loading to handle link check
-  const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
+
+  // Common state
+  const [uiLoading, setUiLoading] = useState(true);
+  
+  // Email state
+  const [email, setEmail] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
+
+  // Phone state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  const setupRecaptcha = () => {
+    // @ts-ignore
+    if (window.recaptchaVerifier) {
+        // @ts-ignore
+        window.recaptchaVerifier.clear();
+    }
+    // @ts-ignore
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      'size': 'invisible',
+      'callback': (response: any) => {
+        // reCAPTCHA solved, allows signInWithPhoneNumber.
+      }
+    });
+  }
 
   useEffect(() => {
     // This effect runs once on mount to handle auth state and email links.
     if (!authLoading) {
       if (user) {
         router.replace('/dashboard');
-        return; // Don't continue if user is already logged in
+        return; 
       }
 
-      // If no user, check for an email sign-in link.
       if (isSignInWithEmailLink(auth, window.location.href)) {
         let emailFromStore = window.localStorage.getItem('emailForSignIn');
         if (!emailFromStore) {
@@ -38,7 +78,6 @@ export default function LoginPage() {
         if (emailFromStore) {
           signInWithEmailLink(auth, emailFromStore, window.location.href)
             .then(() => {
-              // Success! The AuthProvider will detect the change and redirect.
               window.localStorage.removeItem('emailForSignIn');
               if (window.history && window.history.replaceState) {
                   window.history.replaceState(null, '', window.location.pathname);
@@ -49,11 +88,9 @@ export default function LoginPage() {
               setUiLoading(false);
             });
         } else {
-          // No email provided for link sign-in.
           setUiLoading(false);
         }
       } else {
-        // Not a sign-in link and no user, so stop loading.
         setUiLoading(false);
       }
     }
@@ -68,9 +105,7 @@ export default function LoginPage() {
     setUiLoading(true);
 
     const actionCodeSettings = {
-      // The URL to redirect to after the user clicks the email link.
-      // The user will be sent back to this page to complete the sign-in.
-      url: window.location.href,
+      url: window.location.href, // URL to redirect back to
       handleCodeInApp: true,
     };
 
@@ -87,8 +122,54 @@ export default function LoginPage() {
     }
   };
   
-  // Show a loader while checking auth state or processing the link
-  if (authLoading || uiLoading) {
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phoneNumber.trim() || phoneNumber.length < 10) {
+      toast({ variant: "destructive", title: "Invalid Phone Number", description: "Please enter a valid phone number with country code (e.g., +1234567890)." });
+      return;
+    }
+    setUiLoading(true);
+    
+    try {
+      setupRecaptcha();
+      // @ts-ignore
+      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+      setConfirmationResult(confirmation);
+      setOtpSent(true);
+      toast({ title: "OTP Sent", description: `An OTP has been sent to ${phoneNumber}.` });
+    } catch (error: any) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Failed to send OTP", description: "Please check your phone number and ensure your domain is authorized in Firebase." });
+    } finally {
+      setUiLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp.trim() || otp.length !== 6) {
+      toast({ variant: "destructive", title: "Invalid OTP", description: "Please enter the 6-digit OTP." });
+      return;
+    }
+    if (!confirmationResult) {
+       toast({ variant: "destructive", title: "Error", description: "OTP could not be verified. Please try again." });
+       return;
+    }
+
+    setUiLoading(true);
+    try {
+      await confirmationResult.confirm(otp);
+      // AuthProvider will handle the redirect on user state change.
+      toast({ title: "Success!", description: "You have been signed in." });
+    } catch (error: any) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Sign-in Failed", description: "The OTP is incorrect or has expired." });
+    } finally {
+      setUiLoading(false);
+    }
+  };
+
+  if (authLoading || (uiLoading && !otpSent)) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -99,50 +180,79 @@ export default function LoginPage() {
     );
   }
 
-  // If we're done loading and there's no user, show the login card.
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <div id="recaptcha-container"></div>
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Welcome to LifeOS</CardTitle>
           <CardDescription>
-            {emailSent ? "Check your inbox!" : "Sign in with a magic link. No password required."}
+            Sign in with email or phone. No password required.
           </CardDescription>
         </CardHeader>
         <CardContent>
-            {emailSent ? (
-                <div className="text-center">
-                    <Mail className="mx-auto h-12 w-12 text-primary" />
-                    <p className="mt-4 text-sm text-muted-foreground">
-                        A sign-in link has been sent to <strong>{email}</strong>. Click the link in the email to sign in on this device.
-                    </p>
-                </div>
-            ) : (
-                <form onSubmit={handleSendLink}>
-                    <div className="grid w-full items-center gap-4">
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="email">Email Address</Label>
-                            <Input 
-                                id="email" 
-                                type="email"
-                                placeholder="name@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={uiLoading}
-                            />
+           <Tabs defaultValue="email" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="email"><Mail className="mr-2 h-4 w-4"/>Email</TabsTrigger>
+                <TabsTrigger value="phone"><Smartphone className="mr-2 h-4 w-4"/>Phone</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="email" className="pt-4">
+                  {emailSent ? (
+                      <div className="text-center">
+                          <Mail className="mx-auto h-12 w-12 text-primary" />
+                          <p className="mt-4 text-sm text-muted-foreground">
+                              A sign-in link has been sent to <strong>{email}</strong>. Click the link in the email to sign in.
+                          </p>
+                      </div>
+                  ) : (
+                      <form onSubmit={handleSendLink}>
+                          <div className="grid w-full items-center gap-4">
+                              <div className="flex flex-col space-y-1.5">
+                                  <Label htmlFor="email">Email Address</Label>
+                                  <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={uiLoading}/>
+                              </div>
+                              <Button className="w-full" type="submit" disabled={uiLoading}>
+                                  {uiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send Sign-In Link"}
+                              </Button>
+                          </div>
+                      </form>
+                  )}
+              </TabsContent>
+              
+              <TabsContent value="phone" className="pt-4">
+                {!otpSent ? (
+                    <form onSubmit={handleSendOtp}>
+                        <div className="grid w-full items-center gap-4">
+                            <div className="flex flex-col space-y-1.5">
+                                <Label htmlFor="phone">Phone Number</Label>
+                                <Input id="phone" type="tel" placeholder="+1 234 567 8900" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} disabled={uiLoading}/>
+                                <p className="text-xs text-muted-foreground">Include your country code.</p>
+                            </div>
+                            <Button className="w-full" type="submit" disabled={uiLoading}>
+                                {uiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send OTP"}
+                            </Button>
                         </div>
-                    </div>
-                </form>
-            )}
+                    </form>
+                ) : (
+                    <form onSubmit={handleVerifyOtp}>
+                        <div className="grid w-full items-center gap-4">
+                            <div className="flex flex-col space-y-1.5">
+                                <Label htmlFor="otp">One-Time Password (OTP)</Label>
+                                <Input id="otp" type="text" inputMode="numeric" pattern="d{6}" maxLength={6} placeholder="Enter 6-digit OTP" value={otp} onChange={(e) => setOtp(e.target.value)} disabled={uiLoading}/>
+                            </div>
+                            <Button className="w-full" type="submit" disabled={uiLoading}>
+                                {uiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Verify & Sign In"}
+                            </Button>
+                             <Button variant="link" size="sm" onClick={() => { setOtpSent(false); setOtp(''); setConfirmationResult(null); }} disabled={uiLoading}>
+                                Back to phone number entry
+                            </Button>
+                        </div>
+                    </form>
+                )}
+              </TabsContent>
+           </Tabs>
         </CardContent>
-        {!emailSent && (
-            <CardFooter>
-                <Button className="w-full" onClick={handleSendLink} disabled={uiLoading}>
-                    {uiLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Send Sign-In Link
-                </Button>
-            </CardFooter>
-        )}
       </Card>
     </main>
   );
