@@ -78,9 +78,9 @@ export default function LoginPage() {
   }, [user, authLoading, router, toast]);
 
   const setupRecaptcha = () => {
-    if (verifier || !document.getElementById('recaptcha-container')) {
-        return;
-    }
+    // Check for container added to prevent error during tab switching
+    const recaptchaContainer = document.getElementById('recaptcha-container');
+    if (!recaptchaContainer) return;
 
     try {
         const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
@@ -90,7 +90,6 @@ export default function LoginPage() {
             },
             'expired-callback': () => {
                 toast({ variant: 'destructive', title: 'reCAPTCHA Expired', description: 'Please solve the reCAPTCHA again.' });
-                verifier?.clear();
                 setVerifier(null); 
             }
         });
@@ -102,10 +101,10 @@ export default function LoginPage() {
   };
   
   useEffect(() => {
-    if (activeTab === 'phone') {
+    if (activeTab === 'phone' && !verifier) {
         setupRecaptcha();
     }
-  }, [activeTab]);
+  }, [activeTab, verifier]);
   
   const handleSendLink = async (e: React.FormEvent) => {
     e.preventDefault();
