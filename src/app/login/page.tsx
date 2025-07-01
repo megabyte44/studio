@@ -102,7 +102,10 @@ export default function LoginPage() {
   
   useEffect(() => {
     if (activeTab === 'phone' && !verifier) {
-        setupRecaptcha();
+        // Delay setup to ensure container is mounted
+        setTimeout(() => {
+            setupRecaptcha();
+        }, 100);
     }
   }, [activeTab, verifier]);
   
@@ -150,8 +153,26 @@ export default function LoginPage() {
       setOtpSent(true);
       toast({ title: "OTP Sent", description: `An OTP has been sent to ${phoneNumber}.` });
     } catch (error: any) {
-      console.error(error);
-      toast({ variant: "destructive", title: "Failed to send OTP", description: "Please check your phone number and that the reCAPTCHA is solved." });
+      console.error("Phone Sign-In Error:", error);
+      let description = "Please check your phone number and that the reCAPTCHA is solved.";
+      switch (error.code) {
+        case 'auth/invalid-phone-number':
+          description = "The phone number you entered is not valid. Please check it and try again.";
+          break;
+        case 'auth/too-many-requests':
+          description = "We've sent too many requests from this device. Please try again later.";
+          break;
+        case 'auth/captcha-check-failed':
+          description = "The reCAPTCHA check failed. Please try solving it again.";
+          break;
+        case 'auth/network-request-failed':
+          description = "A network error occurred. Please check your internet connection and try again.";
+          break;
+        default:
+          description = "An unexpected error occurred. Please try again.";
+          break;
+      }
+      toast({ variant: "destructive", title: "Failed to send OTP", description });
     } finally {
       setUiLoading(false);
     }
