@@ -29,6 +29,7 @@ export default function LoginPage() {
 
   // Common state
   const [uiLoading, setUiLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('email');
   
   // Email state
   const [email, setEmail] = useState('');
@@ -77,7 +78,9 @@ export default function LoginPage() {
   }, [user, authLoading, router, toast]);
 
   const setupRecaptcha = () => {
-    if (verifier) return;
+    if (verifier || !document.getElementById('recaptcha-container')) {
+        return;
+    }
 
     try {
         const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
@@ -87,6 +90,7 @@ export default function LoginPage() {
             },
             'expired-callback': () => {
                 toast({ variant: 'destructive', title: 'reCAPTCHA Expired', description: 'Please solve the reCAPTCHA again.' });
+                verifier?.clear();
                 setVerifier(null); 
             }
         });
@@ -96,6 +100,12 @@ export default function LoginPage() {
         toast({ variant: "destructive", title: "reCAPTCHA Error", description: "Could not initialize reCAPTCHA. Please refresh the page." });
     }
   };
+  
+  useEffect(() => {
+    if (activeTab === 'phone') {
+        setupRecaptcha();
+    }
+  }, [activeTab]);
   
   const handleSendLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,7 +230,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-           <Tabs defaultValue="email" className="w-full" onValueChange={(value) => { if (value === 'phone') { setupRecaptcha() }}}>
+           <Tabs defaultValue="email" className="w-full" onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="email"><Mail className="mr-2 h-4 w-4"/>Email</TabsTrigger>
                 <TabsTrigger value="phone"><Smartphone className="mr-2 h-4 w-4"/>Phone</TabsTrigger>
@@ -260,7 +270,7 @@ export default function LoginPage() {
                                 <p className="text-xs text-muted-foreground">Currently supporting Indian phone numbers.</p>
                             </div>
                             <div id="recaptcha-container" className="flex justify-center"></div>
-                            <Button className="w-full" type="submit" disabled={uiLoading}>
+                            <Button className="w-full" type="submit" disabled={uiLoading || !verifier}>
                                 {uiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send OTP"}
                             </Button>
                         </div>
