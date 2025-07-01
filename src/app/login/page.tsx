@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, Mail, Smartphone } from 'lucide-react';
+import { Loader2, Mail, Smartphone, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { auth } from '@/lib/firebase';
 import { 
@@ -16,6 +16,7 @@ import {
   signInWithEmailLink,
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  signInAnonymously,
   type ConfirmationResult
 } from 'firebase/auth';
 import { useToast } from "@/hooks/use-toast";
@@ -82,6 +83,7 @@ export default function LoginPage() {
               if (window.history && window.history.replaceState) {
                   window.history.replaceState(null, '', window.location.pathname);
               }
+              // The onAuthStateChanged listener in AuthProvider will handle the redirect
             })
             .catch((error) => {
               toast({ variant: 'destructive', title: 'Sign-in Failed', description: 'The sign-in link is invalid or has expired.' });
@@ -105,7 +107,7 @@ export default function LoginPage() {
     setUiLoading(true);
 
     const actionCodeSettings = {
-      url: window.location.href, // URL to redirect back to
+      url: window.location.origin + '/login', // URL to redirect back to
       handleCodeInApp: true,
     };
 
@@ -169,7 +171,20 @@ export default function LoginPage() {
     }
   };
 
-  if (authLoading || (uiLoading && !otpSent)) {
+  const handleAnonymousSignIn = async () => {
+    setUiLoading(true);
+    try {
+      await signInAnonymously(auth);
+      // AuthProvider will handle the redirect
+      toast({ title: 'Welcome!', description: 'You are signed in as a guest.' });
+    } catch (error) {
+      console.error("Anonymous sign-in failed", error);
+      toast({ variant: "destructive", title: "Guest Sign-in Failed", description: "Could not sign you in as a guest. Please try again." });
+      setUiLoading(false);
+    }
+  }
+
+  if (authLoading || (uiLoading && !otpSent && !emailSent)) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -187,14 +202,15 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Welcome to LifeOS</CardTitle>
           <CardDescription>
-            Sign in with email or phone. No password required.
+            Sign in or continue as a guest. No password required.
           </CardDescription>
         </CardHeader>
         <CardContent>
            <Tabs defaultValue="email" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="email"><Mail className="mr-2 h-4 w-4"/>Email</TabsTrigger>
                 <TabsTrigger value="phone"><Smartphone className="mr-2 h-4 w-4"/>Phone</TabsTrigger>
+                <TabsTrigger value="guest"><Users className="mr-2 h-4 w-4"/>Guest</TabsTrigger>
               </TabsList>
               
               <TabsContent value="email" className="pt-4">
@@ -250,6 +266,14 @@ export default function LoginPage() {
                         </div>
                     </form>
                 )}
+              </TabsContent>
+              <TabsContent value="guest" className="pt-4">
+                 <div className="text-center text-sm text-muted-foreground mb-4">
+                    <p>Continue without an account. Your data will be stored on this device and will be lost if you log out or clear your browser data.</p>
+                 </div>
+                 <Button className="w-full" onClick={handleAnonymousSignIn} disabled={uiLoading}>
+                    {uiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Continue as Guest"}
+                 </Button>
               </TabsContent>
            </Tabs>
         </CardContent>

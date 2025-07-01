@@ -51,14 +51,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const userDoc = await getDoc(userDocRef);
           if (!userDoc.exists()) {
             // Create user profile document and default data for new users
-            const username = firebaseUser.displayName 
-              || (firebaseUser.email ? firebaseUser.email.split('@')[0] : (firebaseUser.phoneNumber || 'User'));
+            const username = firebaseUser.isAnonymous
+              ? 'Guest User'
+              : firebaseUser.displayName 
+                || (firebaseUser.email ? firebaseUser.email.split('@')[0] : (firebaseUser.phoneNumber || 'User'));
             
             await setDoc(userDocRef, {
               email: firebaseUser.email || null,
               phoneNumber: firebaseUser.phoneNumber || null,
               username: username,
               createdAt: new Date().toISOString(),
+              isAnonymous: firebaseUser.isAnonymous,
             });
             await initializeNewUserData(firebaseUser.uid);
           }

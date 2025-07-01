@@ -127,16 +127,18 @@ function UserNav({ user, username, onLogout }: { user: User, username: string | 
           <div className="flex flex-col space-y-2">
             <p className="text-sm font-medium leading-none">{username || user.email}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              Welcome back!
+              {user.isAnonymous ? "Guest account (data is temporary)" : "Welcome back!"}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-           <DropdownMenuItem onSelect={() => router.push('/profile')}>
-            <UserCog className="mr-2 h-4 w-4" />
-            <span>Edit Profile</span>
-          </DropdownMenuItem>
+           {!user.isAnonymous && (
+             <DropdownMenuItem onSelect={() => router.push('/profile')}>
+              <UserCog className="mr-2 h-4 w-4" />
+              <span>Edit Profile</span>
+            </DropdownMenuItem>
+           )}
            <DropdownMenuItem onSelect={() => router.push('/planner')}>
             <CalendarDays className="mr-2 h-4 w-4" />
             <span>Daily Planner</span>
