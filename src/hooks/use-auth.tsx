@@ -7,7 +7,6 @@ import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { P_HABITS, P_NOTES, P_NOTIFICATIONS, P_PASSWORDS, P_TODO_ITEMS, P_TRANSACTIONS } from '@/lib/placeholder-data';
-import type { Habit, Note, Notification, Credential, TodoItem, Transaction, PlannerItem } from '@/types';
 
 interface AuthContextType {
   user: User | null;
