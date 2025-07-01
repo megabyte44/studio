@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -106,7 +107,7 @@ function ThemeToggle() {
   );
 }
 
-function UserNav({ user, username, onLogout }: { user: User, username: string | null, onLogout: () => void }) {
+function UserNav({ user, username, photoURL, onLogout }: { user: User, username: string | null, photoURL: string | null, onLogout: () => void }) {
   const router = useRouter();
   
   if (!user) return <Skeleton className="h-8 w-8 rounded-full" />;
@@ -116,7 +117,7 @@ function UserNav({ user, username, onLogout }: { user: User, username: string | 
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="https://placehold.co/100x100.png" alt="User Avatar" data-ai-hint="profile silhouette" />
+            <AvatarImage src={photoURL || undefined} alt="User Avatar" />
             <AvatarFallback>{username ? username.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
           </Avatar>
         </Button>
@@ -361,6 +362,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [username, setUsername] = useState<string | null>(null);
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -372,7 +374,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const userDocRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
         if (docSnap.exists()) {
-            setUsername(docSnap.data().username);
+            const data = docSnap.data();
+            setUsername(data.username);
+            setPhotoURL(data.photoURL);
         }
     });
 
@@ -402,7 +406,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1" />
         <NotificationBell />
         <HeaderCalendar />
-        <UserNav user={user} username={username} onLogout={handleLogout} />
+        <UserNav user={user} username={username} photoURL={photoURL} onLogout={handleLogout} />
       </header>
       <main className="flex-1 p-4 md:p-6 pb-24">
         {children}
