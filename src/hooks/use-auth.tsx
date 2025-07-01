@@ -29,7 +29,7 @@ const initializeNewUserData = async (userId: string) => {
         passwords: P_PASSWORDS,
         notifications: P_NOTIFICATIONS,
         budget: 5000000,
-        settings: { gymTracking: true },
+        settings: { gymTracking: true, theme: 'default-green' },
         weeklySchedule: {},
         ai_chats: [],
     };
@@ -62,6 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               username: username,
               createdAt: new Date().toISOString(),
               isAnonymous: firebaseUser.isAnonymous,
+              photoURL: firebaseUser.photoURL || null,
             });
             await initializeNewUserData(firebaseUser.uid);
           }
