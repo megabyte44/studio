@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -39,8 +39,7 @@ export default function LoginPage() {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+  const [verifier, setVerifier] = useState<RecaptchaVerifier | null>(null);
 
   useEffect(() => {
     // This effect runs once on mount to handle auth state and email links.
@@ -63,7 +62,6 @@ export default function LoginPage() {
               if (window.history && window.history.replaceState) {
                   window.history.replaceState(null, '', window.location.pathname);
               }
-              // The onAuthStateChanged listener in AuthProvider will handle the redirect
             })
             .catch((error) => {
               toast({ variant: 'destructive', title: 'Sign-in Failed', description: 'The sign-in link is invalid or has expired.' });
@@ -78,6 +76,27 @@ export default function LoginPage() {
     }
   }, [user, authLoading, router, toast]);
 
+  const setupRecaptcha = () => {
+    if (verifier) return;
+
+    try {
+        const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'normal',
+            'callback': (response: any) => {
+                toast({ title: "reCAPTCHA solved!", description: "You can now send the OTP." });
+            },
+            'expired-callback': () => {
+                toast({ variant: 'destructive', title: 'reCAPTCHA Expired', description: 'Please solve the reCAPTCHA again.' });
+                setVerifier(null); 
+            }
+        });
+        setVerifier(recaptchaVerifier);
+    } catch (error) {
+        console.error("reCAPTCHA setup error:", error);
+        toast({ variant: "destructive", title: "reCAPTCHA Error", description: "Could not initialize reCAPTCHA. Please refresh the page." });
+    }
+  };
+  
   const handleSendLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
@@ -87,7 +106,7 @@ export default function LoginPage() {
     setUiLoading(true);
 
     const actionCodeSettings = {
-      url: window.location.origin + '/login', // URL to redirect back to
+      url: window.location.origin + '/login', 
       handleCodeInApp: true,
     };
 
@@ -106,30 +125,24 @@ export default function LoginPage() {
   
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    // An Indian phone number is +91 followed by 10 digits = 13 characters.
     if (!phoneNumber.trim() || phoneNumber.trim().length !== 13) {
       toast({ variant: "destructive", title: "Invalid Phone Number", description: "Please enter a valid 10-digit Indian phone number." });
       return;
     }
+     if (!verifier) {
+        toast({ variant: 'destructive', title: 'reCAPTCHA Not Ready', description: 'Please complete the reCAPTCHA challenge first.' });
+        return;
+    }
     setUiLoading(true);
     
     try {
-      if (!recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          'size': 'invisible',
-          'callback': (response: any) => {
-            // reCAPTCHA solved, allows signInWithPhoneNumber.
-          }
-        });
-      }
-      const verifier = recaptchaVerifierRef.current;
       const confirmation = await signInWithPhoneNumber(auth, phoneNumber, verifier);
       setConfirmationResult(confirmation);
       setOtpSent(true);
       toast({ title: "OTP Sent", description: `An OTP has been sent to ${phoneNumber}.` });
     } catch (error: any) {
       console.error(error);
-      toast({ variant: "destructive", title: "Failed to send OTP", description: "Please check your phone number and ensure your domain is authorized in Firebase." });
+      toast({ variant: "destructive", title: "Failed to send OTP", description: "Please check your phone number and that the reCAPTCHA is solved." });
     } finally {
       setUiLoading(false);
     }
@@ -149,7 +162,6 @@ export default function LoginPage() {
     setUiLoading(true);
     try {
       await confirmationResult.confirm(otp);
-      // AuthProvider will handle the redirect on user state change.
       toast({ title: "Success!", description: "You have been signed in." });
     } catch (error: any) {
       console.error(error);
@@ -163,7 +175,6 @@ export default function LoginPage() {
     setUiLoading(true);
     try {
       await signInAnonymously(auth);
-      // AuthProvider will handle the redirect
       toast({ title: 'Welcome!', description: 'You are signed in as a guest.' });
     } catch (error) {
       console.error("Anonymous sign-in failed", error);
@@ -174,7 +185,6 @@ export default function LoginPage() {
 
   const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    // Ensure the value always starts with +91 and contains only numbers after that.
     if (value.startsWith('+91')) {
       const numericPart = value.substring(3).replace(/[^0-9]/g, '');
       setPhoneNumber(`+91${numericPart}`);
@@ -196,7 +206,6 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div id="recaptcha-container"></div>
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Welcome to LifeOS</CardTitle>
@@ -205,7 +214,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-           <Tabs defaultValue="email" className="w-full">
+           <Tabs defaultValue="email" className="w-full" onValueChange={(value) => { if (value === 'phone') { setupRecaptcha() }}}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="email"><Mail className="mr-2 h-4 w-4"/>Email</TabsTrigger>
                 <TabsTrigger value="phone"><Smartphone className="mr-2 h-4 w-4"/>Phone</TabsTrigger>
@@ -237,13 +246,14 @@ export default function LoginPage() {
               
               <TabsContent value="phone" className="pt-4">
                 {!otpSent ? (
-                    <form onSubmit={handleSendOtp}>
+                    <form onSubmit={handleSendOtp} className="space-y-4">
                         <div className="grid w-full items-center gap-4">
                             <div className="flex flex-col space-y-1.5">
                                 <Label htmlFor="phone">Phone Number</Label>
                                 <Input id="phone" type="tel" placeholder="+91 123 456 7890" value={phoneNumber} onChange={handlePhoneInputChange} disabled={uiLoading}/>
                                 <p className="text-xs text-muted-foreground">Currently supporting Indian phone numbers.</p>
                             </div>
+                            <div id="recaptcha-container" className="flex justify-center"></div>
                             <Button className="w-full" type="submit" disabled={uiLoading}>
                                 {uiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send OTP"}
                             </Button>
