@@ -125,8 +125,8 @@ export default function LoginPage() {
   
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phoneNumber.trim() || phoneNumber.trim().length !== 13) {
-      toast({ variant: "destructive", title: "Invalid Phone Number", description: "Please enter a valid 10-digit Indian phone number." });
+    if (!phoneNumber.trim() || phoneNumber.trim().length < 11) { // Basic validation
+      toast({ variant: "destructive", title: "Invalid Phone Number", description: "Please enter a valid phone number with country code." });
       return;
     }
      if (!verifier) {
@@ -165,7 +165,13 @@ export default function LoginPage() {
       toast({ title: "Success!", description: "You have been signed in." });
     } catch (error: any) {
       console.error(error);
-      toast({ variant: "destructive", title: "Sign-in Failed", description: "The OTP is incorrect or has expired." });
+      let description = "The OTP could not be verified. Please try again.";
+      if (error.code === 'auth/invalid-verification-code') {
+        description = "The OTP you entered is incorrect. Please double-check and try again.";
+      } else if (error.code === 'auth/code-expired') {
+        description = "The OTP has expired. Please request a new one by going back.";
+      }
+      toast({ variant: "destructive", title: "Sign-in Failed", description });
     } finally {
       setUiLoading(false);
     }
