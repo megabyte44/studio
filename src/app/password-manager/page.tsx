@@ -203,7 +203,7 @@ export default function PasswordManagerPage() {
                                 {items.map(cred => {
                                     const isExpanded = expandedCardIds.has(cred.id);
                                     return (
-                                        <Card key={cred.id} className="w-[260px] flex-shrink-0 flex flex-col">
+                                        <Card key={cred.id} className="w-[260px] flex-shrink-0 flex flex-col dark:bg-[hsl(var(--card-standard))]">
                                             <CardHeader className="p-1.5 sm:p-2">
                                                 <CardTitle className="truncate text-sm">{cred.name}</CardTitle>
                                                 <CardDescription className="text-xs">{isExpanded ? `Last updated: ${cred.lastUpdated}` : cred.category === 'Banking' ? `Account No: ${cred.accountNumber ? `••••${String(cred.accountNumber).slice(-4)}` : 'N/A'}` : `Username: ${cred.username || 'N/A'}`}</CardDescription>

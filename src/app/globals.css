@@ -42,26 +42,37 @@
   }
 
   .dark {
-    /* Dark Mode */
+    /* Dark Mode - NEW HIERARCHY */
     --background: 180 65% 4%; /* #030F0F */
-    --foreground: 0 0% 98%; /* #FFFFFF (near white) */
-    --card: 167 94% 20%; /* #03624C */
-    --card-foreground: 0 0% 98%;
+    --foreground: 0 0% 88%; /* #E0E0E0 */
+    
+    --card: 167 94% 20%; /* #03624C - Primary Card */
+    --card-foreground: 0 0% 88%; /* #E0E0E0 */
+    
+    --card-standard: 157 47% 12%; /* #102A23 - Standard Card */
+
     --popover: 167 94% 20%;
-    --popover-foreground: 0 0% 98%;
+    --popover-foreground: 0 0% 88%;
+    
     --primary: 155 100% 44%; /* #00DF82 */
     --primary-foreground: 180 65% 4%; /* #030F0F */
-    --secondary: 167 80% 15%; /* Darker green */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 167 80% 15%;
-    --muted-foreground: 210 15% 65%; /* Muted white */
+
+    --secondary: 157 47% 12%; /* Standard Card color */
+    --secondary-foreground: 0 0% 88%;
+    
+    --muted: 157 47% 12%;
+    --muted-foreground: 0 0% 65%; /* #E0E0E0 at lower opacity, approximated */
+    
     --accent: 155 100% 44%; /* #00DF82 */
     --accent-foreground: 180 65% 4%; /* #030F0F */
+    
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive-foreground: 0 0% 88%;
+    
     --border: 167 70% 25%; /* Border for cards */
     --input: 167 70% 25%;
     --ring: 155 100% 44%; /* #00DF82 */
+    
     --chart-1: 155, 100%, 44%;
     --chart-2: 167, 94%, 30%;
     --chart-3: 160, 40%, 50%;
@@ -70,7 +81,7 @@
 
     /* Sidebar Variables */
     --sidebar-background: 167 80% 15%;
-    --sidebar-foreground: 0 0% 98%;
+    --sidebar-foreground: 0 0% 88%;
     --sidebar-primary: 155 100% 44%;
     --sidebar-primary-foreground: 180 65% 4%;
     --sidebar-accent: 155 100% 44%;

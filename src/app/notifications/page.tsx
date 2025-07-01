@@ -21,7 +21,7 @@ function NotificationCard({ notification, onToggleRead, onDelete }: {
     onDelete: (id: string) => void 
 }) {
     return (
-        <Card className={cn('transition-colors', !notification.read && 'bg-primary/5 border-primary/20')}>
+        <Card className={cn('transition-colors dark:bg-[hsl(var(--card-standard))]', !notification.read && 'bg-primary/5 border-primary/20')}>
             <CardHeader className="flex flex-row items-start justify-between gap-4 p-4">
                 <div className="flex items-start gap-4">
                     <div className={cn("mt-1", !notification.read ? 'text-primary' : 'text-muted-foreground')}><BellRing className="h-5 w-5" /></div>
@@ -119,7 +119,7 @@ export default function NotificationsPage() {
                 <div className="space-y-4">
                     {todays.length > 0 ? (
                         todays.map(notification => <NotificationCard key={notification.id} notification={notification} onToggleRead={toggleReadStatus} onDelete={handleDeleteNotification} />)
-                    ) : ( <Card className="text-center py-8 text-muted-foreground border-dashed"><p>You have no reminders for today.</p></Card> )}
+                    ) : ( <Card className="text-center py-8 text-muted-foreground border-dashed dark:bg-[hsl(var(--card-standard))]"><p>You have no reminders for today.</p></Card> )}
                 </div>
             </section>
             
