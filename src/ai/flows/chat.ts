@@ -12,6 +12,8 @@ import { z } from 'genkit';
 import type { ChatInput, ChatOutput, ChatMessage } from '@/types';
 import type { MessageData } from 'genkit';
 
+const { generate } = ai;
+
 const ChatFlowInputSchema = z.object({
   history: z.array(z.object({
     role: z.enum(['user', 'model']),
@@ -54,7 +56,7 @@ The user has provided the following data from their LifeOS app. Use this data to
 USER DATA:
 ${input.userData}` : ''}`;
     
-    const response = await ai.generate({
+    const response = await generate({
       model: 'googleai/gemini-2.0-flash',
       system: systemInstruction,
       history: messages,

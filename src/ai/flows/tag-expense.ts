@@ -1,3 +1,4 @@
+
 // TagExpenseWithAI Story: As a user, I want the application to automatically categorize my expenses using AI, so I can easily track and analyze my spending habits without manually tagging each transaction.
 
 'use server';
@@ -12,6 +13,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+
+const { generate } = ai;
 
 const TagExpenseInputSchema = z.object({
   description: z.string().describe('The description of the expense.'),
@@ -43,7 +46,7 @@ const tagExpenseFlow = ai.defineFlow(
 
   Respond with JSON object conforming to specified schema, and include a confidence score between 0 and 1. Category should be a simple, single-word label such as "Food", "Transportation", or "Entertainment".`;
 
-    const { output } = await ai.generate({
+    const { output } = await generate({
         model: 'googleai/gemini-2.0-flash',
         prompt: promptText,
         output: {
