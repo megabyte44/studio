@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -8,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bot, User, Loader2, Send, Sparkles } from 'lucide-react';
-import { chat, type ChatInput } from '@/ai/flows/chat';
-import type { ChatMessage } from '@/types';
+import { chat } from '@/ai/flows/chat';
+import type { ChatInput, ChatMessage } from '@/types';
 import { cn } from '@/lib/utils';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { useAuth } from '@/hooks/use-auth';

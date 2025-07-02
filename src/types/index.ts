@@ -1,4 +1,5 @@
 
+import { z } from 'zod';
 
 export type PlannerItem = {
   id:string;
@@ -123,13 +124,19 @@ export type ChatMessage = {
   content: string;
 };
 
-export type ChatInput = {
-  history: ChatMessage[];
-  message: string;
-  apiKey: string;
-  userData?: string;
-};
+export const ChatInputSchema = z.object({
+  history: z.array(
+    z.object({
+      role: z.enum(['user', 'model']),
+      content: z.string(),
+    })
+  ),
+  message: z.string(),
+  userData: z.string().optional(),
+});
+export type ChatInput = z.infer<typeof ChatInputSchema>;
 
-export type ChatOutput = {
-  content: string;
-};
+export const ChatOutputSchema = z.object({
+  content: z.string(),
+});
+export type ChatOutput = z.infer<typeof ChatOutputSchema>;

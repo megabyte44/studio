@@ -1,32 +1,19 @@
+
 'use server';
 /**
  * @fileOverview A simple AI chat flow.
  *
  * - chat - A function that handles the chat process.
- * - ChatInput - The input type for the chat function.
- * - ChatOutput - The return type for the chat function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'zod';
-import type {ChatMessage} from '@/types';
-
-export const ChatInputSchema = z.object({
-  history: z.array(
-    z.object({
-      role: z.enum(['user', 'model']),
-      content: z.string(),
-    })
-  ),
-  message: z.string(),
-  userData: z.string().optional(),
-});
-export type ChatInput = z.infer<typeof ChatInputSchema>;
-
-export const ChatOutputSchema = z.object({
-  content: z.string(),
-});
-export type ChatOutput = z.infer<typeof ChatOutputSchema>;
+import {
+    ChatInputSchema,
+    ChatOutputSchema,
+    type ChatInput,
+    type ChatOutput,
+    type ChatMessage
+} from '@/types';
 
 // Define the flow
 const chatFlow = ai.defineFlow(
