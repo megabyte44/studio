@@ -41,7 +41,8 @@ const chatFlow = ai.defineFlow(
   },
   async (input) => {
     const history = input.history || [];
-    const messages: MessageData[] = history.map(msg => ({
+    
+    const historyMessages: MessageData[] = history.map(msg => ({
       role: msg.role,
       content: [{ text: msg.content }]
     }));
@@ -53,11 +54,15 @@ The user has provided the following data from their LifeOS app. Use this data to
 USER DATA:
 ${input.userData}` : ''}`;
     
+    const allMessages: MessageData[] = [
+      { role: 'system', content: [{ text: systemInstruction }] },
+      ...historyMessages,
+      { role: 'user', content: [{ text: input.message }] }
+    ];
+
     const response = await ai.generate({
       model: 'googleai/gemini-2.0-flash',
-      system: systemInstruction,
-      history: messages,
-      prompt: input.message,
+      messages: allMessages,
     });
     
     return { content: response.text };
