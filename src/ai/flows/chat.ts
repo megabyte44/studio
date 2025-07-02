@@ -12,7 +12,7 @@ import { z } from 'genkit';
 import type { ChatInput, ChatOutput, ChatMessage } from '@/types';
 import type { MessageData } from 'genkit';
 
-const ChatPromptInputSchema = z.object({
+const ChatFlowInputSchema = z.object({
   history: z.array(z.object({
     role: z.enum(['user', 'model']),
     content: z.string()
@@ -21,19 +21,22 @@ const ChatPromptInputSchema = z.object({
   userData: z.string().optional(),
 });
 
+const ChatFlowOutputSchema = z.object({
+  content: z.string(),
+});
+
 export async function chat(input: Omit<ChatInput, 'apiKey'>): Promise<ChatOutput> {
-  const promptInput = {
+  const flowInput = {
     history: input.history || [],
     message: input.message,
     userData: input.userData,
   };
-  const response = await chatPrompt(promptInput);
-  return { content: response.text };
+  return chatFlow(flowInput);
 }
 
 const chatPrompt = ai.definePrompt({
   name: 'chatPrompt',
-  input: { schema: ChatPromptInputSchema },
+  input: { schema: ChatFlowInputSchema },
   model: 'googleai/gemini-2.0-flash',
 
   // The 'system' property is the correct place for system-level instructions.
@@ -67,3 +70,15 @@ USER DATA:
     return messages;
   }
 });
+
+const chatFlow = ai.defineFlow(
+  {
+    name: 'chatFlow',
+    inputSchema: ChatFlowInputSchema,
+    outputSchema: ChatFlowOutputSchema,
+  },
+  async (input) => {
+    const response = await chatPrompt(input);
+    return { content: response.text };
+  }
+);
