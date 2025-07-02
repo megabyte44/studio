@@ -15,9 +15,11 @@ import {
   signInWithEmailAndPassword,
   signInAnonymously,
   updateProfile,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function LoginPage() {
   const { user, loading: authLoading } = useAuth();
@@ -34,6 +36,10 @@ export default function LoginPage() {
   const [signUpUsername, setSignUpUsername] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
+
+  // Password Reset State
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -93,6 +99,29 @@ export default function LoginPage() {
       setUiLoading(false);
     }
   };
+  
+  const handlePasswordReset = async () => {
+    if (!resetEmail.trim()) {
+      toast({ variant: "destructive", title: "Email required", description: "Please enter your email address." });
+      return;
+    }
+    setUiLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      toast({ title: 'Password reset email sent', description: 'Check your inbox for instructions to reset your password.' });
+      setIsResetDialogOpen(false);
+      setResetEmail('');
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+      let description = "Could not send password reset email. Please try again later.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
+        description = "No account found with that email address.";
+      }
+      toast({ variant: "destructive", title: "Request Failed", description });
+    } finally {
+      setUiLoading(false);
+    }
+  };
 
   const handleAnonymousSignIn = async () => {
     setUiLoading(true);
@@ -142,7 +171,10 @@ export default function LoginPage() {
                           <Input id="signin-email" type="email" placeholder="name@example.com" value={signInEmail} onChange={(e) => setSignInEmail(e.target.value)} disabled={uiLoading} autoComplete="email" />
                       </div>
                       <div className="space-y-1.5">
-                          <Label htmlFor="signin-password">Password</Label>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="signin-password">Password</Label>
+                             <Button variant="link" type="button" onClick={() => { setIsResetDialogOpen(true); setResetEmail(signInEmail); }} className="h-auto p-0 text-xs">Forgot Password?</Button>
+                          </div>
                           <Input id="signin-password" type="password" placeholder="••••••••" value={signInPassword} onChange={(e) => setSignInPassword(e.target.value)} disabled={uiLoading} autoComplete="current-password" />
                       </div>
                       <Button className="w-full" type="submit" disabled={uiLoading}>
@@ -182,6 +214,29 @@ export default function LoginPage() {
            </Tabs>
         </CardContent>
       </Card>
+
+      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Reset Password</DialogTitle>
+                <DialogDescription>
+                    Enter your email address and we'll send you a link to reset your password.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="space-y-1.5">
+                    <Label htmlFor="reset-email">Email Address</Label>
+                    <Input id="reset-email" type="email" placeholder="name@example.com" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} disabled={uiLoading} />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsResetDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handlePasswordReset} disabled={uiLoading}>
+                    {uiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send Reset Link"}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
