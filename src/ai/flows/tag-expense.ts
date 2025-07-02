@@ -29,18 +29,6 @@ export async function tagExpense(input: TagExpenseInput): Promise<TagExpenseOutp
   return tagExpenseFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'tagExpensePrompt',
-  input: {schema: TagExpenseInputSchema},
-  output: {schema: TagExpenseOutputSchema},
-  prompt: `You are an expert financial advisor. Your job is to categorize expenses based on their description and amount.
-
-  Description: {{{description}}}
-  Amount: {{{amount}}}
-
-  Respond with JSON object conforming to specified schema, and include a confidence score between 0 and 1. Category should be a simple, single-word label such as "Food", "Transportation", or "Entertainment".`,
-});
-
 const tagExpenseFlow = ai.defineFlow(
   {
     name: 'tagExpenseFlow',
@@ -48,7 +36,21 @@ const tagExpenseFlow = ai.defineFlow(
     outputSchema: TagExpenseOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const promptText = `You are an expert financial advisor. Your job is to categorize expenses based on their description and amount.
+
+  Description: ${input.description}
+  Amount: ${input.amount}
+
+  Respond with JSON object conforming to specified schema, and include a confidence score between 0 and 1. Category should be a simple, single-word label such as "Food", "Transportation", or "Entertainment".`;
+
+    const { output } = await ai.generate({
+        model: 'googleai/gemini-2.0-flash',
+        prompt: promptText,
+        output: {
+            schema: TagExpenseOutputSchema,
+        },
+    });
+    
     return output!;
   }
 );

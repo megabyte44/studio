@@ -34,43 +34,6 @@ export async function chat(input: Omit<ChatInput, 'apiKey'>): Promise<ChatOutput
   return chatFlow(flowInput);
 }
 
-const chatPrompt = ai.definePrompt({
-  name: 'chatPrompt',
-  input: { schema: ChatFlowInputSchema },
-  model: 'googleai/gemini-2.0-flash',
-
-  // The 'system' property is the correct place for system-level instructions.
-  // We use handlebars to conditionally include user data.
-  system: `You are LifeOS, an AI assistant. Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.
-{{#if userData}}
-
-The user has provided the following data from their LifeOS app. Use this data to answer their questions. Be helpful and proactive. Today's date is ${new Date().toISOString().split('T')[0]}.
-
-USER DATA:
-{{{userData}}}
-{{/if}}`,
-
-  // The prompt can be a function that returns an array of MessageData,
-  // which is perfect for chat applications.
-  prompt: (input) => {
-    const history: ChatMessage[] = input.history || [];
-
-    const messages: MessageData[] = history.map(msg => ({
-      role: msg.role,
-      content: [{ text: msg.content }]
-    }));
-
-    messages.push({
-      role: 'user',
-      content: [{ text: input.message }]
-    });
-    
-    // Returning an array of MessageData from the prompt function
-    // is the way to construct a chat history for the model.
-    return messages;
-  }
-});
-
 const chatFlow = ai.defineFlow(
   {
     name: 'chatFlow',
@@ -78,7 +41,26 @@ const chatFlow = ai.defineFlow(
     outputSchema: ChatFlowOutputSchema,
   },
   async (input) => {
-    const response = await chatPrompt(input);
+    const history: ChatMessage[] = input.history || [];
+    const messages: MessageData[] = history.map(msg => ({
+      role: msg.role,
+      content: [{ text: msg.content }]
+    }));
+
+    const systemInstruction = `You are LifeOS, an AI assistant. Respond concisely. Give clear, concise explanations in simple language. Avoid complex words and unnecessary details. Use bullet points or short paragraphs. Keep answers easy to read and under 5 sentences when possible.${input.userData ? `
+
+The user has provided the following data from their LifeOS app. Use this data to answer their questions. Be helpful and proactive. Today's date is ${new Date().toISOString().split('T')[0]}.
+
+USER DATA:
+${input.userData}` : ''}`;
+    
+    const response = await ai.generate({
+      model: 'googleai/gemini-2.0-flash',
+      system: systemInstruction,
+      history: messages,
+      prompt: input.message,
+    });
+    
     return { content: response.text };
   }
 );
