@@ -5,14 +5,15 @@
  * @fileOverview A conversational AI agent.
  *
  * - chat - A function that handles a chat conversation turn.
+ * - ChatInput - The input type for the chat function.
+ * - ChatOutput - The return type for the chat function.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import type { ChatMessage } from '@/types';
 import type { MessageData } from 'genkit';
 
-const ChatFlowInputSchema = z.object({
+const ChatInputSchema = z.object({
   history: z.array(z.object({
     role: z.enum(['user', 'model']),
     content: z.string()
@@ -20,19 +21,26 @@ const ChatFlowInputSchema = z.object({
   message: z.string(),
   userData: z.string().optional(),
 });
+export type ChatInput = z.infer<typeof ChatInputSchema>;
 
-const ChatFlowOutputSchema = z.object({
+const ChatOutputSchema = z.object({
   content: z.string(),
 });
+export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
-export const chat = ai.defineFlow(
+
+export async function chat(input: ChatInput): Promise<ChatOutput> {
+  return chatFlow(input);
+}
+
+const chatFlow = ai.defineFlow(
   {
     name: 'chatFlow',
-    inputSchema: ChatFlowInputSchema,
-    outputSchema: ChatFlowOutputSchema,
+    inputSchema: ChatInputSchema,
+    outputSchema: ChatOutputSchema,
   },
   async (input) => {
-    const history: ChatMessage[] = input.history || [];
+    const history = input.history || [];
     const messages: MessageData[] = history.map(msg => ({
       role: msg.role,
       content: [{ text: msg.content }]

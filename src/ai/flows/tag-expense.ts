@@ -26,7 +26,11 @@ const TagExpenseOutputSchema = z.object({
 });
 export type TagExpenseOutput = z.infer<typeof TagExpenseOutputSchema>;
 
-export const tagExpense = ai.defineFlow(
+export async function tagExpense(input: TagExpenseInput): Promise<TagExpenseOutput> {
+    return tagExpenseFlow(input);
+}
+
+const tagExpenseFlow = ai.defineFlow(
   {
     name: 'tagExpenseFlow',
     inputSchema: TagExpenseInputSchema,
