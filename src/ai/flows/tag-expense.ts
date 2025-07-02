@@ -12,7 +12,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const TagExpenseInputSchema = z.object({
   description: z.string().describe('The description of the expense.'),
