@@ -119,7 +119,7 @@ export type Notification = {
 
 // Types for AI Chat
 export type ChatMessage = {
-  role: 'user' | 'model';
+  role: 'user' | 'model' | 'system' | 'tool';
   content: string;
 };
 
