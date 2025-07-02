@@ -3,7 +3,7 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Wallet, CalendarCheck, ListChecks, GlassWater, Settings, Sparkles } from 'lucide-react';
+import { PlusCircle, Trash2, Wallet, CalendarCheck, ListChecks, GlassWater, Settings } from 'lucide-react';
 import { P_TODO_ITEMS, P_HABITS, P_TRANSACTIONS } from '@/lib/placeholder-data';
 import type { PlannerItem, TodoItem, Habit, Transaction } from '@/types';
 import { useState, useEffect } from 'react';
@@ -14,7 +14,6 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { format, isSameDay, parseISO, startOfMonth, parse } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -122,9 +121,7 @@ function WaterIntakeWidget({ now }: { now: Date }) {
         <div className="flex items-center gap-1">
             <p className="text-sm text-muted-foreground"> {glassesToday} of {TARGET_GLASSES} glasses </p>
              <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <DialogTrigger asChild>
-                     <Button variant="ghost" size="icon" className="h-7 w-7"><Settings className="h-4 w-4" /></Button>
-                </DialogTrigger>
+                <DialogTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7"><Settings className="h-4 w-4" /></Button></DialogTrigger>
                 <DialogContent className="p-4 w-[270px] h-[210px] flex flex-col justify-between rounded-xl">
                     <DialogHeader>
                         <DialogTitle>Set Water Intake Goal</DialogTitle>
@@ -377,7 +374,6 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <Link href="/ai-chat"><Button variant="default" size="icon" className="fixed top-20 right-4 h-[50px] w-[50px] rounded-full shadow-lg z-40" aria-label="AI Action"><Sparkles className="h-6 w-6" /></Button></Link>
       <div className="space-y-4">
         <header>
           {username ? (
