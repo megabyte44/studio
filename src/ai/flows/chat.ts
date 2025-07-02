@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import type { ChatInput, ChatOutput, ChatMessage } from '@/types';
+import type { ChatMessage } from '@/types';
 import type { MessageData } from 'genkit';
 
 const ChatFlowInputSchema = z.object({
@@ -25,16 +25,7 @@ const ChatFlowOutputSchema = z.object({
   content: z.string(),
 });
 
-export async function chat(input: Omit<ChatInput, 'apiKey'>): Promise<ChatOutput> {
-  const flowInput = {
-    history: input.history || [],
-    message: input.message,
-    userData: input.userData,
-  };
-  return chatFlow(flowInput);
-}
-
-const chatFlow = ai.defineFlow(
+export const chat = ai.defineFlow(
   {
     name: 'chatFlow',
     inputSchema: ChatFlowInputSchema,
