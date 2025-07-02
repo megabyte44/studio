@@ -56,9 +56,10 @@ export default function ProfilePage() {
     if (!user || !username.trim()) return;
     setIsLoading(true);
     const userDocRef = doc(db, 'users', user.uid);
+    const finalUsername = username.trim();
     try {
-        await setDoc(userDocRef, { username: username.trim() }, { merge: true });
-        toast({ title: "Success", description: "Your username has been updated." });
+        await setDoc(userDocRef, { username: finalUsername }, { merge: true });
+        toast({ title: "Success", description: `Your username has been updated to ${finalUsername}.` });
     } catch(e) {
         toast({ variant: 'destructive', title: "Error", description: "Could not save your username." });
     } finally {
@@ -107,7 +108,7 @@ export default function ProfilePage() {
       await reauthenticateWithCredential(user, credential);
       await updateEmail(user, newEmail);
       await setDoc(doc(db, 'users', user.uid), { email: newEmail }, { merge: true });
-      toast({ title: 'Email updated!', description: 'Your email address has been successfully changed.' });
+      toast({ title: 'Email updated!', description: `Your email address has been successfully changed to ${newEmail}.` });
       setNewEmail('');
       setCurrentPassword('');
     } catch (error: any) {
