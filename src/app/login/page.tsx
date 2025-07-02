@@ -108,13 +108,13 @@ export default function LoginPage() {
     setUiLoading(true);
     try {
       await sendPasswordResetEmail(auth, resetEmail);
-      toast({ title: 'Password reset email sent', description: 'Check your inbox for instructions to reset your password.' });
+      toast({ title: 'Password reset email sent', description: 'Check your inbox (and spam folder) for instructions to reset your password.' });
       setIsResetDialogOpen(false);
       setResetEmail('');
     } catch (error: any) {
       console.error("Password reset error:", error);
       let description = "Could not send password reset email. Please try again later.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
         description = "No account found with that email address.";
       }
       toast({ variant: "destructive", title: "Request Failed", description });
