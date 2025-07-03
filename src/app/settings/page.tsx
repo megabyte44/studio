@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell, ShieldCheck, Save, Download, Upload, BellDot, Palette } from 'lucide-react';
+import { Dumbbell, Save, Download, Upload, BellDot, Palette } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -383,12 +383,6 @@ export default function SettingsPage() {
 
             <BackupAndRestore />
             
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5" />AI API Key Management</CardTitle>
-                    <CardDescription>The application is now configured to use a secure, server-side API key. No action is needed from you.</CardDescription>
-                </CardHeader>
-            </Card>
       </div>
     </AppLayout>
   );

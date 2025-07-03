@@ -18,7 +18,6 @@ import {
   CalendarDays,
   Bell,
   Loader2,
-  Sparkles,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -140,10 +139,6 @@ function UserNav({ user, username, photoURL, onLogout }: { user: User, username:
               <span>Edit Profile</span>
             </DropdownMenuItem>
            )}
-          <DropdownMenuItem onSelect={() => router.push('/ai-chat')}>
-            <Sparkles className="mr-2 h-4 w-4" />
-            <span>AI Chat</span>
-          </DropdownMenuItem>
            <DropdownMenuItem onSelect={() => router.push('/planner')}>
             <CalendarDays className="mr-2 h-4 w-4" />
             <span>Daily Planner</span>
