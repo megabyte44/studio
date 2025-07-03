@@ -76,7 +76,14 @@ const SPECIAL_HABIT_ICONS = ['GlassWater', 'Dumbbell', 'Beef', 'Pill'];
 
 const useWorkoutDayInfo = (cyclicalWorkoutSplit: CyclicalWorkoutSplit, cycleConfig: CycleConfig) => {
     return useCallback((date: Date) => {
-        const cycleWorkoutKeys = Object.keys(cyclicalWorkoutSplit);
+        const cycleWorkoutKeys = Object.keys(cyclicalWorkoutSplit).sort((a, b) => {
+            const numA = parseInt(a.split(' ')[1], 10);
+            const numB = parseInt(b.split(' ')[1], 10);
+            if (isNaN(numA) || isNaN(numB)) {
+                return a.localeCompare(b);
+            }
+            return numA - numB;
+        });
         const cycleLength = cycleWorkoutKeys.length;
         if (!cycleConfig.startDate || !cycleConfig.startDayKey || cycleLength === 0) {
             return { key: "N/A", title: "Cycle Not Configured", exercises: [], isRestDay: false };
@@ -212,7 +219,7 @@ function GymTracker({
                     <FoodLogCard 
                       loggedItems={loggedFoodItems}
                       onLoggedItemsChange={onLoggedFoodItemsChange}
-                      customItems={customFoodItems}
+                      customItems={customItems}
                       onManageItems={onManageCustomFoodItems}
                     />
                 </div>
@@ -570,6 +577,15 @@ function GymSettingsDialog({
       setEditedConfig(JSON.parse(JSON.stringify(cycleConfig)));
     }
   }, [isOpen, workoutSplit, cycleConfig]);
+  
+  const sortedEntries = useMemo(() => Object.entries(editedSplit).sort((a, b) => {
+    const numA = parseInt(a[0].split(' ')[1], 10);
+    const numB = parseInt(b[0].split(' ')[1], 10);
+    if (isNaN(numA) || isNaN(numB)) {
+        return a[0].localeCompare(b[0]);
+    }
+    return numA - numB;
+  }), [editedSplit]);
 
   const handleDayTitleChange = (dayKey: string, newTitle: string) => {
     setEditedSplit((prev) => ({
@@ -669,7 +685,7 @@ function GymSettingsDialog({
               </TabsList>
               <TabsContent value="plan" className="mt-2">
                 <Accordion type="multiple" className="w-full space-y-1">
-                  {Object.entries(editedSplit).map(([dayKey, dayData]) => (
+                  {sortedEntries.map(([dayKey, dayData]) => (
                     <AccordionItem
                       value={dayKey}
                       key={dayKey}
@@ -838,13 +854,13 @@ function GymSettingsDialog({
                         <SelectValue placeholder="Select a day" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.keys(editedSplit).map((dayKey) => (
+                        {sortedEntries.map(([dayKey, dayData]) => (
                           <SelectItem
                             key={dayKey}
                             value={dayKey}
                             className="text-xs"
                           >
-                            {dayKey}: {editedSplit[dayKey].title}
+                            {dayKey}: {dayData.title}
                           </SelectItem>
                         ))}
                       </SelectContent>
