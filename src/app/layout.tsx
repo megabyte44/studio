@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -41,32 +42,32 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link
           rel="apple-touch-startup-image"
-          href="/favicon.jpeg"
+          href="/splash-screen.jpeg"
           media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
         />
         <link
           rel="apple-touch-startup-image"
-          href="/favicon.jpeg"
+          href="/splash-screen.jpeg"
           media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
         />
         <link
           rel="apple-touch-startup-image"
-          href="/favicon.jpeg"
+          href="/splash-screen.jpeg"
           media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
         />
         <link
           rel="apple-touch-startup-image"
-          href="/favicon.jpeg"
+          href="/splash-screen.jpeg"
           media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
         />
         <link
           rel="apple-touch-startup-image"
-          href="/favicon.jpeg"
+          href="/splash-screen.jpeg"
           media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
         />
         <link
           rel="apple-touch-startup-image"
-          href="/favicon.jpeg"
+          href="/splash-screen.jpeg"
           media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
         />
 
