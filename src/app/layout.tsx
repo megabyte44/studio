@@ -41,39 +41,33 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link
           rel="apple-touch-startup-image"
-          href="https://placehold.co/1284x2778.png"
+          href="/favicon.jpeg"
           media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-          data-ai-hint="app logo"
         />
         <link
           rel="apple-touch-startup-image"
-          href="https://placehold.co/2778x1284.png"
+          href="/favicon.jpeg"
           media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-          data-ai-hint="app logo"
         />
         <link
           rel="apple-touch-startup-image"
-          href="https://placehold.co/1170x2532.png"
+          href="/favicon.jpeg"
           media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-          data-ai-hint="app logo"
         />
         <link
           rel="apple-touch-startup-image"
-          href="https://placehold.co/2532x1170.png"
+          href="/favicon.jpeg"
           media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
-          data-ai-hint="app logo"
         />
         <link
           rel="apple-touch-startup-image"
-          href="https://placehold.co/2048x2732.png"
+          href="/favicon.jpeg"
           media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-          data-ai-hint="app logo"
         />
         <link
           rel="apple-touch-startup-image"
-          href="https://placehold.co/2732x2048.png"
+          href="/favicon.jpeg"
           media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
-          data-ai-hint="app logo"
         />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
