@@ -33,6 +33,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#8a7ff2" />
+        <link rel="icon" href="/favicon.jpeg" sizes="any" />
+        <link rel="apple-touch-icon" href="/favicon.jpeg" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
