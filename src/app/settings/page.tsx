@@ -382,6 +382,12 @@ export default function SettingsPage() {
             <PushNotificationManager />
 
             <BackupAndRestore />
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5" />AI API Key Management</CardTitle>
+                    <CardDescription>The application is now configured to use a secure, server-side API key. No action is needed from you.</CardDescription>
+                </CardHeader>
+            </Card>
             
       </div>
     </AppLayout>

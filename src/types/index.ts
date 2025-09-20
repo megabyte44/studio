@@ -1,5 +1,5 @@
 
-
+import { z } from 'zod';
 export type PlannerItem = {
   id:string;
   startTime: string; // "HH:mm"
@@ -116,3 +116,26 @@ export type Notification = {
   message: string;
   read: boolean;
 };
+
+// Types for AI Chat
+export type ChatMessage = {
+  role: 'user' | 'model' | 'system' | 'tool';
+  content: string;
+};
+
+export const ChatInputSchema = z.object({
+  history: z.array(
+    z.object({
+      role: z.enum(['user', 'model']),
+      content: z.string(),
+    })
+  ),
+  message: z.string(),
+  userData: z.string().optional(),
+});
+export type ChatInput = z.infer<typeof ChatInputSchema>;
+
+export const ChatOutputSchema = z.object({
+  content: z.string(),
+});
+export type ChatOutput = z.infer<typeof ChatOutputSchema>;
